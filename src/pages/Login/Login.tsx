@@ -28,17 +28,17 @@ function Login() {
         <form className={styles.form}>
           <div className={styles.formGroup}>
             <label htmlFor="fullname">Full name*</label>
-            <input type="text" id="fullname" placeholder="John Doe" />
+            <input type="text" id="fullname" placeholder="Juan Dela Cruz" />
           </div>
 
           <div className={styles.formGroup}>
             <label htmlFor="schoolId">School ID*</label>
-            <input type="text" id="schoolId" placeholder="21-104" />
+            <input type="text" id="schoolId" placeholder="24-1478" />
           </div>
 
           <div className={styles.formGroup}>
             <label htmlFor="email">Email Address*</label>
-            <input type="email" id="email" placeholder="johndoe@gmail.com" />
+            <input type="email" id="email" placeholder="juandelacruz@gmail.com" />
           </div>
 
           <div className={styles.formGroup}>
