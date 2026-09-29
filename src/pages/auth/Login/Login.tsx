@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { loginUser } from "../api/authApi";
 
 function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   
   // Modal States
   const [isSuccess, setIsSuccess] = useState(false);
@@ -37,31 +39,50 @@ function Login() {
     return () => clearInterval(timer);
   }, [isLocked, timeLeft]);
 
-  // Handle Login Logic
-  const handleLogin = (e: React.FormEvent) => {
+  // Handle Login Logic with real backend API
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isFormDisabled || isLoading) return;
 
-    // Sample logic for testing different modal responses
-    if (email === "suspended@gmail.com") {
-      setIsSuspended(true);
-    } else if (email === "user@gmail.com" && password === "123456") {
-      setErrorMessage("");
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const res = await loginUser({ identifier: email, password });
+
+      // Save token and user details
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+
       setIsSuccess(true);
-      
-      // Auto-redirect paglipas ng 2.5 seconds
+      setFailedAttempts(0);
+
+      // Auto-redirect to dashboard after 2 seconds
       setTimeout(() => {
         navigate("/dashboard");
-      }, 2500);
-    } else {
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
+      }, 2000);
+    } catch (err: any) {
+      const status = err.response?.data?.status;
+      const message = err.response?.data?.message || "Invalid credentials. Please try again.";
 
-      if (newAttempts >= 5) {
+      if (status === "Suspended") {
+        setIsSuspended(true);
+      } else if (status === "Locked") {
         setIsLocked(true);
-        setErrorMessage("Account locked due to multiple failed attempts.");
+        setErrorMessage("Account is temporarily locked.");
       } else {
-        setErrorMessage(`Invalid credentials. Please try again. (${newAttempts}/5 attempts)`);
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+
+        if (newAttempts >= 5) {
+          setIsLocked(true);
+          setErrorMessage("Account locked due to multiple failed attempts.");
+        } else {
+          setErrorMessage(message);
+        }
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -187,10 +208,10 @@ function Login() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isFormDisabled}
+              disabled={isFormDisabled || isLoading}
               className="mt-2 w-full bg-[#0053CC] py-5 text-sm font-semibold text-white hover:bg-[#0053CC]/90 disabled:opacity-50"
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 

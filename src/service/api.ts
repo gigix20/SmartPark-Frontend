@@ -1,7 +1,2 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "http://localhost:5000/api",
-});
-
-export default api;
+// Re-export canonical shared axios instance from src/api/axios
+export { default } from "../api/axios";
