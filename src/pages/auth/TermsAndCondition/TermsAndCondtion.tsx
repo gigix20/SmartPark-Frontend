@@ -233,14 +233,14 @@ export default function TermsAndCondition() {
               I have read, understood, and accept the Terms &amp; Data Privacy Policy
             </label>
           </div>
-
+ 
           <div className="flex items-center justify-end gap-3 pt-1">
             <Button
               type="button"
               variant="ghost"
               onClick={() => navigate("/")}
-              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs px-5 py-2.5 rounded-xl"
-            >
+              className="w-22 h-8 rounded-xl border border-slate-200 text-[#0053CC] bg-white hover:bg-slate-50 font-semibold text-xs">
+           
               Decline
             </Button>
             

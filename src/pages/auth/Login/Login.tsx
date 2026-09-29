@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
-import logo from "../../assets/logo.svg";
+import logo from "../../../assets/smartpark-logo.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,19 +110,19 @@ function Login() {
       </div>
 
       {/* Right Panel */}
-      <div className="flex w-full flex-col justify-center bg-[#F3F4F6] px-8 py-12 md:w-1/2 md:px-16 lg:px-24">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg md:p-10">
-          <h2 className="font-poppins text-[28px] font-semibold text-slate-900">Log In</h2>
-          <p className="mt-2 text-sm text-[#9E9E9E]">
+      <div className="flex w-full flex-col justify-center bg-white font-sans px-8 py-12 md:w-1/2 md:px-16 lg:px-24">
+        <div className="text-center">
+          <h2 className="font-poppins text-3xl font-extrabold text-slate-900">Log In</h2>
+          <p className="mt-2 text-xs text-slate-500">
             Enter your credentials to manage your parking access.
           </p>
 
           {/* Form */}
-          <form className="mt-8 flex flex-col gap-5" onSubmit={handleLogin}>
+          <form className="mt-6 flex flex-col gap-6" onSubmit={handleLogin}>
             
             {/* Email / ID Input */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email" className="font-semibold text-slate-800">
+              <Label htmlFor="email" className="text-xs font-semibold text-slate-800">
                 Email Address or School ID<span className="text-[#EF4444]">*</span>
               </Label>
               <Input
@@ -131,7 +131,7 @@ function Login() {
                 placeholder="juandelacruz@gmail.com or 24-1478"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`focus-visible:ring-[#0053CC] ${errorMessage ? "border-[#EF4444]" : ""}`}
+                className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
                 required
                 disabled={isFormDisabled}
               />
@@ -139,7 +139,7 @@ function Login() {
 
             {/* Password Input Field */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password" className="font-semibold text-slate-800">
+              <Label htmlFor="password" className="text-xs font-semibold text-slate-800">
                 Password<span className="text-[#EF4444]">*</span>
               </Label>
               <div className="relative">
@@ -149,7 +149,7 @@ function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`pr-10 focus-visible:ring-[#0053CC] ${errorMessage ? "border-[#EF4444]" : ""}`}
+                  className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
                   required
                   disabled={isFormDisabled}
                 />
@@ -179,9 +179,9 @@ function Login() {
                   Remember this device
                 </Label>
               </div>
-              <a href="#" className="font-medium text-[#0053CC] hover:underline">
+              <Link to="/forgot-password" className="font-medium text-[#0053CC] hover:underline">
                 Forgot Password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}
@@ -197,7 +197,7 @@ function Login() {
           {/* Footer Links */}
           <p className="mt-6 text-sm text-slate-700">
             New user?{" "}
-            <Link to="/register" className="font-semibold text-[#0053CC] underline">
+            <Link to="/register" className="font-semibold text-[#0053CC] hover:underline">
               Register your vehicle
             </Link>
           </p>
