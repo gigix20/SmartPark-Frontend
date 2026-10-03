@@ -74,6 +74,7 @@ export default function ForgotPassword() {
           >
             Continue
           </Button>
+          
 
           {/* Cancel Button */}
           <Button

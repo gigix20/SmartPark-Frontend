@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,52 +11,100 @@ import { Checkbox } from "@/components/ui/checkbox";
 import logo from "@/assets/smartpark-logo.svg";
 import { registerUser } from "../api/authApi";
 
+// Zod Validation Schema
+const registerSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(2, "First Name must be at least 2 characters."),
+    lastName: z
+      .string()
+      .min(2, "Last Name must be at least 2 characters."),
+    email: z
+      .string()
+      .email("Invalid email address format.")
+      .refine((val) => val.toLowerCase().endsWith("@gmail.com"), {
+        message: "Please use a valid Gmail address (@gmail.com).",
+      }),
+    schoolId: z
+      .string()
+      .min(1, "Student / Employee ID is required."),
+    phone: z.string().optional(),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long.")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter (A-Z).")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter (a-z).")
+      .regex(/[0-9]/, "Password must contain at least one number (0-9)."),
+    confirmPassword: z.string().min(1, "Please confirm your password."),
+    declaration: z.boolean().refine((val) => val === true, {
+      message: "Please confirm that the information provided is correct.",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match. Please re-enter.",
+    path: ["confirmPassword"],
+  });
+
+type RegisterFormData = z.infer<typeof registerSchema>;
+
 function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Form Fields State
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [schoolId, setSchoolId] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [declaration, setDeclaration] = useState(false);
 
   // Status & Feedback States
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // React Hook Form Setup
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      schoolId: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      declaration: false,
+    },
+  });
+
+  // Watch field values for custom formatting
+  const watchFirstName = watch("firstName");
+  const watchLastName = watch("lastName");
+  const watchSchoolId = watch("schoolId");
+  const watchPhone = watch("phone");
+  const watchDeclaration = watch("declaration");
+
+  // Helper function to format names (capitalize first letter & remove numbers/symbols)
+  const formatName = (value: string) => {
+    const cleaned = value.replace(/[^a-zA-Z\s-]/g, "");
+    return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const handleRegister = async (data: RegisterFormData) => {
     setErrorMessage("");
-
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match. Please re-enter.");
-      return;
-    }
-
-    if (!declaration) {
-      setErrorMessage(
-        "Please confirm that the information provided is correct.",
-      );
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       const res = await registerUser({
-        firstName,
-        lastName,
-        email,
-        schoolId,
-        phone: phone.trim() ? phone.trim() : undefined,
-        password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        schoolId: data.schoolId,
+        phone: data.phone?.trim() ? data.phone.trim() : undefined,
+        password: data.password,
       });
 
       // Store authenticated session
@@ -76,6 +127,9 @@ function Register() {
     }
   };
 
+  // Kunin ang unang lumabas na error message mula sa Zod validation
+  const firstError = Object.values(errors)[0]?.message || errorMessage;
+
   return (
     <div className="flex min-h-screen w-full bg-white font-sans">
       {/* Left Side: Registration Form */}
@@ -91,14 +145,14 @@ function Register() {
         </div>
 
         {/* Error Notification */}
-        {errorMessage && (
+        {firstError && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
-            {errorMessage}
+            {firstError}
           </div>
         )}
 
         {/* Form Inputs */}
-        <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleRegister}>
+        <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleSubmit(handleRegister)}>
           {/* First Name & Last Name (Side by Side) */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
@@ -111,10 +165,14 @@ function Register() {
               <Input
                 id="firstName"
                 placeholder="Enter your first name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                value={watchFirstName}
+                {...register("firstName")}
+                onChange={(e) =>
+                  setValue("firstName", formatName(e.target.value), {
+                    shouldValidate: true,
+                  })
+                }
                 className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
-                required
                 disabled={isLoading || isSuccess}
               />
             </div>
@@ -129,10 +187,14 @@ function Register() {
               <Input
                 id="lastName"
                 placeholder="Enter your last name"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                value={watchLastName}
+                {...register("lastName")}
+                onChange={(e) =>
+                  setValue("lastName", formatName(e.target.value), {
+                    shouldValidate: true,
+                  })
+                }
                 className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
-                required
                 disabled={isLoading || isSuccess}
               />
             </div>
@@ -149,11 +211,9 @@ function Register() {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your QCU email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your Gmail address"
+              {...register("email")}
               className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
-              required
               disabled={isLoading || isSuccess}
             />
           </div>
@@ -168,11 +228,19 @@ function Register() {
             </Label>
             <Input
               id="schoolId"
-              placeholder="Enter QCU identification number"
-              value={schoolId}
-              onChange={(e) => setSchoolId(e.target.value)}
+              placeholder="00-0000"
+              value={watchSchoolId}
+              {...register("schoolId")}
+              onChange={(e) => {
+                let value = e.target.value.replace(/\D/g, ""); // numbers only
+
+                if (value.length > 2) {
+                  value = value.slice(0, 2) + "-" + value.slice(2, 6);
+                }
+
+                setValue("schoolId", value, { shouldValidate: true });
+              }}
               className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
-              required
               disabled={isLoading || isSuccess}
             />
           </div>
@@ -188,9 +256,23 @@ function Register() {
             </Label>
             <Input
               id="phone"
-              placeholder="0912 345 6789"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              placeholder="09XX XXX XXXX"
+              value={watchPhone}
+              {...register("phone")}
+              onChange={(e) => {
+                let value = e.target.value.replace(/\D/g, "");
+                if (value.length >= 1 && value[0] !== "0") {
+                  return;
+                }
+                if (value.length >= 2 && !value.startsWith("09")) {
+                  return;
+                }
+
+                setValue("phone", value.slice(0, 11), {
+                  shouldValidate: true,
+                });
+              }}
+              maxLength={11}
               className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
               disabled={isLoading || isSuccess}
             />
@@ -208,11 +290,9 @@ function Register() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a strong password (min 6 chars)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Create a strong password (min 8 chars)"
+                {...register("password")}
                 className="h-10 rounded-xl bg-white pr-10 text-xs shadow-sm focus-visible:ring-[#0053CC]"
-                required
                 disabled={isLoading || isSuccess}
               />
               <button
@@ -243,10 +323,8 @@ function Register() {
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Repeat your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                {...register("confirmPassword")}
                 className="h-10 rounded-xl bg-white pr-10 text-xs shadow-sm focus-visible:ring-[#0053CC]"
-                required
                 disabled={isLoading || isSuccess}
               />
               <button
@@ -268,8 +346,12 @@ function Register() {
           <div className="mt-1 flex items-center gap-2">
             <Checkbox
               id="declaration"
-              checked={declaration}
-              onCheckedChange={(checked) => setDeclaration(checked === true)}
+              checked={watchDeclaration}
+              onCheckedChange={(checked) =>
+                setValue("declaration", checked === true, {
+                  shouldValidate: true,
+                })
+              }
               className="data-[state=checked]:bg-[#0053CC]"
               disabled={isLoading || isSuccess}
             />
@@ -303,7 +385,7 @@ function Register() {
 
           <p className="text-center text-[10px] text-slate-400">
             By registering, you agree to SmartPark's{" "}
-            <Link to="/terms-and-conditions" className="underline">
+            <Link to="/terms-and-conditions" className="underline hover:text-slate-700 transition-colors">
               Terms & Conditions
             </Link>
           </p>
@@ -311,7 +393,7 @@ function Register() {
       </div>
 
       {/* Right Side: Blue Gradient Banner (Full height, rounded-r-3xl) */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden rounded-r-3xl bg-gradient-to-b from-[#d0e1ff] via-[#4a82f6] to-[#1d58d8] p-10 text-white md:flex">
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden rounded-r-3xl bg-linear-to-b from-[#d0e1ff] via-[#4a82f6] to-[#1d58d8] p-10 text-white md:flex">
         <div />
 
         {/* Logo & Branding */}
