@@ -115,7 +115,7 @@ function Register() {
 
       // Auto-redirect to dashboard after 2 seconds
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/Login");
       }, 2000);
     } catch (err: any) {
       const message =
@@ -430,15 +430,15 @@ function Register() {
               Account Created!
             </h3>
             <p className="mt-1 text-xs text-slate-400">
-              Welcome to QCU SmartPark. Redirecting to your dashboard...
+              Welcome to QCU SmartPark. Redirecting to your login page...
             </p>
 
             <Button
               type="button"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/Login")}
               className="mt-6 w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-sm"
             >
-              Continue to Dashboard
+              Continue to Login
             </Button>
           </div>
         </div>
