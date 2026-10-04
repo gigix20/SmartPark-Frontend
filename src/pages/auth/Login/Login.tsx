@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
-import logo from "../../../assets/smartpark-logo.svg";
+import logo from "@/assets/smartpark-logo.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,7 +59,7 @@ function Login() {
 
       // Auto-redirect to dashboard after 2 seconds
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/StudentHome");
       }, 2000);
     } catch (err: any) {
       const status = err.response?.data?.status;
@@ -87,7 +87,7 @@ function Login() {
   };
 
   const handleContinue = () => {
-    navigate("/dashboard");
+    navigate("/StudentHome");
   };
 
   const handleAppeal = () => {
