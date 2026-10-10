@@ -32,6 +32,17 @@ export interface RegisterData {
   password: string;
 }
 
+// Admin-only registration data (includes role for privileged accounts)
+export interface AdminRegisterData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  schoolId: string;
+  phone?: string;
+  password: string;
+  role: "GUARD" | "ADMIN";
+}
+
 // 1. Log in existing user
 export async function loginUser(credentials: LoginCredentials): Promise<AuthResponse> {
   const response = await api.post<AuthResponse>("/login", credentials);
@@ -54,4 +65,10 @@ export async function getCurrentUser(): Promise<{ success: boolean; user: User }
 export function logoutUser(): void {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
+}
+
+// 5. Admin-only register privileged account
+export async function registerAdminUser(data: AdminRegisterData): Promise<AuthResponse> {
+  const response = await api.post<AuthResponse>("/admin-register", data);
+  return response.data;
 }

@@ -23,6 +23,22 @@ function Login() {
   const [isLocked, setIsLocked] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes (300s)
 
+  // Check persistent lockout on mount
+  useEffect(() => {
+    const lockUntilStr = sessionStorage.getItem("smartpark_lock_until");
+    if (lockUntilStr) {
+      const lockUntil = parseInt(lockUntilStr, 10);
+      const diff = Math.ceil((lockUntil - Date.now()) / 1000);
+      if (diff > 0) {
+        setIsLocked(true);
+        setTimeLeft(diff);
+        setErrorMessage("Account is temporarily locked.");
+      } else {
+        sessionStorage.removeItem("smartpark_lock_until");
+      }
+    }
+  }, []);
+
   // Countdown Timer Logic
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -35,6 +51,7 @@ function Login() {
       setFailedAttempts(0);
       setTimeLeft(300);
       setErrorMessage("");
+      sessionStorage.removeItem("smartpark_lock_until");
     }
     return () => clearInterval(timer);
   }, [isLocked, timeLeft]);
@@ -54,13 +71,25 @@ function Login() {
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
 
+      // Helper to navigate based on role
+      const redirectByRole = (role: string) => {
+        const normalizedRole = role.toUpperCase();
+        if (normalizedRole === "ADMIN") {
+          navigate("/admin");
+        } else if (normalizedRole === "GUARD") {
+          navigate("/guard");
+        } else {
+          navigate("/StudentHome");
+        }
+      };
+
       setIsSuccess(true);
       setFailedAttempts(0);
 
-      // Auto-redirect to dashboard after 2 seconds
+      // Auto-redirect to dashboard after 1.5 seconds
       setTimeout(() => {
-        navigate("/StudentHome");
-      }, 2000);
+        redirectByRole(res.user.role);
+      }, 1500);
     } catch (err: any) {
       const status = err.response?.data?.status;
       const message = err.response?.data?.message || "Invalid credentials. Please try again.";
@@ -69,6 +98,7 @@ function Login() {
         setIsSuspended(true);
       } else if (status === "Locked") {
         setIsLocked(true);
+        sessionStorage.setItem("smartpark_lock_until", (Date.now() + 300 * 1000).toString());
         setErrorMessage("Account is temporarily locked.");
       } else {
         const newAttempts = failedAttempts + 1;
@@ -76,6 +106,7 @@ function Login() {
 
         if (newAttempts >= 5) {
           setIsLocked(true);
+          sessionStorage.setItem("smartpark_lock_until", (Date.now() + 300 * 1000).toString());
           setErrorMessage("Account locked due to multiple failed attempts.");
         } else {
           setErrorMessage(message);
@@ -87,6 +118,15 @@ function Login() {
   };
 
   const handleContinue = () => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        const u = JSON.parse(savedUser);
+        const r = u.role?.toUpperCase();
+        if (r === "ADMIN") return navigate("/admin");
+        if (r === "GUARD") return navigate("/guard");
+      } catch (e) {}
+    }
     navigate("/StudentHome");
   };
 

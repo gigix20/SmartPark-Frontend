@@ -28,7 +28,11 @@ const registerSchema = z
       }),
     schoolId: z
       .string()
-      .min(1, "Student / Employee ID is required."),
+      .trim()
+      .min(1, "Student / Employee ID is required.")
+      .regex(/^(\d{2}-\d{4}|[A-Za-z]{2}-\d{7})$/, {
+        message: "ID format must be XX-XXXX (e.g. 24-1474) or AA-XXXXXXX (e.g. AB-1234567).",
+      }),
     phone: z.string().optional(),
     password: z
       .string()
@@ -228,14 +232,14 @@ function Register() {
             </Label>
             <Input
               id="schoolId"
-              placeholder="00-0000"
+              placeholder="24-1474 or AV-1234567"
               value={watchSchoolId}
               {...register("schoolId")}
               onChange={(e) => {
-                let value = e.target.value.replace(/\D/g, ""); // numbers only
+                let value = e.target.value;
 
-                if (value.length > 2) {
-                  value = value.slice(0, 2) + "-" + value.slice(2, 6);
+                if (false) {
+                  // allowed free form input
                 }
 
                 setValue("schoolId", value, { shouldValidate: true });
