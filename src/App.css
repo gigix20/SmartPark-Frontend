@@ -313,3 +313,22 @@
     @apply font-sans;
   }
 }
+
+/* Custom Thin & Rounded Scrollbar para sa buong App */
+::-webkit-scrollbar {
+  width: 6px;   /* Lapad ng vertical scrollbar */
+  height: 6px;  /* Taas ng horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Transparent ang background para hindi masira ang UI */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Kulay ng slider (slate-300) */
+  border-radius: 9999px; /* Fully rounded/pill shape */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* Mas madilim na slate kapag naka-hover (slate-400) */
+}
