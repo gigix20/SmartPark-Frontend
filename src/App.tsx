@@ -11,7 +11,19 @@ import Reports from "./pages/student/Reports";
 import Vehicles from "./pages/student/Vehicles";
 import GuardDashboard from "./pages/guard/GuardDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProfile from "./pages/admin/AdminProfile";
+import VehicleManagement from "./pages/admin/VehicleManagement";
+import VehicleRegistration from "./pages/admin/VehicleRegistration";
+import ParkingManagement from "./pages/admin/ParkingManagement";
+import ParkingCapacity from "./pages/admin/ParkingCapacity";
+import ParkingHistory from "./pages/admin/ParkingHistory";
+import ParkingAnalytics from "./pages/admin/ParkingAnalytics";
+import IncidentManagement from "./pages/admin/IncidentManagement";
+import AccessRecords from "./pages/admin/AccessRecords";
+import AccessHistory from "./pages/admin/AccessHistory";
+import Accounts from "./pages/admin/Accounts";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+
 
 function App() {
   return (
@@ -78,15 +90,97 @@ function App() {
         />
 
         {/* ADMIN Protected Route */}
-        <Route
-          path="/admin"
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/profile" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminProfile />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/accounts" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <Accounts />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/vehicles" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <VehicleManagement />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/vehicles/registration" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <VehicleRegistration />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/parking" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ParkingManagement />
+          </ProtectedRoute>
+        } />
+
+        <Route 
+          path="/admin/parking/capacity" 
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
-              <AdminDashboard />
+              <ParkingCapacity />
             </ProtectedRoute>
-          }
+          } 
         />
-      </Routes>
+
+        <Route 
+          path="/admin/parking/history" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ParkingHistory />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/parking/analytics" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ParkingAnalytics />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/incidents" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <IncidentManagement />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/access-records" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AccessRecords />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/access-records/history" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AccessHistory />
+            </ProtectedRoute>
+          } 
+        />
+
+        </Routes>
     </BrowserRouter>
   );
 }

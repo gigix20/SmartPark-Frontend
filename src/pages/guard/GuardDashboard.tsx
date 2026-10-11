@@ -49,7 +49,7 @@ export default function GuardDashboard() {
       {/* Main Content Area */}
       <main className="mx-auto max-w-5xl p-6 sm:p-10">
         {/* Guard Welcome Banner */}
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-8 text-white shadow-lg">
+        <div className="rounded-3xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 p-8 text-white shadow-lg">
           <div className="flex flex-col gap-2">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur-xs">
               <ShieldCheck className="h-3.5 w-3.5" />

@@ -75,7 +75,7 @@ function Login() {
       const redirectByRole = (role: string) => {
         const normalizedRole = role.toUpperCase();
         if (normalizedRole === "ADMIN") {
-          navigate("/admin");
+          navigate("/admin/dashboard");
         } else if (normalizedRole === "GUARD") {
           navigate("/guard");
         } else {
@@ -123,7 +123,7 @@ function Login() {
       try {
         const u = JSON.parse(savedUser);
         const r = u.role?.toUpperCase();
-        if (r === "ADMIN") return navigate("/admin");
+        if (r === "ADMIN") return navigate("/admin/dashboard");
         if (r === "GUARD") return navigate("/guard");
       } catch (e) {}
     }
