@@ -170,7 +170,7 @@ export default function AccessRecords() {
 
             {/* Table wrapper na may min-width para sa mobile horizontal scrolling */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs min-w-[600px]">
+              <table className="w-full text-left text-xs min-w-150">
                 <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">
                   <tr>
                     <th className="pb-3">Plate No.</th>
