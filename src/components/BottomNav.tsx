@@ -16,7 +16,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4">
-      <nav className="flex w-full max-w-md items-center justify-between rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 shadow-xl backdrop-blur-md transition-all">
+      <nav className="flex w-full max-w-md items-center justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-3 py-2 shadow-xl backdrop-blur-md transition-colors duration-300">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -27,8 +27,8 @@ export function BottomNav() {
               to={item.path}
               className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all duration-200 active:scale-95 ${
                 active
-                  ? "bg-[#0053CC]/10 text-[#0053CC]"
-                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                  ? "bg-[#0053CC]/10 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400"
+                  : "text-slate-400 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200"
               }`}
             >
               <Icon
@@ -46,7 +46,7 @@ export function BottomNav() {
 
               {/* Active Indicator Dot sa Ibaba */}
               {active && (
-                <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-[#0053CC]" />
+                <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-[#0053CC] dark:bg-blue-400" />
               )}
             </Link>
           );

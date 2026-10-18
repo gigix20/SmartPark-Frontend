@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -59,7 +59,7 @@ function Register() {
 
   // Status & Feedback States
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [apiError, setApiError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
   // React Hook Form Setup
@@ -71,7 +71,7 @@ function Register() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    mode: "onSubmit",
+    mode: "onBlur", // Nagvavalidate agad kapag lumabas ng field o nag-submit
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -98,7 +98,7 @@ function Register() {
   };
 
   const handleRegister = async (data: RegisterFormData) => {
-    setErrorMessage("");
+    setApiError("");
     setIsLoading(true);
 
     try {
@@ -125,14 +125,11 @@ function Register() {
       const message =
         err.response?.data?.message ||
         "Registration failed. Please verify your details and try again.";
-      setErrorMessage(message);
+      setApiError(message);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Kunin ang unang lumabas na error message mula sa Zod validation
-  const firstError = Object.values(errors)[0]?.message || errorMessage;
 
   return (
     <div className="flex min-h-screen w-full bg-white font-sans">
@@ -148,10 +145,10 @@ function Register() {
           </p>
         </div>
 
-        {/* Error Notification */}
-        {firstError && (
+        {/* Global API Error Notification (Kung may error galing sa server/backend) */}
+        {apiError && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
-            {firstError}
+            {apiError}
           </div>
         )}
 
@@ -176,9 +173,16 @@ function Register() {
                     shouldValidate: true,
                   })
                 }
-                className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+                className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                  errors.firstName ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+                }`}
                 disabled={isLoading || isSuccess}
               />
+              {errors.firstName && (
+                <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                  <AlertCircle className="h-3 w-3 shrink-0" /> {errors.firstName.message}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -198,9 +202,16 @@ function Register() {
                     shouldValidate: true,
                   })
                 }
-                className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+                className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                  errors.lastName ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+                }`}
                 disabled={isLoading || isSuccess}
               />
+              {errors.lastName && (
+                <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                  <AlertCircle className="h-3 w-3 shrink-0" /> {errors.lastName.message}
+                </span>
+              )}
             </div>
           </div>
 
@@ -217,9 +228,16 @@ function Register() {
               type="email"
               placeholder="Enter your Gmail address"
               {...register("email")}
-              className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+              className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                errors.email ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+              }`}
               disabled={isLoading || isSuccess}
             />
+            {errors.email && (
+              <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {errors.email.message}
+              </span>
+            )}
           </div>
 
           {/* Student / Employee ID */}
@@ -236,17 +254,18 @@ function Register() {
               value={watchSchoolId}
               {...register("schoolId")}
               onChange={(e) => {
-                let value = e.target.value;
-
-                if (false) {
-                  // allowed free form input
-                }
-
-                setValue("schoolId", value, { shouldValidate: true });
+                setValue("schoolId", e.target.value, { shouldValidate: true });
               }}
-              className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+              className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                errors.schoolId ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+              }`}
               disabled={isLoading || isSuccess}
             />
+            {errors.schoolId && (
+              <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {errors.schoolId.message}
+              </span>
+            )}
           </div>
 
           {/* Phone Number (Optional) */}
@@ -265,21 +284,24 @@ function Register() {
               {...register("phone")}
               onChange={(e) => {
                 let value = e.target.value.replace(/\D/g, "");
-                if (value.length >= 1 && value[0] !== "0") {
-                  return;
-                }
-                if (value.length >= 2 && !value.startsWith("09")) {
-                  return;
-                }
+                if (value.length >= 1 && value[0] !== "0") return;
+                if (value.length >= 2 && !value.startsWith("09")) return;
 
                 setValue("phone", value.slice(0, 11), {
                   shouldValidate: true,
                 });
               }}
               maxLength={11}
-              className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+              className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                errors.phone ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+              }`}
               disabled={isLoading || isSuccess}
             />
+            {errors.phone && (
+              <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {errors.phone.message}
+              </span>
+            )}
           </div>
 
           {/* Password */}
@@ -296,7 +318,9 @@ function Register() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password (min 8 chars)"
                 {...register("password")}
-                className="h-10 rounded-xl bg-white pr-10 text-xs shadow-sm focus-visible:ring-[#0053CC]"
+                className={`h-10 rounded-xl bg-white pr-10 text-xs shadow-sm transition-colors ${
+                  errors.password ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+                }`}
                 disabled={isLoading || isSuccess}
               />
               <button
@@ -312,6 +336,11 @@ function Register() {
                 )}
               </button>
             </div>
+            {errors.password && (
+              <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {errors.password.message}
+              </span>
+            )}
           </div>
 
           {/* Confirm Password */}
@@ -328,7 +357,9 @@ function Register() {
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Repeat your password"
                 {...register("confirmPassword")}
-                className="h-10 rounded-xl bg-white pr-10 text-xs shadow-sm focus-visible:ring-[#0053CC]"
+                className={`h-10 rounded-xl bg-white pr-10 text-xs shadow-sm transition-colors ${
+                  errors.confirmPassword ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
+                }`}
                 disabled={isLoading || isSuccess}
               />
               <button
@@ -344,27 +375,39 @@ function Register() {
                 )}
               </button>
             </div>
+            {errors.confirmPassword && (
+              <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {errors.confirmPassword.message}
+              </span>
+            )}
           </div>
 
           {/* Checkbox Declaration */}
-          <div className="mt-1 flex items-center gap-2">
-            <Checkbox
-              id="declaration"
-              checked={watchDeclaration}
-              onCheckedChange={(checked) =>
-                setValue("declaration", checked === true, {
-                  shouldValidate: true,
-                })
-              }
-              className="data-[state=checked]:bg-[#0053CC]"
-              disabled={isLoading || isSuccess}
-            />
-            <Label
-              htmlFor="declaration"
-              className="cursor-pointer text-[11px] font-normal text-slate-600"
-            >
-              I confirm that the information provided is correct.
-            </Label>
+          <div className="mt-1 flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="declaration"
+                checked={watchDeclaration}
+                onCheckedChange={(checked) =>
+                  setValue("declaration", checked === true, {
+                    shouldValidate: true,
+                  })
+                }
+                className="data-[state=checked]:bg-[#0053CC]"
+                disabled={isLoading || isSuccess}
+              />
+              <Label
+                htmlFor="declaration"
+                className="cursor-pointer text-[11px] font-normal text-slate-600"
+              >
+                I confirm that the information provided is correct.
+              </Label>
+            </div>
+            {errors.declaration && (
+              <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {errors.declaration.message}
+              </span>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -396,11 +439,9 @@ function Register() {
         </form>
       </div>
 
-      {/* Right Side: Blue Gradient Banner (Full height, rounded-r-3xl) */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden rounded-r-3xl bg-linear-to-b from-[#d0e1ff] via-[#4a82f6] to-[#1d58d8] p-10 text-white md:flex">
+      {/* Right Side: Blue Gradient Banner */}
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-linear-to-b from-[#d0e1ff] via-[#4a82f6] to-[#1d58d8] p-10 text-white md:flex">
         <div />
-
-        {/* Logo & Branding */}
         <div className="flex flex-col items-center justify-center gap-4 text-center">
           <img
             src={logo}
@@ -408,8 +449,6 @@ function Register() {
             className="h-64 w-auto shrink-0 object-contain md:h-80 lg:h-112"
           />
         </div>
-
-        {/* Footer inside Right Panel */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2 overflow-hidden">

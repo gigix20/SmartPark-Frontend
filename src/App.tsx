@@ -4,6 +4,7 @@ import Register from "./pages/auth/Register/Register";
 import SuspensionAppeal from "./pages/auth/SuspensionAppeal/SuspensionAppeal";
 import TermsAndCondition from "./pages/auth/TermsAndCondition/TermsAndCondition";
 import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
 import StudentHome from "./pages/student/StudentHome";
 import Parking from "./pages/student/Parking";
 import Profile from "./pages/student/Profile";
@@ -35,6 +36,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/appeal" element={<SuspensionAppeal />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/terms-and-conditions" element={<TermsAndCondition />} />
         
         {/* USER / STUDENT Protected Routes */}
