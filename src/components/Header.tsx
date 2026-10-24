@@ -176,7 +176,7 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
 
       {/* SIGN OUT CONFIRMATION MODAL */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 sm:p-8 text-center shadow-2xl transition-all animate-in zoom-in-95">
             <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
               Sign Out

@@ -36,14 +36,14 @@ export default function Dashboard() {
       <main className="mx-auto max-w-5xl p-4 sm:p-8 space-y-6">
         
         {/* TOP WELCOME BANNER (Responsive with Background Image & Gradient) */}
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-[#0053CC] via-[#2563eb] to-[#4a80e2] text-white shadow-xl">
+        <div className="relative overflow-hidden rounded-[28px] bg-linear-to-r from-[#0053CC] via-[#2563eb] to-[#4a80e2] text-white shadow-xl">
           <div 
             className="absolute inset-0 -z-10 bg-cover bg-right bg-no-repeat opacity-40 sm:opacity-70 mix-blend-overlay"
             style={{ backgroundImage: "url('/assets/bg-building.jpg')" }} 
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0053CC] via-[#0053CC]/90 to-transparent sm:w-3/4 -z-10" />
+          <div className="absolute inset-0 bg-linear-to-r from-[#0053CC] via-[#0053CC]/90 to-transparent sm:w-3/4 -z-10" />
 
-          <div className="p-6 sm:p-10 flex flex-col justify-center min-h-[180px] sm:min-h-[210px] max-w-xl">
+          <div className="p-6 sm:p-10 flex flex-col justify-center min-h-45 sm:min-h-52.5 max-w-xl">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur-xs mb-2">
               <ShieldCheck className="h-3.5 w-3.5" />
               Account {currentUser?.accountStatus || "Active"}
@@ -63,8 +63,8 @@ export default function Dashboard() {
             
             {/* Circular Progress Graphic Simulation */}
             <div className="relative flex items-center justify-center">
-              <div className="relative h-44 w-44 sm:h-48 sm:w-48 rounded-full border-[16px] border-slate-100 dark:border-slate-800 flex items-center justify-center">
-                <div className="absolute inset-[-16px] rounded-full border-[16px] border-[#0053CC] border-t-transparent border-r-transparent -rotate-45" />
+              <div className="relative h-44 w-44 sm:h-48 sm:w-48 rounded-full border-16 border-slate-100 dark:border-slate-800 flex items-center justify-center">
+                <div className="absolute -inset-4 rounded-full border-16 border-[#0053CC] border-t-transparent border-r-transparent -rotate-45" />
                 <div className="text-center">
                   <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">65 / 100</span>
                   <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">Currently Inside</p>
@@ -84,7 +84,7 @@ export default function Dashboard() {
             </div>
 
             {/* Legend / Stats */}
-            <div className="w-full md:w-auto space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 min-w-[200px]">
+            <div className="w-full md:w-auto space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 min-w-50">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC]" /> Occupied
