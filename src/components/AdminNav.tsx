@@ -104,21 +104,17 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 <span>Accounts</span>
               </Link>
 
-              {/* Vehicles Menu na may Dropdown para sa Vehicle Registration */}
-              <div className={`space-y-1 rounded-xl transition-all duration-200 ${
-                location.pathname.startsWith("/admin/vehicles") 
-                  ? "bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-800" 
-                  : ""
-              }`}>
-                <div className="flex items-center justify-between px-3.5 py-2.5">
+              {/* Vehicles Menu */}
+              <div className="space-y-1">
+                <div className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-200 ${
+                  location.pathname.startsWith("/admin/vehicles") 
+                    ? "bg-[#0053CC] text-white font-bold shadow-md shadow-blue-600/30" 
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                }`}>
                   <Link
                     to="/admin/vehicles"
                     onClick={onClose}
-                    className={`flex items-center gap-3 flex-1 font-medium transition-colors ${
-                      isActive("/admin/vehicles") 
-                        ? "text-[#0053CC] dark:text-blue-400 font-bold" 
-                        : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                    }`}
+                    className="flex items-center gap-3 flex-1"
                   >
                     <Car className="h-4 w-4 shrink-0" />
                     <span>Vehicles</span>
@@ -127,7 +123,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                   <button
                     type="button"
                     onClick={() => setIsVehiclesOpen(!isVehiclesOpen)}
-                    className="p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg cursor-pointer transition-colors text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                    className="p-1 hover:bg-white/20 rounded-lg cursor-pointer transition-colors"
                     aria-label="Toggle Vehicles Menu"
                   >
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isVehiclesOpen ? "rotate-180" : ""}`} />
@@ -135,14 +131,14 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 </div>
 
                 {isVehiclesOpen && (
-                  <div className="pl-9 pr-3 pb-2.5 space-y-1 text-[11px]">
+                  <div className="pl-4 pr-3 py-1 space-y-1 text-[11px]">
                     <Link
                       to="/admin/vehicles/registration"
                       onClick={onClose}
-                      className={`block py-1.5 transition-colors ${
+                      className={`block py-1.5 px-3 rounded-lg transition-colors ${
                         isActive("/admin/vehicles/registration") 
-                          ? "text-[#0053CC] dark:text-blue-400 font-bold" 
-                          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                          ? "text-[#0053CC] dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/40" 
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
                       }`}
                     >
                       • Vehicle Registration
@@ -151,6 +147,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 )}
               </div>
 
+              {/* Parking Menu */}
               <Link
                 to="/admin/parking"
                 onClick={onClose}
@@ -164,6 +161,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 <span>Parking</span>
               </Link>
 
+              {/* Incidents Menu */}
               <Link
                 to="/admin/incidents"
                 onClick={onClose}
@@ -183,6 +181,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 System Control
               </p>
 
+              {/* Access & Records Menu */}
               <Link
                 to="/admin/access-records"
                 onClick={onClose}
