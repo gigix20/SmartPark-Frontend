@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Car, Clock, ShieldCheck, ArrowRight, Gauge, PlusCircle, History } from "lucide-react";
+import { Car, Clock, ShieldCheck, ArrowRight, Gauge, History } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -132,7 +132,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Card 2: My Vehicles */}
+          {/* Card 2: My Vehicles (Mas pinalaki ang numero at pinaluwag ang vertical display para maayos tingnan) */}
           <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between transition-colors duration-300">
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -140,21 +140,17 @@ export default function Dashboard() {
                   <Car className="h-4 w-4 text-[#0053CC] dark:text-blue-400" /> My Vehicles
                 </h3>
               </div>
-              <div className="my-1 text-center py-1">
-                <span className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">
+
+              <div className="py-6 flex items-center justify-center">
+                <span className="font-poppins text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
                   4
                 </span>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-              <Button 
-                onClick={() => navigate("/vehicles")}
-                variant="outline"
-                className="w-full h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <PlusCircle className="h-3.5 w-3.5" /> Register New Vehicle
-              </Button>
+            <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span>Registered Vehicles</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">4 total</span>
             </div>
           </div>
 
@@ -186,7 +182,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
               <Button 
                 onClick={() => navigate("/history")}
                 variant="ghost"

@@ -1,12 +1,27 @@
 import { Link } from "react-router-dom";
-import { Bell, Menu, Clock, Calendar } from "lucide-react";
+import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
+import { useState, useEffect } from "react";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
 }
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
+
   return (
     <header className="sticky top-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
       <div className="flex h-full items-center justify-between">
@@ -37,7 +52,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           </Link>
         </div>
 
-        {/* Right Side: Date/Time Badge, Notifications, & Profile */}
+        {/* Right Side: Date/Time Badge, Notifications, Theme Toggle, & Profile */}
         <div className="flex items-center gap-3 sm:gap-5">
           
           <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-xs">
@@ -62,6 +77,21 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
             </span>
+          </button>
+
+          {/* Theme Toggle Button sa Header */}
+          <button
+            type="button"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+            aria-label="Toggle Theme"
+          >
+            {isDarkMode ? (
+              <Sun className="h-5 w-5 text-amber-400" />
+            ) : (
+              <Moon className="h-5 w-5 text-slate-600" />
+            )}
           </button>
 
           <span className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></span>

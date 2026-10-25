@@ -32,13 +32,7 @@ export default function ParkingAnalytics() {
           <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Parking Analytics & Forecast</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">Real-time visitor, traffic, and occupancy forecasts.</p>
         </div>
-        <a 
-          href="#forecast-section" 
-          className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 transition-colors w-fit cursor-pointer"
-        >
-          <span>Generate Forecast</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </a>
+
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

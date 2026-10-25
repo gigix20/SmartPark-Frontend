@@ -1,28 +1,45 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// Auth & Public Pages
 import Login from "./pages/auth/Login/Login";
 import Register from "./pages/auth/Register/Register";
 import SuspensionAppeal from "./pages/auth/SuspensionAppeal/SuspensionAppeal";
 import TermsAndCondition from "./pages/auth/TermsAndCondition/TermsAndCondition";
 import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
+
+// Student / User Pages
 import StudentHome from "./pages/student/StudentHome";
 import Parking from "./pages/student/Parking";
 import Profile from "./pages/student/Profile";
 import Reports from "./pages/student/Reports";
 import Vehicles from "./pages/student/Vehicles";
+
+// Guard Page
 import GuardDashboard from "./pages/guard/GuardDashboard";
+
+// Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProfile from "./pages/admin/AdminProfile";
-import VehicleManagement from "./pages/admin/VehicleManagement";
-import VehicleRegistration from "./pages/admin/VehicleRegistration";
-import ParkingManagement from "./pages/admin/ParkingManagement";
-import ParkingCapacity from "./pages/admin/ParkingCapacity";
-import ParkingHistory from "./pages/admin/ParkingHistory";
-import ParkingAnalytics from "./pages/admin/ParkingAnalytics";
-import IncidentManagement from "./pages/admin/IncidentManagement";
-import AccessRecords from "./pages/admin/AccessRecords";
-import AccessHistory from "./pages/admin/AccessHistory";
-import Accounts from "./pages/admin/Accounts";
+import AdminChangePassword from "./pages/admin/AdminChangePassword";
+import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
+import VehicleManagement from "./pages/admin/vehicle/VehicleManagement";
+import VehicleDetails from "./pages/admin/vehicle/VehicleDetails";
+import VehicleRegistration from "./pages/admin/vehicle/VehicleRegistration";
+import ParkingManagement from "./pages/admin/parking/ParkingManagement";
+import ParkingCapacity from "./pages/admin/parking/ParkingCapacity";
+import ParkingHistory from "./pages/admin/parking/ParkingHistory";
+import ParkingAnalytics from "./pages/admin/parking/ParkingAnalytics";
+import IncidentManagement from "./pages/admin/incident/IncidentManagement";
+import IncidentReview from "./pages/admin/incident/IncidentReview";
+import AccessRecords from "./pages/admin/access/AccessRecords";
+import AccessHistory from "./pages/admin/access/AccessHistory";
+import Accounts from "./pages/admin/account/Accounts";
+import AdminDetails from "./pages/admin/account/AdminDetails";
+import AdminEdit from "./pages/admin/account/AdminEdit";
+import AdminSuspend from "./pages/admin/account/AdminSuspend";
+import AdminCreate from "./pages/admin/account/AdminCreate";
+// Guardrails & Security Wrapper
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 
@@ -91,7 +108,7 @@ function App() {
           }
         />
 
-        {/* ADMIN Protected Route */}
+        {/* ADMIN Protected Routes */}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <AdminDashboard />
@@ -104,15 +121,57 @@ function App() {
           </ProtectedRoute>
         } />
 
+        <Route path="/admin/change-password" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminChangePassword />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/forgot-password" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminForgotPassword />
+          </ProtectedRoute>
+        } />
+
         <Route path="/admin/accounts" element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <Accounts />
           </ProtectedRoute>
         } />
 
+        <Route path="/admin/accounts/details/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminDetails />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/accounts/edit/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminEdit />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/accounts/create" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminCreate />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin/accounts/suspend/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminSuspend />
+          </ProtectedRoute>
+        } />
+
         <Route path="/admin/vehicles" element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <VehicleManagement />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/vehicles/details/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <VehicleDetails />
           </ProtectedRoute>
         } />
 
@@ -163,6 +222,13 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/admin/incidents/review/:id" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+               <IncidentReview />
+            </ProtectedRoute>
+          } />
 
         <Route 
           path="/admin/access-records" 
@@ -182,7 +248,7 @@ function App() {
           } 
         />
 
-        </Routes>
+      </Routes>
     </BrowserRouter>
   );
 }

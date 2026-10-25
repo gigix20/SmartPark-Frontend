@@ -1,48 +1,90 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, UserPlus, ShieldAlert, Shield, Users, UserCheck } from "lucide-react";
+import { Search, UserPlus, Shield, Users, UserCheck } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function Accounts() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("All");
-  const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
-
-  const currentUserRole = "Admin"; 
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleTabChange = (tab: string) => {
-    if ((tab === "Administrators" || tab === "Super Admins") && currentUserRole !== "Super Admin") {
-      setShowAccessDeniedModal(true);
-      return;
-    }
     setActiveTab(tab);
   };
 
   const accountsData = [
-    { id: 1, name: "John Doe", email: "john@qcu.edu.ph", role: "Super Admin", status: "Active" },
-    { id: 2, name: "Mark Admin", email: "mark@qcu.edu.ph", role: "Administrator", status: "Active" },
-    { id: 3, name: "Guard Reyes", email: "reyes.guard@qcu.edu.ph", role: "Guard", status: "Active" },
-    { id: 4, name: "Maria Santos", email: "maria@gmail.com", role: "User", status: "Active" },
+    { id: 1, name: "John Doe", email: "john@qcu.edu.ph", role: "Super Admin", status: "Active", lastLogin: "Today, 10:15 AM" },
+    { id: 2, name: "Mark Admin", email: "mark@qcu.edu.ph", role: "Administrator", status: "Active", lastLogin: "Yesterday, 06:00 PM" },
+    { id: 3, name: "Guard Reyes", email: "reyes.guard@qcu.edu.ph", role: "Guard", status: "Active", lastLogin: "2 days ago" },
+    { id: 4, name: "Maria Santos", email: "maria@gmail.com", role: "User", status: "Active", lastLogin: "Today, 08:30 AM" },
   ];
+
+  const filteredAccounts = accountsData.filter((item) => {
+    const matchesSearch = 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (activeTab === "Administrators") {
+      return matchesSearch && (item.role === "Super Admin" || item.role === "Administrator");
+    }
+    if (activeTab === "Guards") {
+      return matchesSearch && item.role === "Guard";
+    }
+    if (activeTab === "Users") {
+      return matchesSearch && item.role === "User";
+    }
+
+    return matchesSearch;
+  });
+
+  const getAddButtonText = () => {
+    if (activeTab === "Guards") return "+ ADD GUARD ACCOUNT";
+    if (activeTab === "Users") return "+ ADD USER ACCOUNT";
+    if (activeTab === "Administrators") return "+ ADD ADMIN ACCOUNT";
+    return "";
+  };
+
+  const handleAddClick = () => {
+    if (activeTab === "Administrators") {
+      navigate("/admin/accounts/create");
+    }
+  };
+
+  const handleView = (item: typeof accountsData[0]) => {
+    if (item.role === "Guard") {
+      navigate(`/admin/guards/details/${item.id}`);
+    } else {
+      navigate(`/admin/accounts/details/${item.id}`);
+    }
+  };
+
+  const handleEdit = (item: typeof accountsData[0]) => {
+    if (item.role === "Guard") {
+      navigate(`/admin/guards/edit/${item.id}`);
+    } else {
+      navigate(`/admin/accounts/edit/${item.id}`);
+    }
+  };
 
   return (
     <AdminLayout>
-      {/* Title & Add Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Admin Management</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">Create, audit, and configure administrative roles and privilege limits.</p>
         </div>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors w-fit shadow-xs cursor-pointer"
-        >
-          <UserPlus className="h-4 w-4" />
-          <span>+ ADD ADMIN ACCOUNT</span>
-        </button>
+        {activeTab !== "All" && (
+          <button
+            type="button"
+            onClick={handleAddClick}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors w-fit shadow-xs cursor-pointer"
+          >
+            <UserPlus className="h-4 w-4" />
+            <span>{getAddButtonText()}</span>
+          </button>
+        )}
       </div>
 
-      {/* Metric Counter Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
@@ -78,7 +120,6 @@ export default function Accounts() {
         </div>
       </div>
 
-      {/* Table Container Card */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-72">
@@ -86,6 +127,8 @@ export default function Accounts() {
             <input 
               type="text" 
               placeholder="Search name or email" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
             />
           </div>
@@ -116,33 +159,54 @@ export default function Accounts() {
                 <th className="pb-3">Email</th>
                 <th className="pb-3">Role</th>
                 <th className="pb-3">Status</th>
+                <th className="pb-3">Last Login</th>
                 <th className="pb-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-              {accountsData.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <td className="py-3 font-bold text-slate-900 dark:text-white">{item.name}</td>
-                  <td className="py-3 text-slate-600 dark:text-slate-400">{item.email}</td>
-                  <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{item.role}</td>
-                  <td className="py-3">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <button type="button" className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer">
-                      Edit
-                    </button>
+              {filteredAccounts.length > 0 ? (
+                filteredAccounts.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="py-3 font-bold text-slate-900 dark:text-white">{item.name}</td>
+                    <td className="py-3 text-slate-600 dark:text-slate-400">{item.email}</td>
+                    <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{item.role}</td>
+                    <td className="py-3">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-3 text-slate-500">{item.lastLogin}</td>
+                    <td className="py-3 flex items-center gap-3">
+                      <button 
+                        type="button" 
+                        onClick={() => handleView(item)}
+                        className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        View
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleEdit(item)}
+                        className="font-bold text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-slate-400">
+                    No accounts found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
-          <span>Showing 4 accounts</span>
+          <span>Showing {filteredAccounts.length} accounts</span>
           <div className="flex items-center gap-1">
             <button type="button" className="px-3 py-1 rounded-lg font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
               Previous
@@ -154,37 +218,6 @@ export default function Accounts() {
           </div>
         </div>
       </div>
-
-      {/* Access Denied Modal */}
-      {showAccessDeniedModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center space-y-5 border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900">
-              <ShieldAlert className="h-8 w-8 text-red-500 dark:text-red-400" />
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-poppins text-xl font-bold text-slate-900 dark:text-white">Access Denied</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-2">
-                You do not have permission to access this page or perform this action.
-              </p>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAccessDeniedModal(false);
-                  navigate("/admin/accounts");
-                }}
-                className="w-full rounded-2xl border-2 border-blue-600 dark:border-blue-500 py-3 text-xs font-bold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 active:bg-blue-100 transition-colors cursor-pointer"
-              >
-                Back to Accounts
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 }

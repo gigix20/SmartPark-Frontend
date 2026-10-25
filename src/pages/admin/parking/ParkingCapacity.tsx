@@ -63,8 +63,7 @@ export default function ParkingCapacity() {
         <button
           type="button"
           onClick={() => navigate("/admin/parking")}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
-        >
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer">
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Parking Management</span>
         </button>

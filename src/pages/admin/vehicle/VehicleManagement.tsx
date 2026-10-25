@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Filter, Car, ShieldCheck, ChevronDown } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function VehicleManagement() {
+  const navigate = useNavigate();
   const vehiclesData = [
     { id: 1, plateNo: "ABC 1234", owner: "Dela Cruz, Rafael", type: "Car", brandModel: "Toyota Vios", color: "White", regDate: "15 Dec 2025", status: "Approved" },
     { id: 2, plateNo: "XYZ 5678", owner: "Cruz, Mark Anthony", type: "Motorcycle", brandModel: "Honda Click 125", color: "Black", regDate: "02 Jan 2026", status: "Approved" },
@@ -49,6 +51,10 @@ export default function VehicleManagement() {
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const isGateRegistered = activeTab === "Gate Registered Vehicles";
+
+  const handleActionClick = (vehicleId: number) => {
+    navigate(`/admin/vehicles/details/${vehicleId}`);
+  };
 
   return (
     <AdminLayout>
@@ -113,7 +119,6 @@ export default function VehicleManagement() {
               ))}
             </div>
 
-            {/* Itinatago o di pinapakita ang status dropdown kapag naka-Gate Registered Vehicles tab */}
             {!isGateRegistered && (
               <div className="relative">
                 <button
@@ -203,7 +208,11 @@ export default function VehicleManagement() {
                       </td>
                     )}
                     <td className="py-3 text-right">
-                      <button type="button" className="text-[#0053CC] dark:text-blue-400 hover:underline font-medium cursor-pointer">
+                      <button 
+                        type="button" 
+                        onClick={() => handleActionClick(vehicle.id)}
+                        className="text-[#0053CC] dark:text-blue-400 hover:underline font-medium cursor-pointer"
+                      >
                         {vehicle.status === "Pending" || vehicle.status === "Rejected" ? "Review" : "View"}
                       </button>
                     </td>

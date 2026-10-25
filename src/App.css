@@ -332,3 +332,58 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8; /* Mas madilim na slate kapag naka-hover (slate-400) */
 }
+
+/* --- Dark Mode Customization para sa React Datepicker --- */
+.react-datepicker {
+  background-color: #0f172a !important; /* Background na kulay slate-900 */
+  border: 1px solid #1e293b !important; /* Border na kulay slate-800 */
+  color: #f8fafc !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5) !important;
+  overflow: hidden;
+}
+
+.react-datepicker__header {
+  background-color: #1e293b !important; /* Header background slate-800 */
+  border-bottom: 1px solid #334155 !important;
+  padding-top: 12px;
+}
+
+.react-datepicker__current-month, 
+.react-datepicker-time__header {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+.react-datepicker__day-name {
+  color: #94a3b8 !important; /* Kulay ng Mon, Tue, Wed (slate-400) */
+}
+
+.react-datepicker__day {
+  color: #cbd5e1 !important; /* Kulay ng mga araw */
+  border-radius: 9999px !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #334155 !important; /* Hover effect sa mga araw */
+  color: #ffffff !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: #0053CC !important; /* Kulay ng piniling petsa (SmartPark Blue) */
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #0053CC !important;
+  color: #ffffff !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #cbd5e1 !important; /* Kulay ng arrows (nakaraan/sunod na buwan) */
+}
+
+.react-datepicker__triangle {
+  display: none !important; /* Tinanggal ang maliit na triangle sa itaas */
+}
