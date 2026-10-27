@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Mail, AlertTriangle } from "lucide-react";
 import logo from "@/assets/smartpark-logo.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { forgotPassword, verifyOtp } from "@/pages/auth/api/authApi";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -15,7 +16,6 @@ export default function ForgotPassword() {
 
   // Validation & Modal States
   const [isInvalidEmailOpen, setIsInvalidEmailOpen] = useState(false);
-  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
   // OTP States
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
@@ -25,12 +25,9 @@ export default function ForgotPassword() {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Sample registered emails for validation simulation
-  const registeredEmails = ["admin@qcu.edu.ph", "user@smartpark.com", "student@qcu.edu.ph"];
-
   // Countdown timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isTimerActive && timer > 0) {
       interval = setInterval(() => {
         setTimer((prev) => prev - 1);
@@ -42,15 +39,17 @@ export default function ForgotPassword() {
     return () => clearInterval(interval);
   }, [isTimerActive, timer]);
 
-  // Handle Email Submit
-  const handleEmailSubmit = (e: React.FormEvent) => {
+    // Handle Email Submit - now calls real API
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registeredEmails.includes(email.toLowerCase().trim())) {
-      setIsInvalidEmailOpen(true);
-    } else {
+
+    try {
+      await forgotPassword({ email });
       setStep("otp");
       startTimer();
       setOtpStatus("normal");
+    } catch {
+      setIsInvalidEmailOpen(true);
     }
   };
 
@@ -84,27 +83,33 @@ export default function ForgotPassword() {
     }
   };
 
-  // Verify OTP Action
-  const handleVerifyOtp = () => {
+  // Verify OTP Action - now calls real API
+  const handleVerifyOtp = async () => {
     const enteredCode = otp.join("");
-    
+
     if (timer === 0) {
       setOtpStatus("expired");
       return;
     }
 
-    // Mock valid OTP code: "592123" o kaya "123456"
-    if (enteredCode === "592123" || enteredCode === "123456") {
-      setIsSuccessOpen(true);
-    } else {
+    try {
+      await verifyOtp({ email, otp: enteredCode });
+      navigate("/reset-password", { state: { email } });
+    } catch {
       setOtpStatus("invalid");
     }
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     setOtp(Array(6).fill(""));
     setOtpStatus("normal");
-    startTimer();
+
+    try {
+      await forgotPassword({ email });
+      startTimer();
+    } catch {
+      // Error handled silently
+    }
   };
 
   return (
@@ -192,7 +197,7 @@ export default function ForgotPassword() {
               {otp.map((digit, idx) => (
                 <input
                   key={idx}
-                  ref={(el) => (inputRefs.current[idx] = el)}
+                  ref={(el) => { inputRefs.current[idx] = el; }}
                   type="text"
                   maxLength={1}
                   value={digit}
@@ -302,29 +307,7 @@ export default function ForgotPassword() {
         </div>
       )}
 
-      {/* MODAL 2: CODE VERIFIED SUCCESSFULLY POPUP */}
-      {isSuccessOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-              <CheckCircle2 className="h-7 w-7" />
-            </div>
-
-            <h3 className="text-lg font-bold text-slate-900">Code Verified Successfully!</h3>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-              Your verification code is verified. You may now create a new password.
-            </p>
-
-            <Button
-              type="button"
-              onClick={() => navigate("/reset-password")}
-              className="mt-6 w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold transition-colors"
-            >
-              Continue
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* MODAL 2: CODE VERIFIED SUCCESSFULLY POPUP - REMOVED (navigates directly to reset password) */}
     </div>
   );
 }

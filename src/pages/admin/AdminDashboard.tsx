@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Car, TrendingUp, ArrowUpRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 

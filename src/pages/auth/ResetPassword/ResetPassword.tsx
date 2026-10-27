@@ -1,13 +1,19 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import logo from "@/assets/smartpark-logo.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resetPassword } from "@/pages/auth/api/authApi";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get email from navigation state (passed from ForgotPassword)
+  const [email] = useState(location.state?.email || "");
+  const [otp] = useState(location.state?.otp || "");
 
   // Input states
   const [password, setPassword] = useState("");
@@ -38,8 +44,9 @@ export default function ResetPassword() {
 
   const strength = getPasswordStrength(password);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     let hasError = false;
 
     // Validate Password Length
@@ -58,9 +65,12 @@ export default function ResetPassword() {
       setConfirmError("");
     }
 
-    if (!hasError) {
-      setIsSuccessOpen(true);
+    if (hasError) {
+      return;
     }
+
+    await resetPassword({ email, otp, password });
+    setIsSuccessOpen(true);
   };
 
   return (
