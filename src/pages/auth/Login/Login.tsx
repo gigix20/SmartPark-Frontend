@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
 import logo from "@/assets/smartpark-logo.svg";
@@ -14,52 +14,149 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(false);
   
   // Modal States
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSuspended, setIsSuspended] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLocked, setIsLocked] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes (300s)
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(900); // 15 minutes = 900 seconds
 
-  // Check persistent lockout on mount
-  useEffect(() => {
-    const lockUntilStr = sessionStorage.getItem("smartpark_lock_until");
-    if (lockUntilStr) {
-      const lockUntil = parseInt(lockUntilStr, 10);
-      const diff = Math.ceil((lockUntil - Date.now()) / 1000);
-      if (diff > 0) {
-        setIsLocked(true);
-        setTimeLeft(diff);
-        setErrorMessage("Account is temporarily locked.");
-      } else {
-        sessionStorage.removeItem("smartpark_lock_until");
-      }
-    }
+  // Format seconds to MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(Math.max(0, seconds) / 60);
+    const secs = Math.max(0, seconds) % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Helper functions for per-account lockout
+  const getNormalizedId = useCallback((id: string) => {
+    return id.toLowerCase().trim();
   }, []);
 
-  // Countdown Timer Logic
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    if (isLocked && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
+  const getLockoutKey = useCallback((id: string) => {
+    const norm = getNormalizedId(id);
+    return norm ? `smartpark_lock_${norm}` : "";
+  }, [getNormalizedId]);
+
+  const getAttemptsKey = useCallback((id: string) => {
+    const norm = getNormalizedId(id);
+    return norm ? `smartpark_attempts_${norm}` : "";
+  }, [getNormalizedId]);
+
+  // Load lockout state for a specific identifier
+  const checkAndApplyLockState = useCallback((identifier: string) => {
+    const norm = getNormalizedId(identifier);
+    if (!norm) {
       setIsLocked(false);
-      setFailedAttempts(0);
-      setTimeLeft(300);
+      setIsLockModalOpen(false);
+      setLockUntil(null);
+      setTimeLeft(900);
       setErrorMessage("");
-      sessionStorage.removeItem("smartpark_lock_until");
+      return;
     }
-    return () => clearInterval(timer);
-  }, [isLocked, timeLeft]);
+
+    const lockKey = getLockoutKey(norm);
+    const lockUntilStr = sessionStorage.getItem(lockKey);
+    if (lockUntilStr) {
+      const until = parseInt(lockUntilStr, 10);
+      const remaining = Math.ceil((until - Date.now()) / 1000);
+      if (remaining > 0) {
+        setIsLocked(true);
+        setLockUntil(until);
+        setTimeLeft(remaining);
+        setErrorMessage("Too many failed login attempts for this account. Account locked for 15 minutes.");
+        return;
+      } else {
+        sessionStorage.removeItem(lockKey);
+      }
+    }
+
+    setIsLocked(false);
+    setIsLockModalOpen(false);
+    setLockUntil(null);
+    setTimeLeft(900);
+    setErrorMessage("");
+  }, [getNormalizedId, getLockoutKey]);
+
+  // Auto-redirect if authenticated + load remembered identifier
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const role = user.role?.toUpperCase();
+        if (role === "ADMIN") {
+          navigate("/admin/dashboard", { replace: true });
+          return;
+        } else if (role === "GUARD") {
+          navigate("/guard", { replace: true });
+          return;
+        } else {
+          navigate("/StudentHome", { replace: true });
+          return;
+        }
+      } catch {
+        // Continue if invalid user JSON
+      }
+    }
+
+    const rememberedId = localStorage.getItem("remembered_identifier");
+    if (rememberedId) {
+      setEmail(rememberedId);
+      setRememberDevice(true);
+      checkAndApplyLockState(rememberedId);
+    }
+  }, [navigate, checkAndApplyLockState]);
+
+  // Continuous countdown timer
+  useEffect(() => {
+    if (!isLocked || !lockUntil) return;
+
+    const tick = () => {
+      const remaining = Math.ceil((lockUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setIsLocked(false);
+        setIsLockModalOpen(false);
+        setLockUntil(null);
+        setTimeLeft(900);
+        setErrorMessage("");
+        const lockKey = getLockoutKey(email);
+        const attemptsKey = getAttemptsKey(email);
+        if (lockKey) sessionStorage.removeItem(lockKey);
+        if (attemptsKey) sessionStorage.removeItem(attemptsKey);
+      } else {
+        setTimeLeft(remaining);
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isLocked, lockUntil, email, getLockoutKey, getAttemptsKey]);
+
+  // Handle identifier input change - instant switching
+  const handleIdentifierChange = (value: string) => {
+    setEmail(value);
+    checkAndApplyLockState(value);
+  };
+
+  // Handle remember device toggle
+  const handleRememberToggle = (checked: boolean) => {
+    setRememberDevice(checked);
+    if (!checked) {
+      localStorage.removeItem("remembered_identifier");
+    }
+  };
 
   // Handle Login Logic with real backend API
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFormDisabled || isLoading) return;
+    if (isLocked || isLoading || isSuccess || isSuspended) return;
 
     setIsLoading(true);
     setErrorMessage("");
@@ -71,7 +168,19 @@ function Login() {
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
 
-      // Helper to navigate based on role
+      // Handle Remember this device
+      if (rememberDevice && email.trim()) {
+        localStorage.setItem("remembered_identifier", email.trim());
+      } else {
+        localStorage.removeItem("remembered_identifier");
+      }
+
+      // Clear failed attempts for this identifier
+      const attemptsKey = getAttemptsKey(email);
+      if (attemptsKey) {
+        sessionStorage.removeItem(attemptsKey);
+      }
+
       const redirectByRole = (role: string) => {
         const normalizedRole = role.toUpperCase();
         if (normalizedRole === "ADMIN") {
@@ -84,32 +193,63 @@ function Login() {
       };
 
       setIsSuccess(true);
-      setFailedAttempts(0);
 
-      // Auto-redirect to dashboard after 1.5 seconds
       setTimeout(() => {
         redirectByRole(res.user.role);
       }, 1500);
     } catch (err: any) {
       const status = err.response?.data?.status;
-      const message = err.response?.data?.message || "Invalid credentials. Please try again.";
+      const backendMessage = err.response?.data?.message;
 
       if (status === "Suspended") {
         setIsSuspended(true);
       } else if (status === "Locked") {
+        const lockUntilTime = Date.now() + 15 * 60 * 1000;
+        const lockKey = getLockoutKey(email);
+        if (lockKey) {
+          sessionStorage.setItem(lockKey, lockUntilTime.toString());
+        }
         setIsLocked(true);
-        sessionStorage.setItem("smartpark_lock_until", (Date.now() + 300 * 1000).toString());
-        setErrorMessage("Account is temporarily locked.");
+        setIsLockModalOpen(true);
+        setLockUntil(lockUntilTime);
+        setTimeLeft(900);
+        setErrorMessage(
+          backendMessage ||
+            "Too many failed login attempts for this account. Please try again after 15 minutes."
+        );
       } else {
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
+        const attemptsKey = getAttemptsKey(email);
+        const currentCount = parseInt(
+          (attemptsKey && sessionStorage.getItem(attemptsKey)) || "0",
+          10
+        );
+        const newCount = currentCount + 1;
 
-        if (newAttempts >= 5) {
+        if (newCount >= 5) {
+          // Instant 15-minute countdown on exactly 5th attempt
+          const lockUntilTime = Date.now() + 15 * 60 * 1000;
+          const lockKey = getLockoutKey(email);
+          if (lockKey) {
+            sessionStorage.setItem(lockKey, lockUntilTime.toString());
+          }
+          if (attemptsKey) {
+            sessionStorage.removeItem(attemptsKey);
+          }
           setIsLocked(true);
-          sessionStorage.setItem("smartpark_lock_until", (Date.now() + 300 * 1000).toString());
-          setErrorMessage("Account locked due to multiple failed attempts.");
+          setIsLockModalOpen(true);
+          setLockUntil(lockUntilTime);
+          setTimeLeft(900);
+          setErrorMessage(
+            "Too many failed login attempts for this account. Account locked for 15 minutes."
+          );
         } else {
-          setErrorMessage(message);
+          if (attemptsKey) {
+            sessionStorage.setItem(attemptsKey, newCount.toString());
+          }
+          const remaining = 5 - newCount;
+          setErrorMessage(
+            `Invalid email/school ID or password. (${remaining} attempt${remaining === 1 ? "" : "s"} remaining before 15-minute account lockout)`
+          );
         }
       }
     } finally {
@@ -131,18 +271,8 @@ function Login() {
   };
 
   const handleAppeal = () => {
-    // I-navigate sa appeal submission page o mag-open ng appeal form
     navigate("/appeal");
   };
-
-  // Format seconds to mm:ss
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  const isFormDisabled = isLocked || isSuccess || isSuspended;
 
   return (
     <div className="relative flex min-h-screen w-full font-sans">
@@ -191,10 +321,10 @@ function Login() {
                 id="email"
                 placeholder="juandelacruz@gmail.com or 24-1478"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => handleIdentifierChange(e.target.value)}
                 className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
                 required
-                disabled={isFormDisabled}
+                disabled={isLoading}
               />
             </div>
 
@@ -212,13 +342,13 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
                   required
-                  disabled={isFormDisabled}
+                  disabled={isLocked || isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
-                  disabled={isFormDisabled}
+                  disabled={isLocked || isLoading}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -226,7 +356,7 @@ function Login() {
             </div>
 
             {/* Error Message Indicator */}
-            {errorMessage && !isLocked && !isSuspended && (
+            {errorMessage && !isSuspended && (
               <p className="text-xs font-medium text-[#EF4444]">
                 {errorMessage}
               </p>
@@ -235,7 +365,13 @@ function Login() {
             {/* Options */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <Checkbox id="remember" className="data-[state=checked]:bg-[#0053CC]" disabled={isFormDisabled} />
+                <Checkbox
+                  id="remember"
+                  className="data-[state=checked]:bg-[#0053CC]"
+                  checked={rememberDevice}
+                  onCheckedChange={(val) => handleRememberToggle(val === true)}
+                  disabled={isLoading}
+                />
                 <Label htmlFor="remember" className="cursor-pointer text-xs font-normal text-slate-700">
                   Remember this device
                 </Label>
@@ -248,10 +384,14 @@ function Login() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isFormDisabled || isLoading}
-              className="mt-2 w-full bg-[#0053CC] py-5 text-sm font-semibold text-white hover:bg-[#0053CC]/90 disabled:opacity-50"
+              disabled={isLocked || isLoading}
+              className="mt-2 w-full bg-[#0053CC] py-5 text-sm font-semibold text-white hover:bg-[#0053CC]/90 disabled:opacity-50 transition-all cursor-pointer"
             >
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLocked
+                ? `Locked (${formatTime(timeLeft)})`
+                : isLoading
+                  ? "Signing In..."
+                  : "Sign In"}
             </Button>
           </form>
 
@@ -299,7 +439,7 @@ function Login() {
       )}
 
       {/* 2. ACCOUNT LOCKED MODAL OVERLAY */}
-      {isLocked && (
+      {isLockModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#EF4444]">
@@ -328,9 +468,9 @@ function Login() {
 
             <Button
               type="button"
-              onClick={() => setIsLocked(false)}
+              onClick={() => setIsLockModalOpen(false)}
               variant="outline"
-              className="mt-6 w-full rounded-xl border-slate-200 text-xs font-semibold text-[#0053CC] hover:bg-slate-50"
+              className="mt-6 w-full rounded-xl border-slate-200 text-xs font-semibold text-[#0053CC] hover:bg-slate-50 cursor-pointer"
             >
               Return to Log In
             </Button>
