@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, AlertCircle, RefreshCw, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import logo from "@/assets/smartpark-logo.svg";
-import { registerUser } from "../api/authApi";
+import { registerUser, verifyEmail, resendVerificationOtp } from "../api/authApi";
 
 // Zod Validation Schema
 const registerSchema = z
@@ -22,10 +22,7 @@ const registerSchema = z
       .min(2, "Last Name must be at least 2 characters."),
     email: z
       .string()
-      .email("Invalid email address format.")
-      .refine((val) => val.toLowerCase().endsWith("@gmail.com"), {
-        message: "Please use a valid Gmail address (@gmail.com).",
-      }),
+      .email("Invalid email address format."),
     schoolId: z
       .string()
       .trim()
@@ -61,6 +58,28 @@ function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Step 2 OTP Verification States
+  const [step, setStep] = useState<"form" | "verify">("form");
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [otpError, setOtpError] = useState("");
+  const [resendTimer, setResendTimer] = useState(60);
+  const [isResendActive, setIsResendActive] = useState(false);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Countdown effect for resend timer
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isResendActive && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setIsResendActive(false);
+    }
+    return () => clearInterval(interval);
+  }, [isResendActive, resendTimer]);
 
   // React Hook Form Setup
   const {
@@ -102,25 +121,20 @@ function Register() {
     setIsLoading(true);
 
     try {
-      const res = await registerUser({
+      await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         schoolId: data.schoolId,
         phone: data.phone?.trim() ? data.phone.trim() : undefined,
         password: data.password,
+        declaration: data.declaration,
       });
 
-      // Store authenticated session
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
-
-      setIsSuccess(true);
-
-      // Auto-redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate("/Login");
-      }, 2000);
+      setRegisteredEmail(data.email);
+      setStep("verify");
+      setResendTimer(60);
+      setIsResendActive(true);
     } catch (err: any) {
       const message =
         err.response?.data?.message ||
@@ -131,29 +145,84 @@ function Register() {
     }
   };
 
+  // OTP Input handlers
+  const handleOtpChange = (index: number, value: string) => {
+    if (isNaN(Number(value))) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    if (otpError) setOtpError("");
+
+    if (value && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    const code = otp.join("");
+    if (code.length < 6) {
+      setOtpError("Please enter the complete 6-digit verification code.");
+      return;
+    }
+    setOtpError("");
+    setIsLoading(true);
+
+    try {
+      await verifyEmail({ email: registeredEmail, otp: code });
+      setIsSuccess(true);
+    } catch (err: any) {
+      setOtpError(err.response?.data?.message || "Invalid or expired verification code.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (isResendActive) return;
+    setIsResendActive(true);
+    setResendTimer(60);
+    setOtpError("");
+    setOtp(Array(6).fill(""));
+
+    try {
+      await resendVerificationOtp({ email: registeredEmail });
+    } catch (err: any) {
+      setOtpError(err.response?.data?.message || "Failed to resend verification code.");
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-white font-sans">
-      {/* Left Side: Registration Form */}
+      {/* Left Side: Registration Form / OTP Step */}
       <div className="flex w-full flex-col justify-center px-8 py-6 md:w-1/2 md:px-16 lg:px-20">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="font-poppins text-3xl font-extrabold text-slate-900">
-            Register
-          </h1>
-          <p className="mt-2 text-xs text-slate-500">
-            Enter your credentials to manage your parking access.
-          </p>
-        </div>
+        
+        {step === "form" ? (
+          <>
+            {/* Header */}
+            <div className="text-center">
+              <h1 className="font-poppins text-3xl font-extrabold text-slate-900">
+                Register
+              </h1>
+              <p className="mt-2 text-xs text-slate-500">
+                Enter your credentials to manage your parking access.
+              </p>
+            </div>
 
-        {/* Global API Error Notification (Kung may error galing sa server/backend) */}
-        {apiError && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
-            {apiError}
-          </div>
-        )}
+            {/* Global API Error Notification */}
+            {apiError && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
+                {apiError}
+              </div>
+            )}
 
-        {/* Form Inputs */}
-        <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleSubmit(handleRegister)}>
+            {/* Form Inputs */}
+            <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleSubmit(handleRegister)}>
           {/* First Name & Last Name (Side by Side) */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
@@ -283,7 +352,7 @@ function Register() {
               value={watchPhone}
               {...register("phone")}
               onChange={(e) => {
-                let value = e.target.value.replace(/\D/g, "");
+                const value = e.target.value.replace(/\D/g, "");
                 if (value.length >= 1 && value[0] !== "0") return;
                 if (value.length >= 2 && !value.startsWith("09")) return;
 
@@ -437,6 +506,71 @@ function Register() {
             </Link>
           </p>
         </form>
+          </>
+        ) : (
+          /* Step 2: OTP Email Verification */
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-[#0053CC]">
+                <Mail className="h-7 w-7" />
+              </div>
+              <h2 className="font-poppins text-2xl font-bold text-slate-900">
+                Verify Your Email
+              </h2>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                We've sent a 6-digit verification code to <span className="font-bold text-slate-800">{registeredEmail}</span>. Enter the code below to activate your account.
+              </p>
+            </div>
+
+            {otpError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
+                {otpError}
+              </div>
+            )}
+
+            {/* 6 Digit OTP Inputs */}
+            <div className="flex justify-center gap-2 sm:gap-3 my-4">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => { otpInputRefs.current[index] = el; }}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  className="h-12 w-11 sm:h-14 sm:w-12 rounded-xl border border-slate-300 text-center font-poppins text-xl font-bold text-slate-900 focus:border-[#0053CC] focus:outline-none focus:ring-2 focus:ring-[#0053CC]/20 bg-slate-50/50"
+                  disabled={isLoading}
+                />
+              ))}
+            </div>
+
+            {/* Resend Code Section */}
+            <div className="text-center text-xs text-slate-500">
+              {isResendActive ? (
+                <p>Resend code in <span className="font-semibold text-[#0053CC]">{resendTimer}s</span></p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  className="inline-flex items-center gap-1 font-semibold text-[#0053CC] hover:underline cursor-pointer"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" /> Resend Verification Code
+                </button>
+              )}
+            </div>
+
+            {/* Verify Button */}
+            <Button
+              type="button"
+              onClick={handleVerifyEmail}
+              disabled={isLoading || otp.some((d) => !d)}
+              className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isLoading ? "Verifying..." : "Verify Email & Activate"}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Right Side: Blue Gradient Banner */}

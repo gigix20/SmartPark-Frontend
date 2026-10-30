@@ -207,6 +207,8 @@ function Login() {
 
       if (status === "Suspended") {
         setIsSuspended(true);
+      } else if (status === "PendingVerification") {
+        setErrorMessage("Account pending verification. Please verify the code sent to your email.");
       } else if (isLockedResponse) {
         const lockUntilTime = serverLockUntil || (Date.now() + 15 * 60 * 1000);
         const lockKey = getLockoutKey(email);

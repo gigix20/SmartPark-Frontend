@@ -30,6 +30,16 @@ export interface RegisterData {
   schoolId: string;
   phone?: string;
   password: string;
+  declaration: boolean;
+}
+
+export interface VerifyEmailData {
+  email: string;
+  otp: string;
+}
+
+export interface ResendVerificationData {
+  email: string;
 }
 
 export interface AdminRegisterData {
@@ -124,5 +134,17 @@ export interface ChangePasswordData {
 
 export async function changePassword(data: ChangePasswordData): Promise<{ success: boolean; message: string }> {
   const response = await api.post<{ success: boolean; message: string }>("/change-password", data);
+  return response.data;
+}
+
+// 11. Verify Email OTP
+export async function verifyEmail(data: VerifyEmailData): Promise<{ success: boolean; message: string }> {
+  const response = await api.post<{ success: boolean; message: string }>("/verify-email", data);
+  return response.data;
+}
+
+// 12. Resend Verification OTP
+export async function resendVerificationOtp(data: ResendVerificationData): Promise<{ success: boolean; message: string }> {
+  const response = await api.post<{ success: boolean; message: string }>("/resend-verification-otp", data);
   return response.data;
 }
