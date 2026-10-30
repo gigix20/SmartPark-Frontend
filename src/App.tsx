@@ -51,6 +51,9 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/AdminDashboard" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/AdminDashboard.tsx" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard.tsx" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/register" element={<Register />} />
         <Route path="/appeal" element={<SuspensionAppeal />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -66,6 +69,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/studenthome" element={<Navigate to="/StudentHome" replace />} />
+        <Route path="/StudentHome.tsx" element={<Navigate to="/StudentHome" replace />} />
+        <Route path="/student" element={<Navigate to="/StudentHome" replace />} />
         <Route
           path="/parking"
           element={
@@ -247,6 +253,16 @@ function App() {
               <AccessHistory />
             </ProtectedRoute>
           } 
+        />
+
+        {/* Catch-all for any unknown, mistyped, or unauthorized direct URL access */}
+        <Route
+          path="*"
+          element={
+            <ProtectedRoute>
+              <Navigate to="/login" replace />
+            </ProtectedRoute>
+          }
         />
 
       </Routes>
