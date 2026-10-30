@@ -1,17 +1,29 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Check, AlertCircle, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { registerAdminUser } from "@/pages/auth/api/authApi";
 
 export default function AdminCreate() {
   const navigate = useNavigate();
+
+  const [currentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
 
   // Form states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [employeeId, setEmployeeId] = useState("");
-  const [adminType, setAdminType] = useState<"Super Administrator" | "Associate Administrator">("Associate Administrator");
+  const [roleToCreate, setRoleToCreate] = useState<"ADMIN" | "GUARD">("GUARD");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -19,8 +31,10 @@ export default function AdminCreate() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Validation states
+  // Validation & API states
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
   const [existingError, setExistingError] = useState(false);
 
   // Modal state
@@ -96,9 +110,10 @@ export default function AdminCreate() {
     ? "Passwords do not match."
     : "";
 
-  const handleCreateAccount = (e: React.FormEvent) => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
+    setApiError("");
 
     if (
       firstNameError ||
@@ -111,14 +126,34 @@ export default function AdminCreate() {
       return;
     }
 
-    // Simulation para sa database uniqueness check
-    if (trimmedEmail.toLowerCase() === "existing@qcu.edu.ph" || trimmedEmployeeId === "00-0000") {
-      setExistingError(true);
+    if (roleToCreate === "ADMIN" && !isSuperAdmin) {
+      setApiError("Access Denied: Only Super Admins can create new Admin accounts.");
       return;
     }
 
-    setExistingError(false);
-    setShowSuccessModal(true);
+    setIsLoading(true);
+
+    try {
+      await registerAdminUser({
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        email: trimmedEmail,
+        schoolId: trimmedEmployeeId,
+        password,
+        role: roleToCreate,
+      });
+
+      setExistingError(false);
+      setShowSuccessModal(true);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to create account. Please try again.";
+      if (msg.toLowerCase().includes("exist") || msg.toLowerCase().includes("already")) {
+        setExistingError(true);
+      }
+      setApiError(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -141,9 +176,20 @@ export default function AdminCreate() {
           
           {/* Header Title */}
           <div className="border-b border-slate-100 dark:border-slate-800 pb-6">
-            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Create New Admin</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Assign dedicated personnel profiles, with granular campus access rules.</p>
+            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Create New Account</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Assign dedicated personnel profiles with campus access privileges.</p>
           </div>
+
+          {/* API Error Banner */}
+          {apiError && (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 flex items-start gap-3 text-rose-700 text-xs">
+              <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5 text-rose-500" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Creation Error</p>
+                <p>{apiError}</p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
@@ -264,40 +310,53 @@ export default function AdminCreate() {
 
               <div className="space-y-3 text-xs">
                 <label className="text-slate-700 dark:text-slate-300 font-bold block">
-                  Administrator Type <span className="text-rose-500">*</span>
+                  Account Role <span className="text-rose-500">*</span>
                 </label>
 
-                {/* Super Administrator Radio Card */}
+                {!isSuperAdmin && (
+                  <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-3 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    <strong>RBAC Notice:</strong> Regular Admin accounts can only create Guard accounts. Only Super Admins can create new Admin accounts.
+                  </div>
+                )}
+
+                {/* Admin Radio Card (Only selectable by Super Admin) */}
                 <div 
-                  onClick={() => setAdminType("Super Administrator")}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    adminType === "Super Administrator" 
-                      ? "border-[#0053CC] bg-blue-50/40 dark:bg-blue-950/20" 
-                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
+                  onClick={() => {
+                    if (isSuperAdmin) setRoleToCreate("ADMIN");
+                  }}
+                  className={`p-4 rounded-2xl border-2 transition-all ${
+                    !isSuperAdmin 
+                      ? "opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50"
+                      : roleToCreate === "ADMIN" 
+                        ? "border-[#0053CC] bg-blue-50/40 dark:bg-blue-950/20 cursor-pointer" 
+                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 cursor-pointer"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <input 
                       type="radio" 
-                      name="adminType" 
-                      checked={adminType === "Super Administrator"}
-                      onChange={() => setAdminType("Super Administrator")}
+                      name="accountRole" 
+                      checked={roleToCreate === "ADMIN"}
+                      onChange={() => {
+                        if (isSuperAdmin) setRoleToCreate("ADMIN");
+                      }}
+                      disabled={!isSuperAdmin}
                       className="mt-0.5 accent-[#0053CC]"
                     />
                     <div className="space-y-1">
-                      <p className="font-bold text-slate-900 dark:text-white">Super Administrator</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Administrator (ADMIN)</p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Unrestricted core logs, deletion, credential issuance, and audit access.
+                        Full administrative access to manage personnel, audit logs, parking capacity, and settings.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Associate Administrator Radio Card */}
+                {/* Guard Radio Card (Available to both Super Admin and Admin) */}
                 <div 
-                  onClick={() => setAdminType("Associate Administrator")}
+                  onClick={() => setRoleToCreate("GUARD")}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    adminType === "Associate Administrator" 
+                    roleToCreate === "GUARD" 
                       ? "border-[#0053CC] bg-blue-50/40 dark:bg-blue-950/20" 
                       : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
                   }`}
@@ -305,15 +364,15 @@ export default function AdminCreate() {
                   <div className="flex items-start gap-3">
                     <input 
                       type="radio" 
-                      name="adminType" 
-                      checked={adminType === "Associate Administrator"}
-                      onChange={() => setAdminType("Associate Administrator")}
+                      name="accountRole" 
+                      checked={roleToCreate === "GUARD"}
+                      onChange={() => setRoleToCreate("GUARD")}
                       className="mt-0.5 accent-[#0053CC]"
                     />
                     <div className="space-y-1">
-                      <p className="font-bold text-slate-900 dark:text-white">Associate Administrator</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Security Guard (GUARD)</p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Normal access: records registration, vehicle decals review, and space auditing.
+                        Gate security access to inspect vehicle entries, scan passes, and review incident reports.
                       </p>
                     </div>
                   </div>
@@ -399,15 +458,17 @@ export default function AdminCreate() {
             <button
               type="button"
               onClick={() => navigate("/admin/accounts")}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              disabled={isLoading}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
             >
-              <span>Create Account</span>
+              <span>{isLoading ? "Creating Account..." : "Create Account"}</span>
             </button>
           </div>
 

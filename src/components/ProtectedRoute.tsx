@@ -62,12 +62,13 @@ export function ProtectedRoute({
           const hasRole = allowedRoles.some(
             (r) =>
               r.toUpperCase() === userRole ||
-              (r.toUpperCase() === "USER" && userRole === "STUDENT")
+              (r.toUpperCase() === "USER" && userRole === "STUDENT") ||
+              (r.toUpperCase() === "ADMIN" && userRole === "SUPER_ADMIN")
           );
 
           if (!hasRole) {
             let target = "/StudentHome";
-            if (userRole === "ADMIN") target = "/admin/dashboard";
+            if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") target = "/admin/dashboard";
             else if (userRole === "GUARD") target = "/guard";
 
             setUnauthorizedState({ type: "INSUFFICIENT_ROLE", target });

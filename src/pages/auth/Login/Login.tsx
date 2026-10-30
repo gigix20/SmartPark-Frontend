@@ -90,7 +90,7 @@ function Login() {
       try {
         const user = JSON.parse(userStr);
         const role = user.role?.toUpperCase();
-        if (role === "ADMIN") {
+        if (role === "ADMIN" || role === "SUPER_ADMIN") {
           navigate("/admin/dashboard", { replace: true });
           return;
         } else if (role === "GUARD") {
@@ -183,7 +183,7 @@ function Login() {
 
       const redirectByRole = (role: string) => {
         const normalizedRole = role.toUpperCase();
-        if (normalizedRole === "ADMIN") {
+        if (normalizedRole === "ADMIN" || normalizedRole === "SUPER_ADMIN") {
           navigate("/admin/dashboard");
         } else if (normalizedRole === "GUARD") {
           navigate("/guard");
@@ -268,7 +268,7 @@ function Login() {
       try {
         const u = JSON.parse(savedUser);
         const r = u.role?.toUpperCase();
-        if (r === "ADMIN") return navigate("/admin/dashboard");
+        if (r === "ADMIN" || r === "SUPER_ADMIN") return navigate("/admin/dashboard");
         if (r === "GUARD") return navigate("/guard");
       } catch (e) {}
     }
