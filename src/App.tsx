@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Auth & Public Pages
 import Login from "./pages/auth/Login/Login";
@@ -50,6 +50,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/register" element={<Register />} />
         <Route path="/appeal" element={<SuspensionAppeal />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

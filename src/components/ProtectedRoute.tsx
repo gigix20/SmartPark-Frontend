@@ -31,6 +31,11 @@ export function ProtectedRoute({
 
     getCurrentUser()
       .then((res) => {
+        if (res.user?.accountStatus && res.user.accountStatus !== "Active") {
+          logoutUser();
+          setUser(null);
+          return;
+        }
         setUser(res.user);
         localStorage.setItem("user", JSON.stringify(res.user));
       })
@@ -68,7 +73,7 @@ export function ProtectedRoute({
     if (!hasRole) {
       // Role not allowed for this route -> Redirect to appropriate dashboard for their role
       if (userRole === "ADMIN") {
-        return <Navigate to="/admin" replace />;
+        return <Navigate to="/admin/dashboard" replace />;
       }
       if (userRole === "GUARD") {
         return <Navigate to="/guard" replace />;

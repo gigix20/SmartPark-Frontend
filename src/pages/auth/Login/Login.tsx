@@ -200,11 +200,15 @@ function Login() {
     } catch (err: any) {
       const status = err.response?.data?.status;
       const backendMessage = err.response?.data?.message;
+      const serverLockUntil = err.response?.data?.lockUntil;
+      const serverRemainingSeconds = err.response?.data?.remainingSeconds;
+      const serverRemainingAttempts = err.response?.data?.remainingAttempts;
+      const isLockedResponse = status === "Locked" || err.response?.status === 423;
 
       if (status === "Suspended") {
         setIsSuspended(true);
-      } else if (status === "Locked") {
-        const lockUntilTime = Date.now() + 15 * 60 * 1000;
+      } else if (isLockedResponse) {
+        const lockUntilTime = serverLockUntil || (Date.now() + 15 * 60 * 1000);
         const lockKey = getLockoutKey(email);
         if (lockKey) {
           sessionStorage.setItem(lockKey, lockUntilTime.toString());
@@ -212,10 +216,10 @@ function Login() {
         setIsLocked(true);
         setIsLockModalOpen(true);
         setLockUntil(lockUntilTime);
-        setTimeLeft(900);
+        setTimeLeft(serverRemainingSeconds || 900);
         setErrorMessage(
           backendMessage ||
-            "Too many failed login attempts for this account. Please try again after 15 minutes."
+            "Too many failed login attempts for this account. Account locked for 15 minutes."
         );
       } else {
         const attemptsKey = getAttemptsKey(email);
@@ -223,10 +227,10 @@ function Login() {
           (attemptsKey && sessionStorage.getItem(attemptsKey)) || "0",
           10
         );
-        const newCount = currentCount + 1;
+        const newCount = serverRemainingAttempts !== undefined ? (5 - serverRemainingAttempts) : (currentCount + 1);
 
         if (newCount >= 5) {
-          // Instant 15-minute countdown on exactly 5th attempt
+          // Instant 15-minute countdown on 5th attempt
           const lockUntilTime = Date.now() + 15 * 60 * 1000;
           const lockKey = getLockoutKey(email);
           if (lockKey) {
@@ -246,9 +250,10 @@ function Login() {
           if (attemptsKey) {
             sessionStorage.setItem(attemptsKey, newCount.toString());
           }
-          const remaining = 5 - newCount;
+          const remaining = serverRemainingAttempts !== undefined ? serverRemainingAttempts : (5 - newCount);
           setErrorMessage(
-            `Invalid email/school ID or password. (${remaining} attempt${remaining === 1 ? "" : "s"} remaining before 15-minute account lockout)`
+            backendMessage ||
+              `Invalid email/school ID or password. (${remaining} attempt${remaining === 1 ? "" : "s"} remaining before 15-minute account lockout)`
           );
         }
       }

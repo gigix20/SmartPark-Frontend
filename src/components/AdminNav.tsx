@@ -11,6 +11,7 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
+import { logoutUser } from "@/pages/auth/api/authApi";
 
 interface AdminNavProps {
   isOpen?: boolean;
@@ -35,8 +36,9 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
   }, [location.pathname]);
 
   const handleConfirmLogout = () => {
+    logoutUser();
     setShowLogoutModal(false);
-    navigate("/");
+    navigate("/login");
   };
 
   return (

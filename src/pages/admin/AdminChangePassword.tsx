@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { changePassword } from "@/pages/auth/api/authApi";
 
 export default function AdminChangePassword() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function AdminChangePassword() {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isLengthValid = newPassword.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPassword);
@@ -32,14 +34,9 @@ export default function AdminChangePassword() {
 
   const strengthScore = getPasswordStrength();
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
-
-    if (currentPassword !== "admin123") {
-      setErrorMessage("Incorrect current password. Please try again.");
-      return;
-    }
 
     if (newPassword !== confirmPassword) {
       setErrorMessage("New password and confirm password do not match.");
@@ -51,7 +48,18 @@ export default function AdminChangePassword() {
       return;
     }
 
-    setIsSuccessModalOpen(true);
+    setIsLoading(true);
+    try {
+      await changePassword({ currentPassword, newPassword });
+      setIsSuccessModalOpen(true);
+    } catch (err: any) {
+      setErrorMessage(
+        err.response?.data?.message ||
+          "Failed to update password. Please check your current password."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -218,9 +226,10 @@ export default function AdminChangePassword() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer transition-all"
+                disabled={isLoading}
+                className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer transition-all"
               >
-                Change Password
+                {isLoading ? "Saving..." : "Change Password"}
               </button>
             </div>
           </form>

@@ -115,3 +115,14 @@ export async function logoutUserServer(): Promise<{ success: boolean; message: s
   const response = await api.post<{ success: boolean; message: string }>("/logout");
   return response.data;
 }
+
+// 10. Change password for authenticated user
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export async function changePassword(data: ChangePasswordData): Promise<{ success: boolean; message: string }> {
+  const response = await api.post<{ success: boolean; message: string }>("/change-password", data);
+  return response.data;
+}

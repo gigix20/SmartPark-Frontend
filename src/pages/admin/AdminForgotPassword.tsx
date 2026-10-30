@@ -2,14 +2,36 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { forgotPassword } from "@/pages/auth/api/authApi";
 
 export default function AdminForgotPassword() {
-  const [email, setEmail] = useState("admin@qcu.edu.ph");
+  const [email, setEmail] = useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.email || "";
+    } catch {
+      return "";
+    }
+  });
   const [isSent, setIsSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleReset = (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSent(true);
+    setErrorMessage("");
+    setIsLoading(true);
+
+    try {
+      await forgotPassword({ email });
+      setIsSent(true);
+    } catch (err: any) {
+      setErrorMessage(
+        err.response?.data?.message || "Failed to send reset link. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,12 +73,17 @@ export default function AdminForgotPassword() {
                 />
               </div>
 
+              {errorMessage && (
+                <p className="text-xs text-rose-500 font-medium">{errorMessage}</p>
+              )}
+
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-[#0053CC] hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer transition-all"
+                  disabled={isLoading}
+                  className="w-full py-3 rounded-xl bg-[#0053CC] hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer transition-all"
                 >
-                  Send reset link
+                  {isLoading ? "Sending..." : "Send reset link"}
                 </button>
               </div>
 
