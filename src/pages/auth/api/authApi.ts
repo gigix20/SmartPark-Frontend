@@ -61,9 +61,14 @@ export interface VerifyOtpData {
   otp: string;
 }
 
+export interface VerifyOtpResponse {
+  success: boolean;
+  message: string;
+  resetToken: string;
+}
+
 export interface ResetPasswordData {
-  email: string;
-  otp: string;
+  resetToken: string;
   password: string;
 }
 
@@ -108,13 +113,13 @@ export async function forgotPassword(data: ForgotPasswordData): Promise<{ succes
   return response.data;
 }
 
-// 7. Verify OTP code
-export async function verifyOtp(data: VerifyOtpData): Promise<{ success: boolean; message: string }> {
-  const response = await api.post<{ success: boolean; message: string }>("/verify-otp", data);
+// 7. Verify OTP code - returns resetToken on success
+export async function verifyOtp(data: VerifyOtpData): Promise<VerifyOtpResponse> {
+  const response = await api.post<VerifyOtpResponse>("/verify-otp", data);
   return response.data;
 }
 
-// 8. Reset password with verified OTP
+// 8. Reset password with resetToken
 export async function resetPassword(data: ResetPasswordData): Promise<{ success: boolean; message: string }> {
   const response = await api.post<{ success: boolean; message: string }>("/reset-password", data);
   return response.data;

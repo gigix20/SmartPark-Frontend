@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import logo from "@/assets/smartpark-logo.svg";
@@ -11,9 +11,16 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get email from navigation state (passed from ForgotPassword)
-  const [email] = useState(location.state?.email || "");
-  const [otp] = useState(location.state?.otp || "");
+  // Get resetToken and email from navigation state (passed from ForgotPassword)
+  const resetToken = location.state?.resetToken;
+  const email = location.state?.email;
+
+  // Redirect if missing resetToken or email
+  useEffect(() => {
+    if (!resetToken || !email) {
+      navigate("/forgot-password", { replace: true });
+    }
+  }, [resetToken, email, navigate]);
 
   // Input states
   const [password, setPassword] = useState("");
@@ -22,9 +29,11 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [logoutOtherDevices, setLogoutOtherDevices] = useState(false);
 
-  // Validation & Modal states
+  // Validation & API states
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
+  const [apiError, setApiError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
   // Password Strength Calculator (1 to 4)
@@ -69,8 +78,20 @@ export default function ResetPassword() {
       return;
     }
 
-    await resetPassword({ email, otp, password });
-    setIsSuccessOpen(true);
+    // Clear any previous API errors
+    setApiError("");
+    setIsLoading(true);
+
+    try {
+      await resetPassword({ resetToken, password });
+      setIsSuccessOpen(true);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || "Failed to reset password. Please try again.";
+      setApiError(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -103,6 +124,14 @@ export default function ResetPassword() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* API Error Alert */}
+          {apiError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{apiError}</span>
+            </div>
+          )}
+
           {/* New Password Field */}
           <div className="space-y-1.5 text-left">
             <Label htmlFor="password" className="text-xs sm:text-sm font-semibold text-slate-900">
@@ -217,9 +246,10 @@ export default function ResetPassword() {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-sm transition-all shadow-sm mt-4"
+            disabled={isLoading}
+            className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-sm transition-all shadow-sm mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Reset Password
+            {isLoading ? "Resetting Password..." : "Reset Password"}
           </Button>
 
             <Button

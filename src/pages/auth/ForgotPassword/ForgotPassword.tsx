@@ -83,7 +83,21 @@ export default function ForgotPassword() {
     }
   };
 
-  // Verify OTP Action - now calls real API
+  // Handle OTP paste from clipboard
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pastedData = e.clipboardData.getData("text");
+    const pastedDigits = pastedData.replace(/\D/g, "").slice(0, 6);
+    
+    if (pastedDigits.length === 6) {
+      e.preventDefault();
+      const newOtp = pastedDigits.split("");
+      setOtp(newOtp);
+      setOtpStatus("normal");
+      inputRefs.current[5]?.focus();
+    }
+  };
+
+  // Verify OTP Action - now calls real API and handles resetToken
   const handleVerifyOtp = async () => {
     const enteredCode = otp.join("");
 
@@ -93,10 +107,16 @@ export default function ForgotPassword() {
     }
 
     try {
-      await verifyOtp({ email, otp: enteredCode });
-      navigate("/reset-password", { state: { email } });
-    } catch {
-      setOtpStatus("invalid");
+      const res = await verifyOtp({ email, otp: enteredCode });
+      navigate("/reset-password", { state: { email, resetToken: res.resetToken } });
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || "";
+      if (msg.includes("attempts")) {
+        setOtpStatus("invalid");
+      } else {
+        setOtpStatus("invalid");
+      }
     }
   };
 
@@ -193,7 +213,10 @@ export default function ForgotPassword() {
         {step === "otp" && (
           <div className="space-y-6">
             {/* 6 OTP Boxes */}
-            <div className="flex justify-between gap-2 sm:gap-3 my-4">
+            <div 
+              className="flex justify-between gap-2 sm:gap-3 my-4"
+              onPaste={handlePaste}
+            >
               {otp.map((digit, idx) => (
                 <input
                   key={idx}
