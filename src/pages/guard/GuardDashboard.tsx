@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, LogOut, User as UserIcon, ShieldAlert } from "lucide-react";
 import { Header } from "@/components/Header";
-import { logoutUser, getCurrentUser, type User as UserType } from "@/pages/auth/api/authApi";
+import { logoutUser, logoutUserServer, getCurrentUser, type User as UserType } from "@/pages/auth/api/authApi";
 import { Button } from "@/components/ui/button";
 
 export default function GuardDashboard() {
@@ -28,9 +28,15 @@ export default function GuardDashboard() {
       });
   }, [navigate]);
 
-  const handleLogout = () => {
-    logoutUser();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logoutUserServer();
+    } catch (err) {
+      // ignore
+    } finally {
+      logoutUser();
+      navigate("/login");
+    }
   };
 
   if (loading) {

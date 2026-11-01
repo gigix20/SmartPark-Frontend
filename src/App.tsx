@@ -41,11 +41,13 @@ import AdminSuspend from "./pages/admin/account/AdminSuspend";
 import AdminCreate from "./pages/admin/account/AdminCreate";
 // Guardrails & Security Wrapper
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { IdleTimer } from "./components/IdleTimer";
 
 
 function App() {
   return (
     <BrowserRouter>
+      <IdleTimer />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Login />} />

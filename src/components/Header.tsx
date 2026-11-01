@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut, Sun, Moon } from "lucide-react";
+import { logoutUserServer, logoutUser } from "@/pages/auth/api/authApi";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/smartpark - favicon.svg";
 
@@ -44,10 +45,15 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
     };
   }, [showLogoutModal]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logoutUserServer();
+    } catch (err) {
+      // ignore
+    } finally {
+      logoutUser();
+      navigate("/login");
+    }
   };
 
   return (
