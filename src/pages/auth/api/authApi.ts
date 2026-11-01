@@ -7,6 +7,7 @@ export interface User {
   email: string;
   schoolId: string;
   phone?: string | null;
+  avatar?: string | null;
   role: string;
   accountStatus: string;
 }
@@ -151,5 +152,19 @@ export async function verifyEmail(data: VerifyEmailData): Promise<{ success: boo
 // 12. Resend Verification OTP
 export async function resendVerificationOtp(data: ResendVerificationData): Promise<{ success: boolean; message: string }> {
   const response = await api.post<{ success: boolean; message: string }>("/resend-verification-otp", data);
+  return response.data;
+}
+
+// 13. Update user profile
+export interface UpdateUserProfileData {
+  phone?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+}
+
+export async function updateUserProfile(data: UpdateUserProfileData): Promise<{ success: boolean; message: string; user: User }> {
+  const response = await api.patch<{ success: boolean; message: string; user: User }>("/users/profile", data);
   return response.data;
 }

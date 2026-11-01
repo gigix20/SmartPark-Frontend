@@ -20,25 +20,39 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { updateUserProfile, changePassword } from "@/pages/auth/api/authApi";
 
 export default function Profile() {
-  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const [currentUser, setCurrentUser] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    schoolId?: string;
+    phone?: string | null;
+    avatar?: string | null;
+    accountStatus?: string;
+  } | null>(() => JSON.parse(localStorage.getItem("user") || "null"));
 
   // View States: 'main' | 'edit-profile' | 'change-password'
   const [viewState, setViewState] = useState<"main" | "edit-profile" | "change-password">("main");
 
   // Profile Data State
   const [profileData, setProfileData] = useState({
-    fullName: currentUser ? `${currentUser.firstName || "Sophia"} ${currentUser.lastName || "Reyes"}` : "Sophia Reyes",
-    email: currentUser?.email || "sophia.reyes@qcu.edu.ph",
-    schoolId: currentUser?.schoolId || "24-0123",
-    phoneNumber: "+63 912 345 6789",
+    fullName: currentUser ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim() || "User" : "User",
+    email: currentUser?.email || "",
+    schoolId: currentUser?.schoolId || "",
+    phoneNumber: currentUser?.phone || "",
     campus: "San Bartolome Campus",
     accountStatus: currentUser?.accountStatus || "Active",
     yearRegistered: "2026",
     lastPasswordUpdate: "October 12, 2026 10:00AM",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300"
+    avatar: currentUser?.avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300"
   });
+
+  // Loading states
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [pwApiErrorMessage, setPwApiErrorMessage] = useState("");
 
   // Edit Profile Form State
   const [editForm, setEditForm] = useState({ ...profileData });
@@ -67,14 +81,45 @@ export default function Profile() {
   };
 
   // Submit Profile Changes
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileData({ ...editForm });
-    setIsProfileSuccessOpen(true);
+    setIsSavingProfile(true);
+
+    try {
+      const res = await updateUserProfile({
+        phone: editForm.phoneNumber,
+        fullName: editForm.fullName,
+        avatar: editForm.avatar
+      });
+
+      if (res.success) {
+        // Update local state
+        setProfileData({ ...editForm });
+
+        // Update localStorage with fresh user data
+        const updatedUser = {
+          ...currentUser,
+          firstName: res.user.firstName,
+          lastName: res.user.lastName,
+          phone: res.user.phone,
+          avatar: res.user.avatar
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setCurrentUser(updatedUser);
+
+        setIsProfileSuccessOpen(true);
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || "Failed to update profile. Please try again.";
+      alert(msg);
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   // Submit Password Change
-  const handleSavePassword = (e: React.FormEvent) => {
+  const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: { [key: string]: string } = {};
 
@@ -92,14 +137,30 @@ export default function Profile() {
 
     if (Object.keys(errors).length > 0) {
       setPwErrors(errors);
-      if (passwordForm.currentPassword === "wrong") {
-        setIsPwErrorOpen(true);
-      }
       return;
     }
 
     setPwErrors({});
-    setIsPwSuccessOpen(true);
+    setIsSavingPassword(true);
+    setPwApiErrorMessage("");
+
+    try {
+      await changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+
+      // Success - reset form and show success modal
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setIsPwSuccessOpen(true);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || "Failed to update password. Please try again.";
+      setPwApiErrorMessage(msg);
+      setIsPwErrorOpen(true);
+    } finally {
+      setIsSavingPassword(false);
+    }
   };
 
   return (
@@ -352,9 +413,10 @@ export default function Profile() {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs shadow-sm cursor-pointer"
+                  disabled={isSavingProfile}
+                  className="h-11 px-6 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Save Changes
+                  {isSavingProfile ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
 
@@ -477,9 +539,10 @@ export default function Profile() {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs shadow-sm cursor-pointer"
+                  disabled={isSavingPassword}
+                  className="h-11 px-6 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Update Password
+                  {isSavingPassword ? "Updating..." : "Update Password"}
                 </Button>
               </div>
 
@@ -554,7 +617,7 @@ export default function Profile() {
 
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Password Change Failed</h3>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              The current password you entered is incorrect. Please check your password and try again.
+              {pwApiErrorMessage || "The current password you entered is incorrect. Please check your password and try again."}
             </p>
 
             <Button
