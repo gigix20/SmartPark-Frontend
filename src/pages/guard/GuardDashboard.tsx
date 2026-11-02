@@ -1,116 +1,173 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, LogOut, User as UserIcon, ShieldAlert } from "lucide-react";
-import { Header } from "@/components/Header";
-import { logoutUser, logoutUserServer, getCurrentUser, type User as UserType } from "@/pages/auth/api/authApi";
-import { Button } from "@/components/ui/button";
+import { QrCode, UserPlus, Users, ArrowUpRight, ArrowDownRight, Bell } from "lucide-react";
+import { GuardLayout } from "@/components/GuardLayout";
 
 export default function GuardDashboard() {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<UserType | null>(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getCurrentUser()
-      .then((res) => {
-        setCurrentUser(res.user);
-        localStorage.setItem("user", JSON.stringify(res.user));
-      })
-      .catch(() => {
-        logoutUser();
-        navigate("/login");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      await logoutUserServer();
-    } catch (err) {
-      // ignore
-    } finally {
-      logoutUser();
-      navigate("/login");
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50 text-slate-500">
-        Loading Guard Portal...
-      </div>
-    );
-  }
+  const recentActivities = [
+    { id: 1, plateNo: "ABD 3654", type: "Car", action: "EXIT", time: "Sept 30, 9:40 AM" },
+    { id: 2, plateNo: "ABC 4901", type: "Car", action: "ENTRY", time: "Sept 29, 1:40 AM" },
+    { id: 3, plateNo: "TRS 1117", type: "Motorcycle", action: "ENTRY", time: "Sept 28, 7:48 AM" },
+    { id: 4, plateNo: "XYZ 3478", type: "Motorcycle", action: "ENTRY", time: "Sept 26, 9:00 AM" },
+    { id: 5, plateNo: "QIU-5209", type: "Car", action: "ENTRY", time: "Sept 27, 10:30 AM" },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-24">
-      {/* Reusable Header */}
-      <Header currentUser={currentUser} />
-
-      {/* Main Content Area */}
-      <main className="mx-auto max-w-5xl p-6 sm:p-10">
-        {/* Guard Welcome Banner */}
-        <div className="rounded-3xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 p-8 text-white shadow-lg">
-          <div className="flex flex-col gap-2">
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur-xs">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Guard Security Portal
-            </span>
-            <h1 className="font-poppins text-2xl font-extrabold sm:text-3xl">
-              Guard Dashboard
-            </h1>
-            <p className="text-xs sm:text-sm text-emerald-100">
-              Welcome back, {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "Guard"}! Monitor entry points and parking security.
-            </p>
-          </div>
+    <GuardLayout>
+      <div className="space-y-6 max-w-6xl mx-auto">
+        
+        {/* Header Title */}
+        <div>
+          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Guard Dashboard</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">View and manage vehicle access, registrations, and security checkpoints.</p>
         </div>
 
-        {/* Authenticated Guard Information Card */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {/* Account Profile Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <UserIcon className="h-5 w-5" />
+        {/* Top Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Vehicles Inside */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-3 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Vehicles inside</span>
+              <Users className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />
             </div>
-            <h3 className="mt-4 font-semibold text-slate-900 text-sm">Guard Profile Credentials</h3>
-            <div className="mt-3 space-y-1.5 text-xs text-slate-600">
-              <p>Name: <span className="font-semibold text-slate-800">{currentUser?.firstName} {currentUser?.lastName}</span></p>
-              <p>Email: <span className="font-semibold text-slate-800">{currentUser?.email}</span></p>
-              <p>Employee ID: <span className="font-semibold text-slate-800">{currentUser?.schoolId}</span></p>
-              <p>Assigned Role: <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">{currentUser?.role}</span></p>
-              <p>Account Status: <span className="font-semibold text-emerald-600">{currentUser?.accountStatus || "Active"}</span></p>
-            </div>
-          </div>
-
-          {/* Quick Actions & Auth Control */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                <ShieldAlert className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold text-slate-900 text-sm">Security Station Controls</h3>
-              <p className="mt-2 text-xs text-slate-500">
-                Authentication status verified. You are authorized to access security scanning tools and check vehicle authorization passes.
-              </p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">45<span className="text-xs text-slate-400 font-normal">/160</span></h3>
             </div>
-            
-            <Button
-              type="button"
-              onClick={handleLogout}
-              variant="outline"
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-red-200 bg-red-50 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out from Guard Station
-            </Button>
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div className="bg-[#0053CC] h-full rounded-full w-[30%]"></div>
+            </div>
           </div>
+
+          {/* Entries Today */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-3 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Entries today</span>
+              <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                <ArrowDownRight className="h-4 w-4" />
+              </div>
+            </div>
+            <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">160</h3>
+            <p className="text-[10px] text-slate-400">Total recorded campus entries</p>
+          </div>
+
+          {/* Exits Today */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-3 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Exits today</span>
+              <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+                <ArrowUpRight className="h-4 w-4" />
+              </div>
+            </div>
+            <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">150</h3>
+            <p className="text-[10px] text-slate-400">Total recorded campus exits</p>
+          </div>
+
+          {/* Unread Notifications */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-3 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Unread notifications</span>
+              <Bell className="h-4 w-4 text-amber-500" />
+            </div>
+            <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">3</h3>
+            <p className="text-[10px] text-slate-400">Requires guard attention</p>
+          </div>
+
         </div>
-      </main>
-    </div>
+
+        {/* Lower Grid: Quick Actions & Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Quick Actions (2 Columns width) */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4 transition-colors lg:col-span-1">
+            <h3 className="font-poppins text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              Quick Actions
+            </h3>
+
+            <div className="space-y-3">
+              {/* Scan Vehicle QR Button */}
+              <button
+                onClick={() => navigate("/guard/scan-qr")}
+                className="w-full flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0053CC] hover:bg-[#0042A5] text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer group space-y-2"
+              >
+                <div className="p-3 rounded-xl bg-white/10 group-hover:bg-white/20 transition-colors">
+                  <QrCode className="h-6 w-6" />
+                </div>
+                <span className="font-bold text-xs">Scan Vehicle QR</span>
+                <span className="text-[10px] text-blue-100 font-normal">Scan the QR entry on the vehicle</span>
+              </button>
+
+              {/* Gate Registration Button */}
+              <button
+                onClick={() => navigate("/guard/registration")}
+                className="w-full flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white transition-all cursor-pointer group space-y-2"
+              >
+                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
+                  <UserPlus className="h-6 w-6" />
+                </div>
+                <span className="font-bold text-xs">Gate Registration</span>
+                <span className="text-[10px] text-slate-400 font-normal">Register vehicle at the gate</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Activity Table (2 Columns width) */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4 transition-colors lg:col-span-2 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <h3 className="font-poppins text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Recent activity
+              </h3>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs min-w-112.5">
+                <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th className="pb-3">Plate No.</th>
+                    <th className="pb-3">Vehicle Type</th>
+                    <th className="pb-3">Action</th>
+                    <th className="pb-3">Date & Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                  {recentActivities.map((act) => (
+                    <tr key={act.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-3 font-bold text-slate-900 dark:text-white">{act.plateNo}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded-md font-medium text-[11px] bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900">
+                          {act.type}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                          act.action === "ENTRY" 
+                            ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" 
+                            : "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+                        }`}>
+                          {act.action}
+                        </span>
+                      </td>
+                      <td className="py-3 text-slate-500">{act.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+              <span>Showing 1 to 5 of 5 activities</span>
+              <div className="flex items-center gap-1">
+                <button type="button" className="px-2.5 py-1 rounded-lg font-semibold bg-[#0053CC] text-white cursor-pointer">1</button>
+                <button type="button" className="px-2.5 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer">2</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </GuardLayout>
   );
 }
