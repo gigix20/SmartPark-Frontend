@@ -15,11 +15,19 @@ import Profile from "./pages/student/Profile";
 import Reports from "./pages/student/Reports";
 import Vehicles from "./pages/student/Vehicles";
 
-// Guard Page
+// Guard Pages
 import GuardDashboard from "./pages/guard/GuardDashboard";
+import ScanQR from "./pages/guard/ScanQR"; 
+import GateRegistered from "./pages/guard/GateRegistered";
+import GateRegistrationForm from "./pages/guard/GateRegistrationForm";
+import GateMonitoring from "./pages/guard/GateMonitoring";
+import Notifications from "./pages/guard/Notifications";
+import GuardProfile from "./pages/guard/Profile"; 
+import GuardChangePassword from "./pages/guard/GuardChangePassword";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminNotifications from "./pages/admin/AdminNotifications"; // <--- Naidagdag na ang Admin Notifications import
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminChangePassword from "./pages/admin/AdminChangePassword";
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
@@ -39,6 +47,7 @@ import AdminDetails from "./pages/admin/account/AdminDetails";
 import AdminEdit from "./pages/admin/account/AdminEdit";
 import AdminSuspend from "./pages/admin/account/AdminSuspend";
 import AdminCreate from "./pages/admin/account/AdminCreate";
+
 // Guardrails & Security Wrapper
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { IdleTimer } from "./components/IdleTimer";
@@ -107,7 +116,7 @@ function App() {
           }
         />
 
-        {/* GUARD Protected Route */}
+        {/* GUARD Protected Routes */}
         <Route
           path="/guard"
           element={
@@ -116,11 +125,81 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/guard/dashboard" element={<Navigate to="/guard" replace />} />
+        
+        <Route
+          path="/guard/scan-qr"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <ScanQR />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guard/registration"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <GateRegistered />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/guard/registration/new"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <GateRegistrationForm />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guard/monitoring"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <GateMonitoring />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guard/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guard/profile"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <GuardProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guard/change-password"
+          element={
+            <ProtectedRoute allowedRoles={["GUARD"]}>
+              <GuardChangePassword />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ADMIN Protected Routes */}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Naidagdag na ang Admin Notifications Route dito */}
+        <Route path="/admin/notifications" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminNotifications />
           </ProtectedRoute>
         } />
 
@@ -237,7 +316,8 @@ function App() {
             <ProtectedRoute allowedRoles={["ADMIN"]}>
                <IncidentReview />
             </ProtectedRoute>
-          } />
+          } 
+        />
 
         <Route 
           path="/admin/access-records" 

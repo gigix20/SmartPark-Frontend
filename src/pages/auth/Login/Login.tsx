@@ -82,7 +82,7 @@ function Login() {
     setErrorMessage("");
   }, [getNormalizedId, getLockoutKey]);
 
-  // Auto-redirect if authenticated + load remembered identifier
+  // Auto-redirect if authenticated + load remembered identifier & reset fields properly
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -110,6 +110,10 @@ function Login() {
       setEmail(rememberedId);
       setRememberDevice(true);
       checkAndApplyLockState(rememberedId);
+    } else {
+      setEmail("");
+      setPassword("");
+      setErrorMessage("");
     }
   }, [navigate, checkAndApplyLockState]);
 
@@ -232,7 +236,6 @@ function Login() {
         const newCount = serverRemainingAttempts !== undefined ? (5 - serverRemainingAttempts) : (currentCount + 1);
 
         if (newCount >= 5) {
-          // Instant 15-minute countdown on 5th attempt
           const lockUntilTime = Date.now() + 15 * 60 * 1000;
           const lockKey = getLockoutKey(email);
           if (lockKey) {
@@ -283,11 +286,9 @@ function Login() {
 
   return (
     <div className="relative flex min-h-screen w-full font-sans">
-      {/* Left Panel - Custom Requested Gradient */}
+      {/* Left Panel */}
       <div className="relative hidden min-h-screen w-1/2 flex-col justify-between overflow-hidden bg-linear-to-b from-[#b0c4de] via-[#4a80e2] to-[#2563eb] p-12 text-white md:flex">
         <div />
-
-        {/* Logo */}
         <div className="flex items-center justify-center gap-6">
           <img
             src={logo}
@@ -295,8 +296,6 @@ function Login() {
             className="h-64 w-auto shrink-0 object-contain md:h-80 lg:h-112"
           />
         </div>
-
-        {/* Active users badge */}
         <div className="z-10 flex items-center gap-3">
           <div className="flex -space-x-2 overflow-hidden">
             <div className="inline-block h-8 w-8 rounded-full border-2 border-white bg-slate-200" />
@@ -315,11 +314,9 @@ function Login() {
             Enter your credentials to manage your parking access.
           </p>
 
-          {/* Form */}
           <form className="mt-6 flex flex-col gap-6" onSubmit={handleLogin}>
             
-            {/* Email / ID Input */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 text-left">
               <Label htmlFor="email" className="text-xs font-semibold text-slate-800">
                 Email Address or School ID<span className="text-[#EF4444]">*</span>
               </Label>
@@ -335,8 +332,7 @@ function Login() {
               />
             </div>
 
-            {/* Password Input Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 text-left">
               <Label htmlFor="password" className="text-xs font-semibold text-slate-800">
                 Password<span className="text-[#EF4444]">*</span>
               </Label>
@@ -354,7 +350,7 @@ function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
                   disabled={isLocked || isLoading}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -362,14 +358,12 @@ function Login() {
               </div>
             </div>
 
-            {/* Error Message Indicator */}
             {errorMessage && !isSuspended && (
-              <p className="text-xs font-medium text-[#EF4444]">
+              <p className="text-xs font-medium text-[#EF4444] text-left">
                 {errorMessage}
               </p>
             )}
 
-            {/* Options */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -388,7 +382,6 @@ function Login() {
               </Link>
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               disabled={isLocked || isLoading}
@@ -402,7 +395,6 @@ function Login() {
             </Button>
           </form>
 
-          {/* Footer Links */}
           <p className="mt-6 text-sm text-slate-700">
             New user?{" "}
             <Link to="/register" className="font-semibold text-[#0053CC] hover:underline">
@@ -419,25 +411,23 @@ function Login() {
         </div>
       </div>
 
-      {/* 1. SUCCESS MODAL OVERLAY */}
+      {/* Modals */}
       {isSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-[#008080]">
               <CheckCircle2 className="h-9 w-9 stroke-[1.75]" />
             </div>
-
             <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
               Log in Successful
             </h3>
             <p className="mt-1 text-xs text-slate-400">
               Redirecting to your dashboard...
             </p>
-
             <Button
               type="button"
               onClick={handleContinue}
-              className="mt-6 w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-sm"
+              className="mt-6 w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-sm cursor-pointer"
             >
               Continue
             </Button>
@@ -445,21 +435,18 @@ function Login() {
         </div>
       )}
 
-      {/* 2. ACCOUNT LOCKED MODAL OVERLAY */}
       {isLockModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#EF4444]">
               <Lock className="h-7 w-7" />
             </div>
-
             <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
               Account Locked
             </h3>
             <p className="mt-2 text-xs text-slate-500">
               Your account has been temporarily locked due to multiple failed login attempts.
             </p>
-
             <div className="mt-5 flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50/60 p-4">
               <span className="text-[11px] font-medium text-[#EF4444]">
                 Time remaining
@@ -472,7 +459,6 @@ function Login() {
               </div>
               <span className="text-[10px] text-red-400">minutes</span>
             </div>
-
             <Button
               type="button"
               onClick={() => setIsLockModalOpen(false)}
@@ -485,29 +471,23 @@ function Login() {
         </div>
       )}
 
-      {/* 3. ACCOUNT SUSPENDED MODAL OVERLAY */}
       {isSuspended && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
-            {/* Red Tint Shield Icon */}
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#EF4444]">
               <ShieldAlert className="h-7 w-7" />
             </div>
-
-            {/* Suspended Header & Message */}
             <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
               Account Suspended
             </h3>
             <p className="mt-2 text-xs text-slate-500 leading-relaxed">
               If you believe this suspension was a mistake, you may submit an appeal for review.
             </p>
-
-            {/* Action Buttons */}
             <div className="mt-6 flex flex-col gap-3">
               <Button
                 type="button"
                 onClick={handleAppeal}
-                className="w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-xs"
+                className="w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-xs cursor-pointer"
               >
                 Submit Appeal
               </Button>
@@ -515,7 +495,7 @@ function Login() {
                 type="button"
                 onClick={() => navigate("/terms-and-conditions")}
                 variant="outline"
-                className="w-full rounded-xl border border-slate-200 text-xs font-semibold text-[#0053CC] hover:bg-slate-50"
+                className="w-full rounded-xl border border-slate-200 text-xs font-semibold text-[#0053CC] hover:bg-slate-50 cursor-pointer"
               >
                 Terms & Conditions
               </Button>

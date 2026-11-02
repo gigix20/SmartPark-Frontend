@@ -11,7 +11,7 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
-import { logoutUser, logoutUserServer } from "@/pages/auth/api/authApi";
+import { logoutUserServer } from "@/pages/auth/api/authApi";
 
 interface AdminNavProps {
   isOpen?: boolean;
@@ -35,15 +35,29 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
     }
   }, [location.pathname]);
 
+  // I-lock ang background scroll kapag bukas ang modal para hindi makapag-scroll
+  useEffect(() => {
+    if (showLogoutModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showLogoutModal]);
+
   const handleConfirmLogout = async () => {
     try {
       await logoutUserServer();
     } catch (err) {
       // ignore
     } finally {
-      logoutUser();
+      document.body.style.overflow = "unset";
+      localStorage.clear();
+      sessionStorage.clear();
       setShowLogoutModal(false);
-      navigate("/login");
+      navigate("/login", { replace: true });
     }
   };
 
@@ -115,7 +129,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                   <button
                     type="button"
                     onClick={() => setIsVehiclesOpen(!isVehiclesOpen)}
-                    className="p-1 hover:bg-white/20 rounded-lg cursor-pointer transition-colors"
+                    className="p-1 hover:bg-white/25 rounded-lg cursor-pointer transition-colors"
                     aria-label="Toggle Vehicles Menu"
                   >
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isVehiclesOpen ? "rotate-180" : ""}`} />
@@ -153,7 +167,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 <span>Parking</span>
               </Link>
 
-              {/* Incidents Menu (Ginawang startsWith para saklaw pati ang review/history sub-pages) */}
+              {/* Incidents Menu */}
               <Link
                 to="/admin/incidents"
                 onClick={onClose}
@@ -213,7 +227,10 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
               </div>
               <button
                 type="button"
-                onClick={() => setShowLogoutModal(false)}
+                onClick={() => {
+                  document.body.style.overflow = "unset";
+                  setShowLogoutModal(false);
+                }}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
@@ -230,7 +247,10 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
             <div className="flex items-center justify-end gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={() => setShowLogoutModal(false)}
+                onClick={() => {
+                  document.body.style.overflow = "unset";
+                  setShowLogoutModal(false);
+                }}
                 className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Cancel
