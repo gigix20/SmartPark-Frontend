@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronDown, AlertCircle, CheckCircle2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  AlertCircle,
+  CheckCircle2,
+  X,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function AdminEdit() {
@@ -71,19 +77,23 @@ export default function AdminEdit() {
         </div>
 
         {/* Main Form Container */}
-        <form onSubmit={handleSave} className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
-          
+        <form
+          onSubmit={handleSave}
+          className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors"
+        >
           {/* Header Title */}
           <div className="border-b border-slate-100 dark:border-slate-800 pb-6">
-            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Admin Profile</h1>
+            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+              Edit Profile
+            </h1>
           </div>
 
           {/* Profile Overview Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/30 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-4">
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60" 
-                alt="John Doe" 
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60"
+                alt="John Doe"
                 className="h-16 w-16 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm"
               />
               <div className="space-y-1">
@@ -91,18 +101,30 @@ export default function AdminEdit() {
                   <h2 className="font-poppins text-lg font-extrabold text-slate-900 dark:text-white">
                     {firstName} {lastName}
                   </h2>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                    status === "Active" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
-                    status === "Suspended" ? "bg-amber-50 text-amber-600 border-amber-200" :
-                    "bg-rose-50 text-rose-600 border-rose-200"
-                  }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${
-                      status === "Active" ? "bg-emerald-500" : status === "Suspended" ? "bg-amber-500" : "bg-rose-500"
-                    }`}></span>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                      status === "Active"
+                        ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                        : status === "Suspended"
+                          ? "bg-amber-50 text-amber-600 border-amber-200"
+                          : "bg-rose-50 text-rose-600 border-rose-200"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        status === "Active"
+                          ? "bg-emerald-500"
+                          : status === "Suspended"
+                            ? "bg-amber-500"
+                            : "bg-rose-500"
+                      }`}
+                    ></span>
                     {status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 font-medium">Employee ID: {employeeId}</p>
+                <p className="text-xs text-slate-400 font-medium">
+                  Employee ID: {employeeId}
+                </p>
               </div>
             </div>
           </div>
@@ -113,10 +135,11 @@ export default function AdminEdit() {
               Personal Information
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs bg-slate-50/30 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
-              
               {/* First Name */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">First Name</label>
+                <label className="text-slate-500 font-semibold">
+                  First Name
+                </label>
                 <input
                   type="text"
                   value={firstName}
@@ -127,7 +150,9 @@ export default function AdminEdit() {
 
               {/* Last Name */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">Last Name</label>
+                <label className="text-slate-500 font-semibold">
+                  Last Name
+                </label>
                 <input
                   type="text"
                   value={lastName}
@@ -138,7 +163,9 @@ export default function AdminEdit() {
 
               {/* Email Address */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">Email Address</label>
+                <label className="text-slate-500 font-semibold">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   value={email}
@@ -149,7 +176,9 @@ export default function AdminEdit() {
 
               {/* Employee ID */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">Employee ID</label>
+                <label className="text-slate-500 font-semibold">
+                  Employee ID
+                </label>
                 <input
                   type="text"
                   value={employeeId}
@@ -184,7 +213,9 @@ export default function AdminEdit() {
                           setIsRoleOpen(false);
                         }}
                         className={`w-full text-left px-3 py-2 text-xs transition-colors cursor-pointer ${
-                          role === r ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                          role === r
+                            ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold"
+                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
                         }`}
                       >
                         {r}
@@ -196,7 +227,9 @@ export default function AdminEdit() {
 
               {/* Phone Number (Numbers only, max 12 digits) */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">Phone Number</label>
+                <label className="text-slate-500 font-semibold">
+                  Phone Number
+                </label>
                 <input
                   type="text"
                   value={phoneNumber}
@@ -206,7 +239,6 @@ export default function AdminEdit() {
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
                 />
               </div>
-
             </div>
           </div>
 
@@ -216,10 +248,11 @@ export default function AdminEdit() {
               Account Details
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs bg-slate-50/30 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 items-center">
-              
               <div className="space-y-1">
                 <span className="text-slate-400">Account Status</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">Current state of the account</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">
+                  Current state of the account
+                </p>
               </div>
 
               {/* Status Dropdown */}
@@ -253,13 +286,13 @@ export default function AdminEdit() {
                           }
                         }}
                         className={`w-full text-left px-3 py-2 text-xs transition-colors cursor-pointer ${
-                          st === "Deactivate" 
-                            ? "text-rose-600 font-bold hover:bg-rose-50 dark:hover:bg-rose-950/30" 
+                          st === "Deactivate"
+                            ? "text-rose-600 font-bold hover:bg-rose-50 dark:hover:bg-rose-950/30"
                             : st === "Suspended"
-                            ? "text-amber-600 font-bold hover:bg-amber-50 dark:hover:bg-amber-950/30"
-                            : status === st 
-                            ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold" 
-                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                              ? "text-amber-600 font-bold hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                              : status === st
+                                ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
                         }`}
                       >
                         {st}
@@ -271,11 +304,15 @@ export default function AdminEdit() {
 
               <div className="space-y-1">
                 <span className="text-slate-400">Date Created</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">December 2025</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">
+                  December 2025
+                </p>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Last Updated</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">Sep 28, 2026, 9:30 AM</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">
+                  Sep 28, 2026, 9:30 AM
+                </p>
               </div>
             </div>
           </div>
@@ -296,14 +333,13 @@ export default function AdminEdit() {
               <span>Save Changes</span>
             </button>
           </div>
-
         </form>
 
         {/* --- DEACTIVATE CONFIRMATION MODAL --- */}
         {showDeactivateModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative">
-              <button 
+              <button
                 onClick={() => setShowDeactivateModal(false)}
                 className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
               >
@@ -315,20 +351,23 @@ export default function AdminEdit() {
               </div>
 
               <div>
-                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Deactivate Admin Account?</h3>
+                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
+                  Deactivate Admin Account?
+                </h3>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Are you sure you want to deactivate {firstName} {lastName}'s account?
+                  Are you sure you want to deactivate {firstName} {lastName}'s
+                  account?
                 </p>
               </div>
-              
+
               <div className="space-y-2 pt-2">
-                <button 
+                <button
                   onClick={handleConfirmDeactivate}
                   className="w-full h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 transition-all cursor-pointer"
                 >
                   Deactivate
                 </button>
-                <button 
+                <button
                   onClick={() => setShowDeactivateModal(false)}
                   className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
@@ -343,27 +382,31 @@ export default function AdminEdit() {
         {showSuccessModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative">
-              
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                 <CheckCircle2 className="h-7 w-7" />
               </div>
 
               <div>
-                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Account Deactivated Successfully</h3>
+                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
+                  Account Deactivated Successfully
+                </h3>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  The admin's account has been deactivated and access to SmartPark has been disabled.
+                  The admin's account has been deactivated and access to
+                  SmartPark has been disabled.
                 </p>
               </div>
 
               <div className="space-y-1.5 py-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">System Access</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  System Access
+                </span>
                 <div className="inline-block w-full py-2.5 rounded-xl border border-rose-200 bg-rose-50/50 text-rose-600 font-extrabold text-xs">
                   Disabled
                 </div>
               </div>
-              
+
               <div className="pt-2">
-                <button 
+                <button
                   onClick={() => navigate("/admin/accounts")}
                   className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0053CC] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
@@ -373,7 +416,6 @@ export default function AdminEdit() {
             </div>
           </div>
         )}
-
       </div>
     </AdminLayout>
   );

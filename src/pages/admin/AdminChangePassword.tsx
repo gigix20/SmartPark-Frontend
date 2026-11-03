@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { changePassword } from "@/pages/auth/api/authApi";
 
@@ -55,7 +61,7 @@ export default function AdminChangePassword() {
     } catch (err: any) {
       setErrorMessage(
         err.response?.data?.message ||
-          "Failed to update password. Please check your current password."
+          "Failed to update password. Please check your current password.",
       );
     } finally {
       setIsLoading(false);
@@ -66,7 +72,6 @@ export default function AdminChangePassword() {
     <AdminLayout>
       {/* Tinanggal ang max-w at mx-auto para sumunod sa gilid tulad ng iba pang pages */}
       <div className="space-y-6">
-        
         {/* Back Button & Header */}
         <div className="space-y-1">
           <Link
@@ -84,7 +89,6 @@ export default function AdminChangePassword() {
         {/* Form Card Container */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
           <form onSubmit={handleChangePassword} className="space-y-5">
-            
             {/* Current Password Field */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -105,7 +109,9 @@ export default function AdminChangePassword() {
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
                   className={`w-full rounded-xl border ${
-                    errorMessage ? "border-rose-500 bg-rose-50/20" : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40"
+                    errorMessage
+                      ? "border-rose-500 bg-rose-50/20"
+                      : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40"
                   } px-3.5 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-[#0053CC] pr-10`}
                 />
                 <button
@@ -113,7 +119,11 @@ export default function AdminChangePassword() {
                   onClick={() => setShowCurrent(!showCurrent)}
                   className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showCurrent ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               {errorMessage && (
@@ -141,7 +151,11 @@ export default function AdminChangePassword() {
                   onClick={() => setShowNew(!showNew)}
                   className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showNew ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
 
@@ -153,8 +167,8 @@ export default function AdminChangePassword() {
                       strengthScore < 50
                         ? "bg-rose-500"
                         : strengthScore < 100
-                        ? "bg-amber-500"
-                        : "bg-emerald-500"
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
                     }`}
                     style={{ width: `${strengthScore}%` }}
                   />
@@ -166,11 +180,15 @@ export default function AdminChangePassword() {
                       strengthScore === 100
                         ? "text-emerald-600 dark:text-emerald-400"
                         : strengthScore > 0
-                        ? "text-amber-500"
-                        : "text-slate-400"
+                          ? "text-amber-500"
+                          : "text-slate-400"
                     }`}
                   >
-                    {strengthScore === 100 ? "Strong Password" : strengthScore > 0 ? "Medium" : "Too Weak"}
+                    {strengthScore === 100
+                      ? "Strong Password"
+                      : strengthScore > 0
+                        ? "Medium"
+                        : "Too Weak"}
                   </span>
                 </div>
               </div>
@@ -194,23 +212,36 @@ export default function AdminChangePassword() {
                   onClick={() => setShowConfirm(!showConfirm)}
                   className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirm ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
 
             {/* Requirements Box */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-4 space-y-2 text-xs">
-              <p className="font-bold text-slate-700 dark:text-slate-300">Password Requirements:</p>
+            <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/70 dark:bg-blue-950/30 p-4 space-y-3 text-xs">
+              <p className="font-bold text-slate-700 dark:text-slate-300">
+                Password Requirements:
+              </p>
               <ul className="space-y-1 text-slate-500 dark:text-slate-400 text-[11px]">
-                <li className={`flex items-center gap-1.5 ${isLengthValid ? "text-emerald-600 font-semibold" : ""}`}>
+                <li
+                  className={`flex items-center gap-1.5 ${isLengthValid ? "text-emerald-600 font-semibold" : ""}`}
+                >
                   <span>✓</span> Must be at least 8 characters long
                 </li>
-                <li className={`flex items-center gap-1.5 ${hasUppercase ? "text-emerald-600 font-semibold" : ""}`}>
+                <li
+                  className={`flex items-center gap-1.5 ${hasUppercase ? "text-emerald-600 font-semibold" : ""}`}
+                >
                   <span>✓</span> Include at least one uppercase letter (A-Z)
                 </li>
-                <li className={`flex items-center gap-1.5 ${hasNumberOrSpecial ? "text-emerald-600 font-semibold" : ""}`}>
-                  <span>✓</span> Include at least one number (0-9) or special character
+                <li
+                  className={`flex items-center gap-1.5 ${hasNumberOrSpecial ? "text-emerald-600 font-semibold" : ""}`}
+                >
+                  <span>✓</span> Include at least one number (0-9) or special
+                  character
                 </li>
               </ul>
             </div>

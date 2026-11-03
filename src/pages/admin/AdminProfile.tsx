@@ -21,7 +21,9 @@ export default function AdminProfile() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Admin Profile</h1>
+        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+          Admin Profile
+        </h1>
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-6 transition-colors">
           <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 p-4 sm:p-6 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -32,7 +34,7 @@ export default function AdminProfile() {
                   alt="John Doe"
                   className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-xs"
                 />
-                <button 
+                <button
                   type="button"
                   className="absolute bottom-0 right-0 rounded-full bg-white dark:bg-slate-800 p-1.5 text-blue-600 dark:text-blue-400 shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700 cursor-pointer"
                 >
@@ -40,23 +42,35 @@ export default function AdminProfile() {
                 </button>
               </div>
               <div>
-                <h2 className="font-poppins text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">John Doe</h2>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">Super Admin</p>
+                <h2 className="font-poppins text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                  John Doe
+                </h2>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  Super Admin
+                </p>
               </div>
             </div>
 
             <div className="text-left sm:text-right space-y-1.5 text-xs border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-200 dark:border-slate-800">
               <div className="flex sm:justify-end items-center gap-2">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Account Status</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">
+                  Account Status
+                </span>
                 <span className="rounded-md bg-emerald-100/70 dark:bg-emerald-950/50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase">
                   Active
                 </span>
               </div>
               <p className="text-slate-500 dark:text-slate-400">
-                Date Created: <span className="font-semibold text-slate-800 dark:text-slate-200">December 2025</span>
+                Date Created:{" "}
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  December 2025
+                </span>
               </p>
               <p className="text-slate-500 dark:text-slate-400">
-                Last Updated: <span className="font-semibold text-slate-800 dark:text-slate-200">Sep 28, 2026, 9:30 AM</span>
+                Last Updated:{" "}
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  Sep 28, 2026, 9:30 AM
+                </span>
               </p>
             </div>
           </div>
@@ -69,7 +83,9 @@ export default function AdminProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">First Name</label>
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  First Name:
+                </label>
                 <div className="relative">
                   <input
                     type="text"
@@ -83,7 +99,9 @@ export default function AdminProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Last Name</label>
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Last Name:
+                </label>
                 <div className="relative">
                   <input
                     type="text"
@@ -97,7 +115,9 @@ export default function AdminProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Email Address</label>
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Email Address:
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -108,7 +128,9 @@ export default function AdminProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Employee ID</label>
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Employee ID:
+                </label>
                 <input
                   type="text"
                   name="employeeId"
@@ -119,7 +141,9 @@ export default function AdminProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Role</label>
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Role:
+                </label>
                 <input
                   type="text"
                   name="role"
@@ -130,7 +154,9 @@ export default function AdminProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Phone Number</label>
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Phone Number:
+                </label>
                 <div className="relative">
                   <input
                     type="text"
