@@ -51,7 +51,7 @@ export interface AdminRegisterData {
   schoolId: string;
   phone?: string;
   password: string;
-  role: "GUARD" | "ADMIN";
+  role: "GUARD" | "ADMIN" | "SUPER_ADMIN";
 }
 
 export interface ForgotPasswordData {
