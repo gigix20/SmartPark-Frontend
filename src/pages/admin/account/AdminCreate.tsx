@@ -23,7 +23,7 @@ export default function AdminCreate() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [employeeId, setEmployeeId] = useState("");
-  const [roleToCreate, setRoleToCreate] = useState<"ADMIN" | "GUARD">("GUARD");
+  const [adminType, setAdminType] = useState<"SUPER_ADMIN" | "ADMIN">("ADMIN");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -40,7 +40,6 @@ export default function AdminCreate() {
   // Modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Prevent background scrolling kapag bukas ang modal
   useEffect(() => {
     if (showSuccessModal) {
       document.body.style.overflow = "hidden";
@@ -55,8 +54,6 @@ export default function AdminCreate() {
   // --- VALIDATION FUNCTIONS ---
   const nameRegex = /^[a-zA-ZÀ-ž\s'-]+$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
-  // Regex para sa format na XX-XXXX (e.g. 24-1474) o AA-XXXXXXX (e.g. AB-1234567 o ADM-1234567)
   const employeeIdRegex = /^(\d{2}-\d{4}|[A-Z]{2,3}-\d{4,7})$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -65,7 +62,6 @@ export default function AdminCreate() {
   const trimmedEmail = email.trim();
   const trimmedEmployeeId = employeeId.trim();
 
-  // Field errors validation
   const firstNameError = !trimmedFirstName
     ? "Please fill out this field."
     : trimmedFirstName.length < 2 || trimmedFirstName.length > 50
@@ -126,8 +122,8 @@ export default function AdminCreate() {
       return;
     }
 
-    if (roleToCreate === "ADMIN" && !isSuperAdmin) {
-      setApiError("Access Denied: Only Super Admins can create new Admin accounts.");
+    if (adminType === "SUPER_ADMIN" && !isSuperAdmin) {
+      setApiError("Access Denied: Only Super Admins can create new Super Admin accounts.");
       return;
     }
 
@@ -140,7 +136,7 @@ export default function AdminCreate() {
         email: trimmedEmail,
         schoolId: trimmedEmployeeId,
         password,
-        role: roleToCreate,
+        role: adminType,
       });
 
       setExistingError(false);
@@ -176,8 +172,8 @@ export default function AdminCreate() {
           
           {/* Header Title */}
           <div className="border-b border-slate-100 dark:border-slate-800 pb-6">
-            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Create New Account</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Assign dedicated personnel profiles with campus access privileges.</p>
+            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Create New Admin</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Assign dedicated personnel profiles with granular campus access rules.</p>
           </div>
 
           {/* API Error Banner */}
@@ -274,7 +270,7 @@ export default function AdminCreate() {
                 {/* Employee ID */}
                 <div className="space-y-1.5">
                   <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
-                    ID / Employee ID <span className="text-rose-500">*</span>
+                    Employee ID <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -283,7 +279,7 @@ export default function AdminCreate() {
                       setEmployeeId(e.target.value);
                       setExistingError(false);
                     }}
-                    placeholder="24-1474 or ADM-1234567"
+                    placeholder="ADM-2026-"
                     className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
                       (isSubmitted && employeeIdError) || existingError ? "border-rose-500" : "border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
                     }`}
@@ -310,53 +306,14 @@ export default function AdminCreate() {
 
               <div className="space-y-3 text-xs">
                 <label className="text-slate-700 dark:text-slate-300 font-bold block">
-                  Account Role <span className="text-rose-500">*</span>
+                  Administrator Type <span className="text-rose-500">*</span>
                 </label>
 
-                {!isSuperAdmin && (
-                  <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-3 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
-                    <strong>RBAC Notice:</strong> Regular Admin accounts can only create Guard accounts. Only Super Admins can create new Admin accounts.
-                  </div>
-                )}
-
-                {/* Admin Radio Card (Only selectable by Super Admin) */}
+                {/* Super Administrator Radio Card */}
                 <div 
-                  onClick={() => {
-                    if (isSuperAdmin) setRoleToCreate("ADMIN");
-                  }}
-                  className={`p-4 rounded-2xl border-2 transition-all ${
-                    !isSuperAdmin 
-                      ? "opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50"
-                      : roleToCreate === "ADMIN" 
-                        ? "border-[#0053CC] bg-blue-50/40 dark:bg-blue-950/20 cursor-pointer" 
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 cursor-pointer"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input 
-                      type="radio" 
-                      name="accountRole" 
-                      checked={roleToCreate === "ADMIN"}
-                      onChange={() => {
-                        if (isSuperAdmin) setRoleToCreate("ADMIN");
-                      }}
-                      disabled={!isSuperAdmin}
-                      className="mt-0.5 accent-[#0053CC]"
-                    />
-                    <div className="space-y-1">
-                      <p className="font-bold text-slate-900 dark:text-white">Administrator (ADMIN)</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Full administrative access to manage personnel, audit logs, parking capacity, and settings.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Guard Radio Card (Available to both Super Admin and Admin) */}
-                <div 
-                  onClick={() => setRoleToCreate("GUARD")}
+                  onClick={() => setAdminType("SUPER_ADMIN")}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    roleToCreate === "GUARD" 
+                    adminType === "SUPER_ADMIN" 
                       ? "border-[#0053CC] bg-blue-50/40 dark:bg-blue-950/20" 
                       : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
                   }`}
@@ -364,15 +321,41 @@ export default function AdminCreate() {
                   <div className="flex items-start gap-3">
                     <input 
                       type="radio" 
-                      name="accountRole" 
-                      checked={roleToCreate === "GUARD"}
-                      onChange={() => setRoleToCreate("GUARD")}
+                      name="adminType" 
+                      checked={adminType === "SUPER_ADMIN"}
+                      onChange={() => setAdminType("SUPER_ADMIN")}
                       className="mt-0.5 accent-[#0053CC]"
                     />
                     <div className="space-y-1">
-                      <p className="font-bold text-slate-900 dark:text-white">Security Guard (GUARD)</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Super Administrator</p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Gate security access to inspect vehicle entries, scan passes, and review incident reports.
+                        Unrestricted core logs deletion, credential issuance, and audit access.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Associate Administrator Radio Card */}
+                <div 
+                  onClick={() => setAdminType("ADMIN")}
+                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                    adminType === "ADMIN" 
+                      ? "border-[#0053CC] bg-blue-50/40 dark:bg-blue-950/20" 
+                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input 
+                      type="radio" 
+                      name="adminType" 
+                      checked={adminType === "ADMIN"}
+                      onChange={() => setAdminType("ADMIN")}
+                      className="mt-0.5 accent-[#0053CC]"
+                    />
+                    <div className="space-y-1">
+                      <p className="font-bold text-slate-900 dark:text-white">Associate Administrator</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Normal access records registration, vehicle decals review, and space auditing.
                       </p>
                     </div>
                   </div>

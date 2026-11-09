@@ -27,7 +27,7 @@ import GuardChangePassword from "./pages/guard/GuardChangePassword";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminNotifications from "./pages/admin/AdminNotifications"; // <--- Naidagdag na ang Admin Notifications import
+import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminChangePassword from "./pages/admin/AdminChangePassword";
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
@@ -47,6 +47,7 @@ import AdminDetails from "./pages/admin/account/AdminDetails";
 import AdminEdit from "./pages/admin/account/AdminEdit";
 import AdminSuspend from "./pages/admin/account/AdminSuspend";
 import AdminCreate from "./pages/admin/account/AdminCreate";
+import GuardCreate from "./pages/admin/account/GuardCreate"; // <--- Naidagdag na ang GuardCreate import dito
 
 // Guardrails & Security Wrapper
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -196,7 +197,6 @@ function App() {
           </ProtectedRoute>
         } />
 
-        {/* Naidagdag na ang Admin Notifications Route dito */}
         <Route path="/admin/notifications" element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <AdminNotifications />
@@ -242,6 +242,13 @@ function App() {
         <Route path="/admin/accounts/create" element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <AdminCreate />
+          </ProtectedRoute>
+        } />
+
+        {/* Naidagdag na ang GuardCreate Route dito */}
+        <Route path="/admin/guards/create" element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <GuardCreate />
           </ProtectedRoute>
         } />
         
