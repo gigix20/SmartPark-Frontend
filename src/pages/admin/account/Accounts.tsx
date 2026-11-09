@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, UserPlus, Shield, Users, UserCheck } from "lucide-react";
+import { Search, UserPlus, ShieldAlert, Shield, Users, UserCheck, UserX, AlertTriangle } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function Accounts() {
@@ -12,6 +12,7 @@ export default function Accounts() {
     setActiveTab(tab);
   };
 
+  // Listahan ng lahat ng accounts
   const accountsData = [
     {
       id: 1,
@@ -47,6 +48,7 @@ export default function Accounts() {
     },
   ];
 
+  // Filtering logic para sa table
   const filteredAccounts = accountsData.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,16 +70,45 @@ export default function Accounts() {
     return matchesSearch;
   });
 
+  // Dynamic Header Title at Description batay sa napiling Tab
+  const getHeaderInfo = () => {
+    switch (activeTab) {
+      case "Administrators":
+        return {
+          title: "Admin Management",
+          description: "Create, Audit, and Configure Administrative Roles and Privilege Tiers.",
+        };
+      case "Guards":
+        return {
+          title: "Guard Management",
+          description: "Configure campus access personnel, gate deployment profiles, and shifts.",
+        };
+      case "Users":
+        return {
+          title: "User Management",
+          description: "Manage active campus parking customers, vehicles link, and parking privilege scope.",
+        };
+      default:
+        return {
+          title: "Account Management",
+          description: "Create, manage, and audit QCU SmartPark personnel and users.",
+        };
+    }
+  };
+
+  const headerInfo = getHeaderInfo();
+
   const getAddButtonText = () => {
     if (activeTab === "Guards") return "+ ADD GUARD ACCOUNT";
-    if (activeTab === "Users") return "+ ADD USER ACCOUNT";
     if (activeTab === "Administrators") return "+ ADD ADMIN ACCOUNT";
     return "";
   };
 
   const handleAddClick = () => {
     if (activeTab === "Administrators") {
-      navigate("/admin/accounts/create");
+      navigate("/admin/accounts/create"); // Papunta sa Admin creation page
+    } else if (activeTab === "Guards") {
+      navigate("/admin/guards/create"); // Papunta sa GuardCreate.tsx page
     }
   };
 
@@ -99,14 +130,14 @@ export default function Accounts() {
 
   return (
     <AdminLayout>
+      {/* Dynamic Title and Description */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
-            Admin Management
+            {headerInfo.title}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Create, audit, and configure administrative roles and privilege
-            limits.
+            {headerInfo.description}
           </p>
         </div>
         {activeTab !== "All" && (
@@ -121,59 +152,165 @@ export default function Accounts() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
-          <div>
-            <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">
-              Total Admins
-            </p>
-            <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-              3
-            </h3>
-            <p className="text-[10px] text-slate-400 mt-1">
-              All system administrators
-            </p>
+      {/* ================= DYNAMIC METRIC CARDS NA NAGBABAGO BAWAT TAB ================= */}
+
+      {/* 1. Kapag "All" (Account Management) */}
+      {activeTab === "All" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Account</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{accountsData.length}</h3>
+              <p className="text-[10px] text-slate-400 mt-1">All registered system profiles</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC]"><Users className="h-5 w-5" /></div>
           </div>
-          <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
-            <Users className="h-5 w-5" />
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Administrators</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{accountsData.filter(i => i.role.includes("Admin")).length}</h3>
+              <p className="text-[10px] text-slate-400 mt-1">System administrators & super admins</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600"><Shield className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Security Guards</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{accountsData.filter(i => i.role === "Guard").length}</h3>
+              <p className="text-[10px] text-slate-400 mt-1">Active checkpoint personnel</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600"><ShieldAlert className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Users</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{accountsData.filter(i => i.role === "User").length}</h3>
+              <p className="text-[10px] text-slate-400 mt-1">Students, faculty, & vehicle owners</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600"><UserCheck className="h-5 w-5" /></div>
           </div>
         </div>
+      )}
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
-          <div>
-            <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">
-              Super Admins
-            </p>
-            <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-              1
-            </h3>
-            <p className="text-[10px] text-slate-400 mt-1">
-              Unrestricted root rights
-            </p>
+      {/* 2. Kapag "Administrators" (Admin Management): Total ADMIN - SUPER ADMIN - REGULAR ADMINS */}
+      {activeTab === "Administrators" && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Admin</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role.includes("Admin")).length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">All administrative profiles</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC]"><Users className="h-5 w-5" /></div>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
-            <Shield className="h-5 w-5" />
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Super Admin</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "Super Admin").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Unrestricted root rights</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600"><Shield className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Regular Admins</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "Administrator").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Standard restricted access</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600"><UserCheck className="h-5 w-5" /></div>
           </div>
         </div>
+      )}
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
-          <div>
-            <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">
-              Regular Admins
-            </p>
-            <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-              2
-            </h3>
-            <p className="text-[10px] text-slate-400 mt-1">
-              Standard restricted access
-            </p>
+      {/* 3. Kapag "Guards" (Guard Management): Total Personnel - Active - Off-Duty */}
+      {activeTab === "Guards" && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Personnel</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "Guard").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">All security guard profiles</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600"><ShieldAlert className="h-5 w-5" /></div>
           </div>
-          <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
-            <UserCheck className="h-5 w-5" />
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Active</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "Guard" && i.status === "Active").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Currently on duty / active status</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600"><UserCheck className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Off-Duty</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "Guard" && i.status !== "Active").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Inactive or off-shift guards</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500"><UserX className="h-5 w-5" /></div>
           </div>
         </div>
-      </div>
+      )}
 
+      {/* 4. Kapag "Users" (User Management): TOTAL USERS - ACTIVE ACCOUNTS - SUSPENDED ACCOUNTS - INACTIVE ACCOUNT */}
+      {activeTab === "Users" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Users</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "User").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Campus parking customers</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600"><Users className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Active Accounts</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "User" && i.status === "Active").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Fully active client profiles</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600"><UserCheck className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Suspended Accounts</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "User" && i.status === "Suspended").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Temporarily blocked users</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600"><AlertTriangle className="h-5 w-5" /></div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+            <div>
+              <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Inactive Account</p>
+              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+                {accountsData.filter(i => i.role === "User" && i.status === "Inactive").length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Unverified or dormant accounts</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500"><UserX className="h-5 w-5" /></div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= TABLE SECTION ================= */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-72">
@@ -205,6 +342,7 @@ export default function Accounts() {
           </div>
         </div>
 
+        {/* Table Section */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-150">
             <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">

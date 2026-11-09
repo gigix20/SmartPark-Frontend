@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Search, History, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, X } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function IncidentManagement() {
@@ -152,13 +152,6 @@ export default function IncidentManagement() {
             <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Incident Management</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">Review and manage parking incident reports submitted by users.</p>
           </div>
-          <Link
-            to="/admin/incidents/history"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors w-fit shadow-xs cursor-pointer"
-          >
-            <History className="h-4 w-4" />
-            <span>View Incident History</span>
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
