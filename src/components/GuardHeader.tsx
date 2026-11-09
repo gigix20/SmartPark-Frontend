@@ -2,6 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
 import { useState, useEffect } from "react";
+import type { User } from "@/pages/auth/api/authApi";
+
+const DEFAULT_AVATAR =
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150";
 
 interface GuardHeaderProps {
   onToggleSidebar: () => void;
@@ -16,9 +20,10 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
     return localStorage.getItem("theme") === "dark";
   });
 
-  // State para sa Profile Image sa Header na kumukuha sa localStorage
-  const [headerImage, setHeaderImage] = useState(() => {
-    return localStorage.getItem("guard_profile_image") || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150";
+  // Dynamic user state from localStorage
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
   });
 
   // Live Manila Time & Date State
@@ -34,21 +39,27 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
     }
   }, [isDarkMode]);
 
-  // Makinig sa pagbabago ng profile image (kahit i-refresh o i-update sa profile page)
+  // Listen to profile updates and storage events
   useEffect(() => {
-    const updateHeaderImage = () => {
-      const savedImg = localStorage.getItem("guard_profile_image");
-      if (savedImg) {
-        setHeaderImage(savedImg);
+    const updateUserState = () => {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+        } catch {
+          // ignore
+        }
       }
     };
 
-    window.addEventListener("storage", updateHeaderImage);
-    window.addEventListener("profileImageUpdated", updateHeaderImage);
+    window.addEventListener("storage", updateUserState);
+    window.addEventListener("userProfileUpdated", updateUserState);
+    window.addEventListener("profileImageUpdated", updateUserState);
 
     return () => {
-      window.removeEventListener("storage", updateHeaderImage);
-      window.removeEventListener("profileImageUpdated", updateHeaderImage);
+      window.removeEventListener("storage", updateUserState);
+      window.removeEventListener("userProfileUpdated", updateUserState);
+      window.removeEventListener("profileImageUpdated", updateUserState);
     };
   }, []);
 
@@ -155,7 +166,7 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
 
           <span className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></span>
 
-          {/* Profile Link na may dynamic image mula sa localStorage */}
+          {/* Profile Link na may dynamic data mula sa localStorage / user state */}
           <Link 
             to="/guard/profile" 
             className={`flex items-center gap-3 group rounded-xl p-1 sm:pr-2.5 transition-all ${
@@ -166,16 +177,19 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
           >
             <div className="relative">
               <img
-                src={headerImage}
+                src={user?.avatar || DEFAULT_AVATAR}
                 alt="Guard Profile"
                 className="h-9 w-9 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-[#0053CC] transition-colors"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                }}
               />
               <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900"></span>
             </div>
 
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#0053CC] dark:group-hover:text-blue-400 transition-colors">
-                James Santos
+                {user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "Guard User"}
               </span>
               <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                 Guard

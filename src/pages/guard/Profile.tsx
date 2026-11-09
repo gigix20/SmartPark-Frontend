@@ -1,23 +1,56 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Edit3, CheckCircle2 } from "lucide-react";
+import { Camera, Edit3, CheckCircle2, AlertCircle } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
+import { getCurrentUser, updateUserProfile, type User } from "@/pages/auth/api/authApi";
 
-export default function Profile() {
+// Helper to format createdAt date
+const formatCreatedAt = (date: string | Date | undefined): string => {
+  if (!date) return "N/A";
+  try {
+    const d = typeof date === "string" ? new Date(date) : date;
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return "N/A";
+  }
+};
+
+// Philippine mobile number validation
+const isValidPhilippineNumber = (phoneStr: string): boolean => {
+  if (!phoneStr.trim()) return true;
+  const clean = phoneStr.replace(/[\s-]/g, "");
+  return /^(09|\+639)\d{9}$/.test(clean);
+};
+
+const DEFAULT_AVATAR =
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150";
+
+export default function GuardProfile() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  // Kunin ang nakasave na profile image mula sa localStorage o gamitin ang default
-  const [profileImage, setProfileImage] = useState<string>(() => {
-    return localStorage.getItem("guard_profile_image") || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150";
-  });
-  
-  // Reference para sa hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // HUWAG PAALISIN: Ito ang naglolock sa background scroll kapag lumitaw ang modal
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [profileImage, setProfileImage] = useState<string>(DEFAULT_AVATAR);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  // Lock background scroll when modal is open
   useEffect(() => {
     if (showSuccessModal) {
       document.body.style.overflow = "hidden";
@@ -29,33 +62,134 @@ export default function Profile() {
     };
   }, [showSuccessModal]);
 
-  // Handler para basahin ang mismong file at i-convert sa Base64 para permanenteng ma-save
+  // Fetch fresh user from API on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const stored = localStorage.getItem("user");
+        let userData: User | null = stored ? JSON.parse(stored) : null;
+        try {
+          const response = await getCurrentUser();
+          userData = response.user;
+          localStorage.setItem("user", JSON.stringify(userData));
+        } catch (apiErr) {
+          console.warn("Could not fetch fresh user from /me, using stored user:", apiErr);
+        }
+        if (userData) setCurrentUser(userData);
+      } catch (err) {
+        console.error("Failed to load user data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Sync form fields when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      setFirstName(currentUser.firstName || "");
+      setLastName(currentUser.lastName || "");
+      setPhone(currentUser.phone || "");
+      setProfileImage(currentUser.avatar || DEFAULT_AVATAR);
+    }
+  }, [currentUser]);
+
+  // Phone input: only digits, spaces, and a leading +
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^0-9+ ]/g, "");
+    if (val.indexOf("+") > 0) {
+      val = val[0] + val.slice(1).replace(/\+/g, "");
+    }
+    setPhone(val);
+    if (phoneError) setPhoneError(null);
+  };
+
+  // Canvas-based image compression (max 500×500, 0.85 JPEG quality)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setProfileImage(base64String);
-        // I-save ang mismong image data sa localStorage
-        localStorage.setItem("guard_profile_image", base64String);
-        
-        // I-broadcast ang event para magbago rin agad ang header kahit nasa parehong page
-        window.dispatchEvent(new Event("profileImageUpdated"));
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("Please select a valid image file (JPG, PNG, WebP).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("Image file size must be less than 5MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 500;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_SIZE) { height = Math.round((height * MAX_SIZE) / width); width = MAX_SIZE; }
+        } else {
+          if (height > MAX_SIZE) { width = Math.round((width * MAX_SIZE) / height); height = MAX_SIZE; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          setProfileImage(canvas.toDataURL("image/jpeg", 0.85));
+          setErrorMessage(null);
+        }
       };
-      reader.readAsDataURL(file);
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleCameraClick = () => { fileInputRef.current?.click(); };
+
+  // Save profile to real API
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setPhoneError(null);
+    if (phone.trim() && !isValidPhilippineNumber(phone)) {
+      setPhoneError("Invalid Philippine mobile number. Use 09XXXXXXXXX or +639XXXXXXXXX.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const response = await updateUserProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+        avatar: profileImage,
+      });
+      const updatedUser = { ...currentUser, ...response.user } as User;
+      setCurrentUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event("userProfileUpdated"));
+      window.dispatchEvent(new Event("storage"));
+      setShowSuccessModal(true);
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.message || "Failed to update profile. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Trigger para mag-open ang file selector kapag pinindot ang camera button
-  const handleCameraClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleUpdateProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowSuccessModal(true); // Magbubukas ang modal at mai-lock ang scroll
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors font-sans">
+        <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 rounded-full border-2 border-[#0053CC] border-t-transparent animate-spin" />
+            <p className="text-xs text-slate-500 font-semibold">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors font-sans">
@@ -76,16 +210,17 @@ export default function Profile() {
                   <div className="relative">
                     <img
                       src={profileImage}
-                      alt="James Santos"
+                      alt={`${currentUser?.firstName || "Guard"} ${currentUser?.lastName || ""}`}
                       className="h-20 w-20 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
+                      onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
                     />
                     
-                    {/* Hidden File Input para sa pag-upload ng pic */}
+                    {/* Hidden File Input */}
                     <input
                       type="file"
                       ref={fileInputRef}
                       onChange={handleImageChange}
-                      accept="image/*"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
                       className="hidden"
                     />
 
@@ -99,17 +234,34 @@ export default function Profile() {
                     </button>
                   </div>
                   <div>
-                    <h1 className="font-poppins text-xl font-bold text-slate-900 dark:text-white">James Santos</h1>
+                    <h1 className="font-poppins text-xl font-bold text-slate-900 dark:text-white">
+                      {currentUser?.firstName || "Guard"} {currentUser?.lastName || ""}
+                    </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Guard</p>
                   </div>
                 </div>
 
                 <div className="text-xs space-y-1.5 sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200 dark:border-slate-700">
-                  <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Account Status:</span> <span className="font-bold text-emerald-600">ACTIVE</span></div>
-                  <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Date Created:</span> <span className="font-bold text-slate-700 dark:text-slate-300">December 2025</span></div>
-                  <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Last Updated:</span> <span className="font-bold text-slate-700 dark:text-slate-300">Sep 28, 2026, 9:30 AM</span></div>
+                  <div className="flex sm:justify-end gap-2">
+                    <span className="text-slate-400">Account Status:</span>
+                    <span className={`font-bold ${currentUser?.accountStatus === "Active" ? "text-emerald-600" : "text-amber-600"}`}>
+                      {currentUser?.accountStatus?.toUpperCase() || "ACTIVE"}
+                    </span>
+                  </div>
+                  <div className="flex sm:justify-end gap-2">
+                    <span className="text-slate-400">Date Created:</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-300">{formatCreatedAt(currentUser?.createdAt)}</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Error Banner */}
+              {errorMessage && (
+                <div className="flex items-center gap-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 px-4 py-3 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
 
               {/* Personal Information Form */}
               <form onSubmit={handleUpdateProfile} className="space-y-6">
@@ -117,9 +269,9 @@ export default function Profile() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-1.5">
-                    <label className="font-bold text-slate-700 dark:text-slate-300">Full Name</label>
+                    <label className="font-bold text-slate-700 dark:text-slate-300">First Name</label>
                     <div className="relative">
-                      <input type="text" defaultValue="James" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]" />
+                      <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]" />
                       <Edit3 className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     </div>
                   </div>
@@ -127,19 +279,19 @@ export default function Profile() {
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300">Last Name</label>
                     <div className="relative">
-                      <input type="text" defaultValue="Santos" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]" />
+                      <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]" />
                       <Edit3 className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300">Email Address</label>
-                    <input type="email" disabled defaultValue="jamessantos@qcu.edu.ph" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 px-3.5 py-2.5 text-slate-500 cursor-not-allowed" />
+                    <input type="email" disabled value={currentUser?.email || ""} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 px-3.5 py-2.5 text-slate-500 cursor-not-allowed" />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300">Employee ID</label>
-                    <input type="text" disabled defaultValue="QCU-IT-2025-08" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 px-3.5 py-2.5 text-slate-500 cursor-not-allowed" />
+                    <input type="text" disabled value={currentUser?.schoolId || ""} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 px-3.5 py-2.5 text-slate-500 cursor-not-allowed" />
                   </div>
 
                   <div className="space-y-1.5">
@@ -150,9 +302,22 @@ export default function Profile() {
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300">Phone Number</label>
                     <div className="relative">
-                      <input type="text" defaultValue="+63 912 315 6798" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]" />
+                      <input
+                        type="text"
+                        value={phone}
+                        onChange={handlePhoneChange}
+                        maxLength={16}
+                        placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                        className={`w-full rounded-xl border bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none transition-colors ${phoneError ? "border-rose-500 focus:border-rose-500" : "border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"}`}
+                      />
                       <Edit3 className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     </div>
+                    {phoneError && (
+                      <div className="flex items-center gap-1.5 text-rose-500 text-[11px] font-semibold pt-0.5">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span>{phoneError}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -166,9 +331,10 @@ export default function Profile() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    disabled={isSaving}
+                    className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] disabled:opacity-60 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                   >
-                    Save Changes
+                    {isSaving ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </form>

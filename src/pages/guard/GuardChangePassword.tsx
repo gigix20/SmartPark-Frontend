@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
+import { changePassword } from "@/pages/auth/api/authApi";
 
 export default function GuardChangePassword() {
   const navigate = useNavigate();
@@ -18,10 +19,11 @@ export default function GuardChangePassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Validation & Modal states
+  // Validation, Loading & Modal states
   const [currentError, setCurrentError] = useState("");
   const [confirmError, setConfirmError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Lock background scroll kapag bukas ang success modal
   useEffect(() => {
@@ -51,28 +53,38 @@ export default function GuardChangePassword() {
 
   const strength = calculateStrength(newPassword);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let hasError = false;
+    setCurrentError("");
+    setConfirmError("");
 
-    // Mock validation para sa current password (kunwari ang tama ay "qcuguard123")
-    if (currentPassword !== "qcuguard123") {
-      setCurrentError("Incorrect password. Please try again.");
-      hasError = true;
-    } else {
-      setCurrentError("");
-    }
-
-    // Validation kung nagtutugma ang new password at confirm password
+    // Validate that new password and confirm password match
     if (newPassword !== confirmPassword) {
       setConfirmError("Passwords do not match.");
-      hasError = true;
-    } else {
-      setConfirmError("");
+      return;
     }
 
-    if (!hasError) {
+    // Validate minimum length
+    if (newPassword.length < 8) {
+      setConfirmError("New password must be at least 8 characters.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await changePassword({ currentPassword, newPassword });
+      // Clear form fields on success
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
       setShowSuccessModal(true);
+    } catch (err: any) {
+      setCurrentError(
+        err.response?.data?.message ||
+          "Incorrect current password. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -110,7 +122,7 @@ export default function GuardChangePassword() {
                   <div className="flex justify-between items-center text-xs">
                     <label className="font-bold text-slate-700 dark:text-slate-300">Current Password*</label>
                     <span 
-                      onClick={() => alert("Redirecting to password recovery...")}
+                      onClick={() => navigate("/forgot-password")}
                       className="text-[#0053CC] hover:underline cursor-pointer font-semibold"
                     >
                       Forgot Password?
@@ -235,9 +247,10 @@ export default function GuardChangePassword() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] disabled:opacity-60 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                   >
-                    Change Password
+                    {isSubmitting ? "Saving..." : "Change Password"}
                   </button>
                 </div>
 
