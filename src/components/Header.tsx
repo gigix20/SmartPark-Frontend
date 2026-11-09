@@ -10,12 +10,51 @@ interface UserProfile {
   lastName?: string;
   schoolId?: string;
   role?: string;
+  avatar?: string | null;
+  createdAt?: string | Date;
 }
+
+const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150";
 
 export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
+
+  // Dynamic user state from prop or localStorage with event listener sync
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    if (currentUser) return currentUser;
+    try {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (currentUser) setUser(currentUser);
+  }, [currentUser]);
+
+  useEffect(() => {
+    const syncUser = () => {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          setUser(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error("Failed to parse user from localStorage:", e);
+      }
+    };
+
+    window.addEventListener("userProfileUpdated", syncUser);
+    window.addEventListener("storage", syncUser);
+    return () => {
+      window.removeEventListener("userProfileUpdated", syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, []);
 
   // Dark Mode State at Handler
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -88,10 +127,10 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
           {/* User Details Label */}
           <div className="hidden text-right sm:block">
             <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-              {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "User"}
+              {user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "User"}
             </p>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              {currentUser?.schoolId || "24-1478"} • {currentUser?.role || "STUDENT"}
+              {user?.schoolId || "24-1478"} • {user?.role || "STUDENT"}
             </p>
           </div>
 
@@ -103,9 +142,12 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
               className="h-9 w-9 cursor-pointer overflow-hidden rounded-full border border-slate-200 dark:border-slate-700 bg-slate-300 transition-all hover:ring-2 hover:ring-slate-300 dark:hover:ring-slate-700 focus:outline-none"
             >
               <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+                src={user?.avatar || DEFAULT_AVATAR}
                 alt="Profile"
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                }}
               />
             </button>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   User, 
   Mail, 
@@ -20,18 +20,11 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateUserProfile, changePassword } from "@/pages/auth/api/authApi";
+import { updateUserProfile, changePassword, getCurrentUser, type User as ApiUser } from "@/pages/auth/api/authApi";
 
 export default function Profile() {
-  const [currentUser, setCurrentUser] = useState<{
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    schoolId?: string;
-    phone?: string | null;
-    avatar?: string | null;
-    accountStatus?: string;
-  } | null>(() => JSON.parse(localStorage.getItem("user") || "null"));
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentUser, setCurrentUser] = useState<ApiUser | null>(() => JSON.parse(localStorage.getItem("user") || "null"));
 
   // View States: 'main' | 'edit-profile' | 'change-password'
   const [viewState, setViewState] = useState<"main" | "edit-profile" | "change-password">("main");
@@ -44,10 +37,51 @@ export default function Profile() {
     phoneNumber: currentUser?.phone || "",
     campus: "San Bartolome Campus",
     accountStatus: currentUser?.accountStatus || "Active",
-    yearRegistered: "2026",
+    yearRegistered: currentUser?.createdAt ? new Date(currentUser.createdAt).getFullYear().toString() : "2026",
     lastPasswordUpdate: "October 12, 2026 10:00AM",
     avatar: currentUser?.avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300"
   });
+
+  // Fetch fresh user data on mount
+  useEffect(() => {
+    const fetchFreshUserData = async () => {
+      try {
+        const response = await getCurrentUser();
+        if (response && response.user) {
+          const freshUser = response.user;
+          localStorage.setItem("user", JSON.stringify(freshUser));
+          setCurrentUser(freshUser);
+
+          const fullName = `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim() || "User";
+          const regYear = freshUser.createdAt ? new Date(freshUser.createdAt).getFullYear().toString() : "2026";
+
+          setProfileData((prev) => ({
+            ...prev,
+            fullName,
+            email: freshUser.email || prev.email,
+            schoolId: freshUser.schoolId || prev.schoolId,
+            phoneNumber: freshUser.phone || "",
+            accountStatus: freshUser.accountStatus || "Active",
+            yearRegistered: regYear,
+            avatar: freshUser.avatar || prev.avatar,
+          }));
+
+          setEditForm((prev) => ({
+            ...prev,
+            fullName,
+            email: freshUser.email || prev.email,
+            schoolId: freshUser.schoolId || prev.schoolId,
+            phoneNumber: freshUser.phone || "",
+            avatar: freshUser.avatar || prev.avatar,
+          }));
+        }
+      } catch (err) {
+        console.warn("Could not fetch fresh user from /me, using stored user:", err);
+      }
+    };
+
+    fetchFreshUserData();
+  }, []);
 
   // Loading states
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -83,7 +117,58 @@ export default function Profile() {
     }
   };
 
-  // Password Form State & Errors
+  // Canvas-based image compression
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (PNG, JPG, JPEG).");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 500;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+
+          setEditForm((prev) => ({ ...prev, avatar: compressedBase64 }));
+          setProfileData((prev) => ({ ...prev, avatar: compressedBase64 }));
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -141,7 +226,11 @@ export default function Profile() {
           avatar: res.user.avatar
         };
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        setCurrentUser(updatedUser);
+        setCurrentUser(updatedUser as ApiUser);
+
+        // Broadcast updates to Header and across open tabs
+        window.dispatchEvent(new Event("userProfileUpdated"));
+        window.dispatchEvent(new Event("storage"));
 
         setIsProfileSuccessOpen(true);
       }
@@ -201,6 +290,15 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-28 transition-colors duration-300">
+      {/* Hidden File Input for Profile Photo Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageChange}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* Top Header */}
       <Header currentUser={currentUser} />
 
@@ -231,7 +329,7 @@ export default function Profile() {
                 />
                 <button
                   type="button"
-                  onClick={() => setViewState("edit-profile")}
+                  onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[#0053CC] text-white shadow-md hover:bg-blue-700 transition-colors cursor-pointer"
                   title="Change Photo"
                 >
@@ -367,21 +465,25 @@ export default function Profile() {
             <form onSubmit={handleSaveProfile} className="space-y-6 pt-2">
               
               {/* Profile Photo Upload Section */}
-              <div className="flex items-center gap-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-5 pb-4 border-b border-slate-100 dark:border-slate-800 cursor-pointer group"
+                title="Click to upload new photo"
+              >
                 <div className="relative">
                   <img
                     src={editForm.avatar}
                     alt={editForm.fullName}
-                    className="h-20 w-20 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+                    className="h-20 w-20 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 group-hover:border-[#0053CC] transition-colors"
                   />
-                  <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
                     <Camera className="h-5 w-5 text-white" />
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">Profile Photo</h4>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0053CC] transition-colors">Profile Photo</h4>
                   <p className="text-[10px] text-slate-400 mt-0.5">
-                    Accepted file formats: JPG, PNG. Max size: 2MB.
+                    Accepted file formats: JPG, PNG, WebP. Max size: 5MB. Click to change.
                   </p>
                 </div>
               </div>
