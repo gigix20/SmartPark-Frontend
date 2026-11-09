@@ -16,6 +16,70 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     return localStorage.getItem("theme") === "dark";
   });
 
+  // User state for dynamic profile
+  const [user, setUser] = useState<{
+    firstName: string;
+    lastName: string;
+    avatar: string | null;
+    role: string;
+  } | null>(null);
+
+  const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+
+  // Helper to get role display info
+  const getRoleDisplay = (role: string) => {
+    if (role === "SUPER_ADMIN") {
+      return {
+        text: "Super Admin",
+        badgeClass: "text-purple-600 dark:text-purple-400",
+        dotClass: "bg-purple-500",
+      };
+    }
+    return {
+      text: "Admin",
+      badgeClass: "text-blue-600 dark:text-blue-400",
+      dotClass: "bg-blue-500",
+    };
+  };
+
+  // Load user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+      }
+    }
+  }, []);
+
+  // Listen for profile updates
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+        } catch (error) {
+          console.error("Failed to parse user data:", error);
+        }
+      }
+    };
+
+    window.addEventListener("userProfileUpdated", handleProfileUpdate);
+    window.addEventListener("storage", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("userProfileUpdated", handleProfileUpdate);
+      window.removeEventListener("storage", handleProfileUpdate);
+    };
+  }, []);
+
+  const roleDisplay = getRoleDisplay(user?.role || "ADMIN");
+
   // Live Manila Time State
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
@@ -145,19 +209,22 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           >
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+                src={user?.avatar || DEFAULT_AVATAR}
                 alt="Admin Profile"
                 className="h-9 w-9 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-[#0053CC] transition-colors"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                }}
               />
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900"></span>
+              <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${roleDisplay.dotClass} border-2 border-white dark:border-slate-900`}></span>
             </div>
 
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#0053CC] dark:group-hover:text-blue-400 transition-colors">
-                John Doe
+                {user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "Admin"}
               </span>
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                Super Admin
+              <span className={`text-[10px] font-semibold ${roleDisplay.badgeClass}`}>
+                {roleDisplay.text}
               </span>
             </div>
           </Link>

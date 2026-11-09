@@ -53,9 +53,35 @@ export default function Profile() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [pwApiErrorMessage, setPwApiErrorMessage] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Edit Profile Form State
   const [editForm, setEditForm] = useState({ ...profileData });
+
+  // Philippine mobile number validation helper
+  const isValidPhilippineNumber = (phoneStr: string): boolean => {
+    if (!phoneStr.trim()) return true; // Optional field - empty is valid
+    const clean = phoneStr.replace(/[\s-]/g, "");
+    return /^(09|\+639)\d{9}$/.test(clean);
+  };
+
+  // Phone input handler with filtering
+  const handlePhoneChange = (val: string) => {
+    // Allow only digits, spaces, and leading plus sign
+    let cleaned = val.replace(/[^0-9+ ]/g, "");
+    
+    // Disallow + in positions other than the first
+    if (cleaned.indexOf("+") > 0) {
+      cleaned = cleaned[0] + cleaned.slice(1).replace(/\+/g, "");
+    }
+    
+    setEditForm((prev) => ({ ...prev, phoneNumber: cleaned }));
+    
+    // Clear phone error when typing
+    if (phoneError) {
+      setPhoneError(null);
+    }
+  };
 
   // Password Form State & Errors
   const [passwordForm, setPasswordForm] = useState({
@@ -83,6 +109,16 @@ export default function Profile() {
   // Submit Profile Changes
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number before submitting
+    if (editForm.phoneNumber && editForm.phoneNumber.trim() !== "") {
+      if (!isValidPhilippineNumber(editForm.phoneNumber)) {
+        setPhoneError("Invalid Philippine mobile number. Must be 11 digits starting with 09 or +639 followed by 9 digits (e.g., 09123456789).");
+        return;
+      }
+    }
+    
+    setPhoneError(null);
     setIsSavingProfile(true);
 
     try {
@@ -392,11 +428,22 @@ export default function Profile() {
                   <div className="relative">
                     <Input
                       value={editForm.phoneNumber}
-                      onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                      className="h-11 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/50 pr-9"
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      maxLength={16}
+                      placeholder="e.g. 09123456789 or +63 912 345 6789"
+                      className={`h-11 rounded-xl text-xs pr-9 ${
+                        phoneError
+                          ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20"
+                          : "bg-slate-50 dark:bg-slate-800/50"
+                      }`}
                     />
                     <Edit2 className="h-4 w-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
                   </div>
+                  {phoneError && (
+                    <p className="text-[10px] text-red-500 dark:text-red-400 mt-0.5">
+                      {phoneError}
+                    </p>
+                  )}
                 </div>
 
               </div>

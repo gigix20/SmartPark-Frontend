@@ -10,6 +10,7 @@ export interface User {
   avatar?: string | null;
   role: string;
   accountStatus: string;
+  createdAt?: string | Date;
 }
 
 export interface AuthResponse {
