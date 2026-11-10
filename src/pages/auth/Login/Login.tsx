@@ -20,6 +20,7 @@ function Login() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSuspended, setIsSuspended] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [lockUntil, setLockUntil] = useState<number | null>(null);
@@ -146,6 +147,7 @@ function Login() {
   // Handle identifier input change - instant switching
   const handleIdentifierChange = (value: string) => {
     setEmail(value);
+    setPendingVerificationEmail(null);
     checkAndApplyLockState(value);
   };
 
@@ -164,6 +166,7 @@ function Login() {
 
     setIsLoading(true);
     setErrorMessage("");
+    setPendingVerificationEmail(null);
 
     try {
       const res = await loginUser({ identifier: email, password });
@@ -212,7 +215,9 @@ function Login() {
       if (status === "Suspended") {
         setIsSuspended(true);
       } else if (status === "PendingVerification") {
-        setErrorMessage("Account pending verification. Please verify the code sent to your email.");
+        const pEmail = err.response?.data?.email || email;
+        setPendingVerificationEmail(pEmail);
+        setErrorMessage("Account email is pending verification. Please verify the code sent to your email.");
       } else if (isLockedResponse) {
         const lockUntilTime = serverLockUntil || (Date.now() + 15 * 60 * 1000);
         const lockKey = getLockoutKey(email);
@@ -359,9 +364,24 @@ function Login() {
             </div>
 
             {errorMessage && !isSuspended && (
-              <p className="text-xs font-medium text-[#EF4444] text-left">
-                {errorMessage}
-              </p>
+              <div className="space-y-1 text-left">
+                <p className="text-xs font-medium text-[#EF4444]">
+                  {errorMessage}
+                </p>
+                {pendingVerificationEmail && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate("/register", {
+                        state: { email: pendingVerificationEmail, step: "verify" },
+                      })
+                    }
+                    className="text-xs font-bold text-[#0053CC] hover:underline cursor-pointer block mt-1"
+                  >
+                    Click here to enter your 6-digit verification code &rarr;
+                  </button>
+                )}
+              </div>
             )}
 
             <div className="flex items-center justify-between text-xs">

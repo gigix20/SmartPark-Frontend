@@ -162,8 +162,11 @@ export default function GuardProfile() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
-        avatar: profileImage,
+        avatar: profileImage === DEFAULT_AVATAR ? null : profileImage,
       });
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
       const updatedUser = { ...currentUser, ...response.user } as User;
       setCurrentUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -237,7 +240,18 @@ export default function GuardProfile() {
                     <h1 className="font-poppins text-xl font-bold text-slate-900 dark:text-white">
                       {currentUser?.firstName || "Guard"} {currentUser?.lastName || ""}
                     </h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Guard</p>
+                    <div className="flex items-center gap-2.5 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Guard</p>
+                      {profileImage && profileImage !== DEFAULT_AVATAR && (
+                        <button
+                          type="button"
+                          onClick={() => setProfileImage(DEFAULT_AVATAR)}
+                          className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 underline cursor-pointer"
+                        >
+                          Remove Photo
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -249,8 +249,12 @@ export default function AdminProfile() {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim(),
-        avatar: formData.avatar,
+        avatar: formData.avatar === DEFAULT_AVATAR ? null : formData.avatar,
       });
+
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
 
       const updatedUser = { ...currentUser, ...response.user };
       setCurrentUser(updatedUser as User);
@@ -393,6 +397,15 @@ export default function AdminProfile() {
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                   {roleDisplay.privileges}
                 </p>
+                {formData.avatar && formData.avatar !== DEFAULT_AVATAR && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, avatar: DEFAULT_AVATAR }))}
+                    className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 underline cursor-pointer mt-1 block"
+                  >
+                    Remove Custom Photo
+                  </button>
+                )}
               </div>
             </div>
 

@@ -11,6 +11,7 @@ export interface User {
   role: string;
   accountStatus: string;
   createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 export interface AuthResponse {
@@ -139,8 +140,8 @@ export interface ChangePasswordData {
   newPassword: string;
 }
 
-export async function changePassword(data: ChangePasswordData): Promise<{ success: boolean; message: string }> {
-  const response = await api.post<{ success: boolean; message: string }>("/change-password", data);
+export async function changePassword(data: ChangePasswordData): Promise<{ success: boolean; message: string; updatedAt?: string | Date }> {
+  const response = await api.post<{ success: boolean; message: string; updatedAt?: string | Date }>("/change-password", data);
   return response.data;
 }
 
@@ -158,14 +159,14 @@ export async function resendVerificationOtp(data: ResendVerificationData): Promi
 
 // 13. Update user profile
 export interface UpdateUserProfileData {
-  phone?: string;
+  phone?: string | null;
   fullName?: string;
   firstName?: string;
   lastName?: string;
-  avatar?: string;
+  avatar?: string | null;
 }
 
-export async function updateUserProfile(data: UpdateUserProfileData): Promise<{ success: boolean; message: string; user: User }> {
-  const response = await api.patch<{ success: boolean; message: string; user: User }>("/users/profile", data);
+export async function updateUserProfile(data: UpdateUserProfileData): Promise<{ success: boolean; message: string; user: User; token?: string }> {
+  const response = await api.patch<{ success: boolean; message: string; user: User; token?: string }>("/users/profile", data);
   return response.data;
 }

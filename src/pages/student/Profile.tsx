@@ -22,6 +22,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUserProfile, changePassword, getCurrentUser, type User as ApiUser } from "@/pages/auth/api/authApi";
 
+const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300";
+
+const formatTimestamp = (date: string | Date | undefined): string => {
+  if (!date) return "Never";
+  try {
+    const d = typeof date === "string" ? new Date(date) : date;
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    }).format(d);
+  } catch {
+    return "Never";
+  }
+};
+
+interface ProfileFormState {
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  schoolId: string;
+  phoneNumber: string;
+  campus: string;
+  accountStatus: string;
+  yearRegistered: string;
+  lastPasswordUpdate: string;
+  avatar: string | null;
+}
+
 export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUser, setCurrentUser] = useState<ApiUser | null>(() => JSON.parse(localStorage.getItem("user") || "null"));
@@ -30,7 +63,9 @@ export default function Profile() {
   const [viewState, setViewState] = useState<"main" | "edit-profile" | "change-password">("main");
 
   // Profile Data State
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileFormState>({
+    firstName: currentUser?.firstName || "",
+    lastName: currentUser?.lastName || "",
     fullName: currentUser ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim() || "User" : "User",
     email: currentUser?.email || "",
     schoolId: currentUser?.schoolId || "",
@@ -38,8 +73,8 @@ export default function Profile() {
     campus: "San Bartolome Campus",
     accountStatus: currentUser?.accountStatus || "Active",
     yearRegistered: currentUser?.createdAt ? new Date(currentUser.createdAt).getFullYear().toString() : "2026",
-    lastPasswordUpdate: "October 12, 2026 10:00AM",
-    avatar: currentUser?.avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300"
+    lastPasswordUpdate: currentUser?.updatedAt ? formatTimestamp(currentUser.updatedAt) : "Never",
+    avatar: currentUser?.avatar || DEFAULT_AVATAR
   });
 
   // Fetch fresh user data on mount
@@ -52,27 +87,35 @@ export default function Profile() {
           localStorage.setItem("user", JSON.stringify(freshUser));
           setCurrentUser(freshUser);
 
-          const fullName = `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim() || "User";
+          const firstName = freshUser.firstName || "";
+          const lastName = freshUser.lastName || "";
+          const fullName = `${firstName} ${lastName}`.trim() || "User";
           const regYear = freshUser.createdAt ? new Date(freshUser.createdAt).getFullYear().toString() : "2026";
+          const lastUpdated = freshUser.updatedAt ? formatTimestamp(freshUser.updatedAt) : "Never";
 
           setProfileData((prev) => ({
             ...prev,
+            firstName,
+            lastName,
             fullName,
             email: freshUser.email || prev.email,
             schoolId: freshUser.schoolId || prev.schoolId,
             phoneNumber: freshUser.phone || "",
             accountStatus: freshUser.accountStatus || "Active",
             yearRegistered: regYear,
-            avatar: freshUser.avatar || prev.avatar,
+            lastPasswordUpdate: lastUpdated,
+            avatar: freshUser.avatar || DEFAULT_AVATAR,
           }));
 
           setEditForm((prev) => ({
             ...prev,
+            firstName,
+            lastName,
             fullName,
             email: freshUser.email || prev.email,
             schoolId: freshUser.schoolId || prev.schoolId,
             phoneNumber: freshUser.phone || "",
-            avatar: freshUser.avatar || prev.avatar,
+            avatar: freshUser.avatar || null,
           }));
         }
       } catch (err) {
@@ -90,7 +133,7 @@ export default function Profile() {
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Edit Profile Form State
-  const [editForm, setEditForm] = useState({ ...profileData });
+  const [editForm, setEditForm] = useState<ProfileFormState>({ ...profileData });
 
   // Philippine mobile number validation helper
   const isValidPhilippineNumber = (phoneStr: string): boolean => {
@@ -195,6 +238,15 @@ export default function Profile() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!editForm.firstName || !editForm.firstName.trim()) {
+      alert("First name is required.");
+      return;
+    }
+    if (!editForm.lastName || !editForm.lastName.trim()) {
+      alert("Last name is required.");
+      return;
+    }
+
     // Validate phone number before submitting
     if (editForm.phoneNumber && editForm.phoneNumber.trim() !== "") {
       if (!isValidPhilippineNumber(editForm.phoneNumber)) {
@@ -209,13 +261,35 @@ export default function Profile() {
     try {
       const res = await updateUserProfile({
         phone: editForm.phoneNumber,
-        fullName: editForm.fullName,
+        firstName: editForm.firstName.trim(),
+        lastName: editForm.lastName.trim(),
         avatar: editForm.avatar
       });
 
       if (res.success) {
+        if (res.token) {
+          localStorage.setItem("token", res.token);
+        }
+        const updatedFullName = `${res.user.firstName} ${res.user.lastName}`.trim();
+
         // Update local state
-        setProfileData({ ...editForm });
+        setProfileData((prev) => ({
+          ...prev,
+          firstName: res.user.firstName,
+          lastName: res.user.lastName,
+          fullName: updatedFullName,
+          phoneNumber: res.user.phone || "",
+          avatar: res.user.avatar || DEFAULT_AVATAR,
+        }));
+
+        setEditForm((prev) => ({
+          ...prev,
+          firstName: res.user.firstName,
+          lastName: res.user.lastName,
+          fullName: updatedFullName,
+          phoneNumber: res.user.phone || "",
+          avatar: res.user.avatar || null,
+        }));
 
         // Update localStorage with fresh user data
         const updatedUser = {
@@ -270,13 +344,15 @@ export default function Profile() {
     setPwApiErrorMessage("");
 
     try {
-      await changePassword({
+      const res = await changePassword({
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
       });
 
       // Success - reset form and show success modal
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      const updatedTimestamp = res?.updatedAt ? formatTimestamp(res.updatedAt) : formatTimestamp(new Date());
+      setProfileData((prev) => ({ ...prev, lastPasswordUpdate: updatedTimestamp }));
       setIsPwSuccessOpen(true);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
@@ -323,9 +399,12 @@ export default function Profile() {
             <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex items-center gap-5 transition-colors duration-300">
               <div className="relative">
                 <img
-                  src={profileData.avatar}
+                  src={profileData.avatar || DEFAULT_AVATAR}
                   alt={profileData.fullName}
                   className="h-20 w-20 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                  }}
                 />
                 <button
                   type="button"
@@ -464,43 +543,92 @@ export default function Profile() {
 
             <form onSubmit={handleSaveProfile} className="space-y-6 pt-2">
               
-              {/* Profile Photo Upload Section */}
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-5 pb-4 border-b border-slate-100 dark:border-slate-800 cursor-pointer group"
-                title="Click to upload new photo"
-              >
-                <div className="relative">
-                  <img
-                    src={editForm.avatar}
-                    alt={editForm.fullName}
-                    className="h-20 w-20 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 group-hover:border-[#0053CC] transition-colors"
-                  />
-                  <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                    <Camera className="h-5 w-5 text-white" />
+              {/* Profile Photo Upload & Remove Section */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-5 cursor-pointer group"
+                  title="Click to upload new photo"
+                >
+                  <div className="relative">
+                    <img
+                      src={editForm.avatar || DEFAULT_AVATAR}
+                      alt={editForm.fullName}
+                      className="h-20 w-20 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 group-hover:border-[#0053CC] transition-colors"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                      <Camera className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0053CC] transition-colors">Profile Photo</h4>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      Accepted formats: JPG, PNG, WebP (Max 5MB). Click photo to change.
+                    </p>
                   </div>
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0053CC] transition-colors">Profile Photo</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    Accepted file formats: JPG, PNG, WebP. Max size: 5MB. Click to change.
-                  </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    <Camera className="h-3.5 w-3.5 text-[#0053CC]" />
+                    <span>Upload New</span>
+                  </button>
+                  {editForm.avatar && (
+                    <button
+                      type="button"
+                      onClick={() => setEditForm((prev) => ({ ...prev, avatar: null }))}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100/60 transition-colors cursor-pointer"
+                    >
+                      <span>Remove Photo</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Input Fields */}
               <div className="space-y-4">
                 
-                {/* Full Name */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Full Name:</Label>
-                  <div className="relative">
-                    <Input
-                      value={editForm.fullName}
-                      onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                      className="h-11 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/50 pr-9"
-                    />
-                    <Edit2 className="h-4 w-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                {/* First Name & Last Name Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* First Name */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      First Name: <span className="text-[#EF4444]">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        value={editForm.firstName || ""}
+                        onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                        placeholder="e.g. Juan Miguel"
+                        className="h-11 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/50 pr-9"
+                        required
+                      />
+                      <Edit2 className="h-4 w-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Last Name */}
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      Last Name: <span className="text-[#EF4444]">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        value={editForm.lastName || ""}
+                        onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                        placeholder="e.g. Santos"
+                        className="h-11 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/50 pr-9"
+                        required
+                      />
+                      <Edit2 className="h-4 w-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
 

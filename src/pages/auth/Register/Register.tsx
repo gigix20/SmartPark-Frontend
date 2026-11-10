@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, AlertCircle, RefreshCw, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,6 +51,9 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { email?: string; step?: "form" | "verify" } | null;
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -60,12 +63,12 @@ function Register() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Step 2 OTP Verification States
-  const [step, setStep] = useState<"form" | "verify">("form");
-  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [step, setStep] = useState<"form" | "verify">(() => locationState?.step || "form");
+  const [registeredEmail, setRegisteredEmail] = useState(() => locationState?.email || "");
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [otpError, setOtpError] = useState("");
   const [resendTimer, setResendTimer] = useState(60);
-  const [isResendActive, setIsResendActive] = useState(false);
+  const [isResendActive, setIsResendActive] = useState(() => !!(locationState?.step === "verify"));
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Countdown effect for resend timer

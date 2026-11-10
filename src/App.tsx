@@ -11,7 +11,6 @@ import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
 // Student / User Pages
 import StudentHome from "./pages/student/StudentHome";
 import Parking from "./pages/student/Parking";
-import Profile from "./pages/student/Profile";
 import Reports from "./pages/student/Reports";
 import Vehicles from "./pages/student/Vehicles";
 
@@ -52,6 +51,7 @@ import GuardCreate from "./pages/admin/account/GuardCreate"; // <--- Naidagdag n
 // Guardrails & Security Wrapper
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { IdleTimer } from "./components/IdleTimer";
+import { ProfileDispatcher } from "./components/ProfileDispatcher";
 
 
 function App() {
@@ -95,8 +95,8 @@ function App() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute allowedRoles={["USER", "STUDENT", "GUARD", "ADMIN"]}>
-              <Profile />
+            <ProtectedRoute allowedRoles={["USER", "STUDENT", "GUARD", "ADMIN", "SUPER_ADMIN"]}>
+              <ProfileDispatcher />
             </ProtectedRoute>
           }
         />
