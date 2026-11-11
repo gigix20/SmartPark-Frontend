@@ -87,33 +87,37 @@ export default function GuardCreate() {
     setShowSuccessModal(true);
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6 w-full relative">
-        {/* Back Button */}
-        <div>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/accounts")}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Accounts</span>
-          </button>
-        </div>
-
+        
         {/* Main Card Container */}
         <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
           
-          {/* Header Title */}
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-6">
-            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+          {/* Header Section with Circular Back Button */}
+          <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+            
+        <ArrowLeft className="h-4 w-4" />
+            </button>
+            <h1 
+              onClick={handleBack}
+              className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400 cursor-pointer hover:underline"
+            >
               Create Guard Account
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Register a new campus security officer and configure their initial terminal permissions.
-            </p>
           </div>
+
+          <p className="text-xs text-slate-500 dark:text-slate-400 -mt-4">
+            Register a new campus security officer and configure their initial terminal permissions.
+          </p>
 
           <form onSubmit={handleCreateGuard} noValidate className="space-y-8">
             <div className="space-y-6">
@@ -218,21 +222,21 @@ export default function GuardCreate() {
                   </div>
 
                   {/* Password */}
-                  <div className="space-y-1.5 sm:col-span-2 relative">
+                  <div className="space-y-1.5 sm:col-span-2">
                     <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                       Password <span className="text-rose-500">*</span>
                     </label>
-                    <div className="relative">
+                    <div className={`relative rounded-xl border transition-colors bg-white dark:bg-slate-800 ${
+                      isSubmitted && passwordError 
+                        ? "border-2 border-rose-500" 
+                        : "border border-slate-200 dark:border-slate-700 focus-within:border-[#0053CC]"
+                    }`}>
                       <input
                         type={showPassword ? "text" : "password"}
                         placeholder="QCU_Guard_9081!"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className={`w-full rounded-xl bg-white dark:bg-slate-800 p-3 pr-10 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
-                          isSubmitted && passwordError 
-                            ? "border-2 border-rose-500 focus:border-rose-500" 
-                            : "border border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
-                        }`}
+                        className="w-full bg-transparent p-3 pr-10 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
                       />
                       <button
                         type="button"
@@ -279,7 +283,7 @@ export default function GuardCreate() {
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => navigate("/admin/accounts")}
+                onClick={handleBack}
                 className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Cancel

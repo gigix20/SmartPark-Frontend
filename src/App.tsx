@@ -24,6 +24,14 @@ import Notifications from "./pages/guard/Notifications";
 import GuardProfile from "./pages/guard/Profile"; 
 import GuardChangePassword from "./pages/guard/GuardChangePassword";
 
+// Guard Details & Edit
+import GuardDetails from "./pages/admin/account/GuardDetails"; 
+import GuardEdit from "./pages/admin/account/GuardEdit";  
+
+// --- BAGONG IMPORT PARA SA USER DETAILS AT EDIT ---
+import UserDetails from "./pages/admin/account/UserDetails";
+import UserEdit from "./pages/admin/account/UserEdit";
+
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminNotifications from "./pages/admin/AdminNotifications";
@@ -46,7 +54,7 @@ import AdminDetails from "./pages/admin/account/AdminDetails";
 import AdminEdit from "./pages/admin/account/AdminEdit";
 import AdminSuspend from "./pages/admin/account/AdminSuspend";
 import AdminCreate from "./pages/admin/account/AdminCreate";
-import GuardCreate from "./pages/admin/account/GuardCreate"; // <--- Naidagdag na ang GuardCreate import dito
+import GuardCreate from "./pages/admin/account/GuardCreate"; 
 
 // Guardrails & Security Wrapper
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -192,92 +200,118 @@ function App() {
 
         {/* ADMIN Protected Routes */}
         <Route path="/admin/dashboard" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminDashboard />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/notifications" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminNotifications />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/profile" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminProfile />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/change-password" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminChangePassword />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/forgot-password" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminForgotPassword />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/accounts" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <Accounts />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/accounts/details/:id" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminDetails />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/accounts/edit/:id" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminEdit />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/accounts/create" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminCreate />
           </ProtectedRoute>
         } />
 
-        {/* Naidagdag na ang GuardCreate Route dito */}
+        {/* Guard Create Route */}
         <Route path="/admin/guards/create" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <GuardCreate />
+          </ProtectedRoute>
+        } />
+
+        {/* Guard Details & Edit Routes */}
+        <Route path="/admin/guards/details/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <GuardDetails />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/guards/edit/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <GuardEdit />
+          </ProtectedRoute>
+        } />
+
+        {/* --- USER DETAILS AT EDIT ROUTES --- */}
+        <Route path="/admin/users/details/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <UserDetails />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/users/edit/:id" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <UserEdit />
           </ProtectedRoute>
         } />
         
         <Route path="/admin/accounts/suspend/:id" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminSuspend />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/vehicles" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <VehicleManagement />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/vehicles/details/:id" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <VehicleDetails />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/vehicles/registration" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <VehicleRegistration />
           </ProtectedRoute>
         } />
 
         <Route path="/admin/parking" element={
-          <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <ParkingManagement />
           </ProtectedRoute>
         } />
@@ -285,7 +319,7 @@ function App() {
         <Route 
           path="/admin/parking/capacity" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <ParkingCapacity />
             </ProtectedRoute>
           } 
@@ -294,7 +328,7 @@ function App() {
         <Route 
           path="/admin/parking/history" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <ParkingHistory />
             </ProtectedRoute>
           } 
@@ -303,7 +337,7 @@ function App() {
         <Route 
           path="/admin/parking/analytics" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <ParkingAnalytics />
             </ProtectedRoute>
           } 
@@ -312,7 +346,7 @@ function App() {
         <Route 
           path="/admin/incidents" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <IncidentManagement />
             </ProtectedRoute>
           } 
@@ -320,7 +354,7 @@ function App() {
         <Route 
           path="/admin/incidents/review/:id" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
                <IncidentReview />
             </ProtectedRoute>
           } 
@@ -329,7 +363,7 @@ function App() {
         <Route 
           path="/admin/access-records" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <AccessRecords />
             </ProtectedRoute>
           } 
@@ -338,7 +372,7 @@ function App() {
         <Route 
           path="/admin/access-records/history" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <AccessHistory />
             </ProtectedRoute>
           } 

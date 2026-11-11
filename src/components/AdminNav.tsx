@@ -24,6 +24,12 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Helper para malaman kung nasa sakop tayo ng Accounts / Guards / Users
+  const isAccountsActive = 
+    location.pathname.startsWith("/admin/accounts") || 
+    location.pathname.startsWith("/admin/guards") || 
+    location.pathname.startsWith("/admin/users");
+
   const [isVehiclesOpen, setIsVehiclesOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -101,7 +107,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                 to="/admin/accounts"
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all duration-200 ${
-                  isActive("/admin/accounts")
+                  isAccountsActive
                     ? "bg-[#0053CC] text-white font-bold shadow-md shadow-blue-600/30"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                 }`}
