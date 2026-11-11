@@ -86,28 +86,31 @@ export default function AdminEdit() {
             <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
               Edit Profile
             </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Modify administrative credentials and system access permissions.
+            </p>
           </div>
 
           {/* Profile Overview Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/30 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <div className="flex items-center gap-4">
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60"
                 alt="John Doe"
-                className="h-16 w-16 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm"
+                className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
               />
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="font-poppins text-lg font-extrabold text-slate-900 dark:text-white">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-poppins text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
                     {firstName} {lastName}
                   </h2>
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                       status === "Active"
-                        ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                        ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-400"
                         : status === "Suspended"
-                          ? "bg-amber-50 text-amber-600 border-amber-200"
-                          : "bg-rose-50 text-rose-600 border-rose-200"
+                          ? "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800 dark:text-amber-400"
+                          : "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-400"
                     }`}
                   >
                     <span
@@ -134,69 +137,69 @@ export default function AdminEdit() {
             <h3 className="font-poppins text-xs font-bold text-[#0053CC] dark:text-blue-400 uppercase tracking-wider">
               Personal Information
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs bg-slate-50/30 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
               {/* First Name */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">
+                <label className="text-slate-500 dark:text-slate-400 font-semibold">
                   First Name
                 </label>
                 <input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
                 />
               </div>
 
               {/* Last Name */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">
+                <label className="text-slate-500 dark:text-slate-400 font-semibold">
                   Last Name
                 </label>
                 <input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
                 />
               </div>
 
               {/* Email Address */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">
+                <label className="text-slate-500 dark:text-slate-400 font-semibold">
                   Email Address
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
                 />
               </div>
 
               {/* Employee ID */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">
+                <label className="text-slate-500 dark:text-slate-400 font-semibold">
                   Employee ID
                 </label>
                 <input
                   type="text"
                   value={employeeId}
                   disabled
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 p-2.5 text-xs font-bold text-slate-500 cursor-not-allowed"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 p-3 text-xs font-bold text-slate-500 cursor-not-allowed"
                 />
               </div>
 
               {/* Role Dropdown */}
               <div className="space-y-1.5 relative">
-                <label className="text-slate-500 font-semibold">Role</label>
+                <label className="text-slate-500 dark:text-slate-400 font-semibold">Role</label>
                 <button
                   type="button"
                   onClick={() => {
                     setIsRoleOpen(!isRoleOpen);
                     setIsStatusOpen(false);
                   }}
-                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-900 dark:text-white cursor-pointer"
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-bold text-slate-900 dark:text-white cursor-pointer"
                 >
                   <span>{role}</span>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
@@ -215,7 +218,7 @@ export default function AdminEdit() {
                         className={`w-full text-left px-3 py-2 text-xs transition-colors cursor-pointer ${
                           role === r
                             ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold"
-                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                       >
                         {r}
@@ -225,9 +228,9 @@ export default function AdminEdit() {
                 )}
               </div>
 
-              {/* Phone Number (Numbers only, max 12 digits) */}
+              {/* Phone Number */}
               <div className="space-y-1.5">
-                <label className="text-slate-500 font-semibold">
+                <label className="text-slate-500 dark:text-slate-400 font-semibold">
                   Phone Number
                 </label>
                 <input
@@ -236,7 +239,7 @@ export default function AdminEdit() {
                   onChange={handlePhoneChange}
                   placeholder="09123456789"
                   maxLength={12}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
                 />
               </div>
             </div>
@@ -247,7 +250,7 @@ export default function AdminEdit() {
             <h3 className="font-poppins text-xs font-bold text-[#0053CC] dark:text-blue-400 uppercase tracking-wider">
               Account Details
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs bg-slate-50/30 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 items-center">
               <div className="space-y-1">
                 <span className="text-slate-400">Account Status</span>
                 <p className="font-bold text-slate-800 dark:text-slate-200">
@@ -263,7 +266,7 @@ export default function AdminEdit() {
                     setIsStatusOpen(!isStatusOpen);
                     setIsRoleOpen(false);
                   }}
-                  className="w-full sm:w-40 flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-900 dark:text-white cursor-pointer ml-auto"
+                  className="w-full sm:w-40 flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-bold text-slate-900 dark:text-white cursor-pointer ml-auto"
                 >
                   <span>{status}</span>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
@@ -292,7 +295,7 @@ export default function AdminEdit() {
                               ? "text-amber-600 font-bold hover:bg-amber-50 dark:hover:bg-amber-950/30"
                               : status === st
                                 ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold"
-                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                       >
                         {st}
@@ -340,13 +343,14 @@ export default function AdminEdit() {
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative">
               <button
+                type="button"
                 onClick={() => setShowDeactivateModal(false)}
                 className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
 
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
                 <AlertCircle className="h-7 w-7" />
               </div>
 
@@ -354,7 +358,7 @@ export default function AdminEdit() {
                 <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
                   Deactivate Admin Account?
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                   Are you sure you want to deactivate {firstName} {lastName}'s
                   account?
                 </p>
@@ -362,12 +366,14 @@ export default function AdminEdit() {
 
               <div className="space-y-2 pt-2">
                 <button
+                  type="button"
                   onClick={handleConfirmDeactivate}
                   className="w-full h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 transition-all cursor-pointer"
                 >
                   Deactivate
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowDeactivateModal(false)}
                   className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
@@ -382,7 +388,7 @@ export default function AdminEdit() {
         {showSuccessModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-7 w-7" />
               </div>
 
@@ -390,7 +396,7 @@ export default function AdminEdit() {
                 <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
                   Account Deactivated Successfully
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                   The admin's account has been deactivated and access to
                   SmartPark has been disabled.
                 </p>
@@ -400,15 +406,16 @@ export default function AdminEdit() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   System Access
                 </span>
-                <div className="inline-block w-full py-2.5 rounded-xl border border-rose-200 bg-rose-50/50 text-rose-600 font-extrabold text-xs">
+                <div className="inline-block w-full py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-extrabold text-xs">
                   Disabled
                 </div>
               </div>
 
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={() => navigate("/admin/accounts")}
-                  className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0053CC] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   Back to Admin Management
                 </button>
