@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, Edit2, AlertCircle, Shield, ShieldCheck } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -43,10 +43,12 @@ const getRoleDisplay = (role: string) => {
 };
 
 // Philippine mobile number validation helper
-const isValidPhilippineNumber = (phoneStr: string): boolean => {
-  if (!phoneStr.trim()) return true; // Optional field
-  const clean = phoneStr.replace(/[\s-]/g, "");
-  return /^(09|\+639)\d{9}$/.test(clean);
+const extractPhDigits = (phoneStr?: string | null): string => {
+  if (!phoneStr) return "";
+  let clean = phoneStr.replace(/\D/g, "");
+  if (clean.startsWith("63")) clean = clean.slice(2);
+  if (clean.startsWith("0")) clean = clean.slice(1);
+  return clean.slice(0, 10);
 };
 
 const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
@@ -112,7 +114,7 @@ export default function AdminProfile() {
         email: currentUser.email || "",
         employeeId: currentUser.schoolId || "",
         role: currentUser.role || "ADMIN",
-        phone: currentUser.phone || "",
+        phone: extractPhDigits(currentUser.phone),
         avatar: currentUser.avatar || DEFAULT_AVATAR,
         accountStatus: currentUser.accountStatus || "Active",
         createdAt: formatCreatedAt(currentUser.createdAt),
@@ -140,11 +142,11 @@ export default function AdminProfile() {
 
   // Phone input handler with filtering and validation
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value;
-    val = val.replace(/[^0-9+ ]/g, "");
-    if (val.indexOf("+") > 0) {
-      val = val[0] + val.slice(1).replace(/\+/g, "");
-    }
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.startsWith("63")) val = val.slice(2);
+    if (val.startsWith("0")) val = val.slice(1);
+    if (val.length > 0 && val[0] !== "9") return;
+    val = val.slice(0, 10);
     setFormData((prev) => ({ ...prev, phone: val }));
     if (phoneError) {
       setPhoneError(null);
@@ -157,9 +159,8 @@ export default function AdminProfile() {
       setPhoneError(null);
       return true;
     }
-    const isValid = isValidPhilippineNumber(formData.phone);
-    if (!isValid) {
-      setPhoneError("Invalid Philippine mobile number. Please use 09XXXXXXXXX (11 digits) or +639XXXXXXXXX.");
+    if (formData.phone.length !== 10 || !formData.phone.startsWith("9")) {
+      setPhoneError("Phone number must be exactly 10 digits starting with 9.");
       return false;
     }
     setPhoneError(null);
@@ -248,7 +249,7 @@ export default function AdminProfile() {
       const response = await updateUserProfile({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
-        phone: formData.phone.trim(),
+        phone: formData.phone.trim() ? `0${formData.phone.trim()}` : null,
         avatar: formData.avatar === DEFAULT_AVATAR ? null : formData.avatar,
       });
 
@@ -313,7 +314,7 @@ export default function AdminProfile() {
                   onClick={() => setSuccessMessage(null)}
                   className="text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 cursor-pointer"
                 >
-                  ×
+                  Ã—
                 </button>
               </div>
             </div>
@@ -329,7 +330,7 @@ export default function AdminProfile() {
                   onClick={() => setErrorMessage(null)}
                   className="ml-auto text-red-500 hover:text-red-700 dark:text-red-400 cursor-pointer"
                 >
-                  ×
+                  Ã—
                 </button>
               </div>
             </div>
@@ -512,21 +513,23 @@ export default function AdminProfile() {
                   <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     Phone Number:
                   </label>
-                  <div className="relative">
+                  <div className={`flex items-center rounded-xl border overflow-hidden transition-colors ${
+                    phoneError 
+                      ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20" 
+                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus-within:border-[#0053CC]"
+                  }`}>
+                    <span className="flex items-center justify-center px-3.5 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-700 select-none">
+                      +63
+                    </span>
                     <input
-                      type="text"
+                      type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handlePhoneChange}
                       maxLength={16}
-                      placeholder="e.g. 09123456789 or +63 912 345 6789"
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-xs font-medium focus:outline-none pr-9 ${
-                        phoneError
-                          ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-200"
-                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:border-[#0053CC]"
-                      }`}
+                      placeholder="9XX XXX XXXX"
+                      className="w-full bg-transparent px-3.5 py-2.5 text-xs font-medium text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none"
                     />
-                    <Edit2 className="absolute right-3 top-3 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                   </div>
                   {phoneError && (
                     <p className="text-[11px] text-red-500 dark:text-red-400 mt-1">
@@ -603,3 +606,4 @@ export default function AdminProfile() {
     </AdminLayout>
   );
 }
+
