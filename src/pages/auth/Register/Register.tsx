@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, AlertCircle, RefreshCw, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -30,7 +30,12 @@ const registerSchema = z
       .regex(/^(\d{2}-\d{4}|[A-Za-z]{2}-\d{7})$/, {
         message: "ID format must be XX-XXXX (e.g. 24-1474) or AA-XXXXXXX (e.g. AB-1234567).",
       }),
-    phone: z.string().optional(),
+    phone: z
+      .string()
+      .optional()
+      .refine((val) => !val || (val.length === 10 && val.startsWith("9")), {
+        message: "Must be a 10-digit Philippine number starting with 9.",
+      }),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters long.")
@@ -129,7 +134,7 @@ function Register() {
         lastName: data.lastName,
         email: data.email,
         schoolId: data.schoolId,
-        phone: data.phone?.trim() ? data.phone.trim() : undefined,
+        phone: data.phone?.trim() ? `0${data.phone.trim()}` : undefined,
         password: data.password,
         declaration: data.declaration,
       });
@@ -349,26 +354,30 @@ function Register() {
               Phone Number
               <span className="font-normal text-slate-500">(optional)</span>
             </Label>
-            <Input
-              id="phone"
-              placeholder="09XX XXX XXXX"
-              value={watchPhone}
-              {...register("phone")}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "");
-                if (value.length >= 1 && value[0] !== "0") return;
-                if (value.length >= 2 && !value.startsWith("09")) return;
-
-                setValue("phone", value.slice(0, 11), {
-                  shouldValidate: true,
-                });
-              }}
-              maxLength={11}
-              className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
-                errors.phone ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
-              }`}
-              disabled={isLoading || isSuccess}
-            />
+            <div className={`flex items-center rounded-xl border bg-white dark:bg-slate-800 overflow-hidden transition-all ${
+              errors.phone 
+                ? "border-red-500 bg-red-50/20 focus-within:ring-2 focus-within:ring-red-500" 
+                : "border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-[#0053CC]"
+            }`}>
+              <span className="flex items-center justify-center px-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-700 select-none">
+                +63
+              </span>
+              <Input
+                id="phone"
+                placeholder="9XX XXX XXXX"
+                maxLength={16}
+                value={watchPhone}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, "");
+                  if (val.startsWith("63")) val = val.slice(2);
+                  if (val.startsWith("0")) val = val.slice(1);
+                  if (val.length > 0 && val[0] !== "9") return;
+                  setValue("phone", val.slice(0, 10), { shouldValidate: true });
+                }}
+                className="border-0 shadow-none focus-visible:ring-0 text-xs h-10 bg-transparent"
+                disabled={isLoading || isSuccess}
+              />
+            </div>
             {errors.phone && (
               <span className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-0.5">
                 <AlertCircle className="h-3 w-3 shrink-0" /> {errors.phone.message}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, Edit3, CheckCircle2, AlertCircle } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
@@ -20,10 +20,12 @@ const formatCreatedAt = (date: string | Date | undefined): string => {
 };
 
 // Philippine mobile number validation
-const isValidPhilippineNumber = (phoneStr: string): boolean => {
-  if (!phoneStr.trim()) return true;
-  const clean = phoneStr.replace(/[\s-]/g, "");
-  return /^(09|\+639)\d{9}$/.test(clean);
+const extractPhDigits = (phoneStr?: string | null): string => {
+  if (!phoneStr) return "";
+  let clean = phoneStr.replace(/\D/g, "");
+  if (clean.startsWith("63")) clean = clean.slice(2);
+  if (clean.startsWith("0")) clean = clean.slice(1);
+  return clean.slice(0, 10);
 };
 
 const DEFAULT_AVATAR =
@@ -90,22 +92,23 @@ export default function GuardProfile() {
     if (currentUser) {
       setFirstName(currentUser.firstName || "");
       setLastName(currentUser.lastName || "");
-      setPhone(currentUser.phone || "");
+      setPhone(extractPhDigits(currentUser.phone));
       setProfileImage(currentUser.avatar || DEFAULT_AVATAR);
     }
   }, [currentUser]);
 
-  // Phone input: only digits, spaces, and a leading +
+  // Phone input: only 10 digits starting with 9
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value.replace(/[^0-9+ ]/g, "");
-    if (val.indexOf("+") > 0) {
-      val = val[0] + val.slice(1).replace(/\+/g, "");
-    }
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.startsWith("63")) val = val.slice(2);
+    if (val.startsWith("0")) val = val.slice(1);
+    if (val.length > 0 && val[0] !== "9") return;
+    val = val.slice(0, 10);
     setPhone(val);
     if (phoneError) setPhoneError(null);
   };
 
-  // Canvas-based image compression (max 500×500, 0.85 JPEG quality)
+  // Canvas-based image compression (max 500Ã—500, 0.85 JPEG quality)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -152,8 +155,8 @@ export default function GuardProfile() {
     e.preventDefault();
     setErrorMessage(null);
     setPhoneError(null);
-    if (phone.trim() && !isValidPhilippineNumber(phone)) {
-      setPhoneError("Invalid Philippine mobile number. Use 09XXXXXXXXX or +639XXXXXXXXX.");
+    if (phone.trim() && (phone.length !== 10 || !phone.startsWith("9"))) {
+      setPhoneError("Phone number must be exactly 10 digits starting with 9.");
       return;
     }
     setIsSaving(true);
@@ -161,7 +164,7 @@ export default function GuardProfile() {
       const response = await updateUserProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim(),
+        phone: phone.trim() ? `0${phone.trim()}` : null,
         avatar: profileImage === DEFAULT_AVATAR ? null : profileImage,
       });
       if (response.token) {
@@ -315,16 +318,22 @@ export default function GuardProfile() {
 
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300">Phone Number</label>
-                    <div className="relative">
+                    <div className={`flex items-center rounded-xl border overflow-hidden transition-colors ${
+                      phoneError 
+                        ? "border-rose-500 bg-rose-50/20" 
+                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus-within:border-[#0053CC]"
+                    }`}>
+                      <span className="flex items-center justify-center px-3.5 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-700 select-none">
+                        +63
+                      </span>
                       <input
-                        type="text"
+                        type="tel"
                         value={phone}
                         onChange={handlePhoneChange}
                         maxLength={16}
-                        placeholder="09XXXXXXXXX or +639XXXXXXXXX"
-                        className={`w-full rounded-xl border bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none transition-colors ${phoneError ? "border-rose-500 focus:border-rose-500" : "border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"}`}
+                        placeholder="9XX XXX XXXX"
+                        className="w-full bg-transparent px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
                       />
-                      <Edit3 className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     </div>
                     {phoneError && (
                       <div className="flex items-center gap-1.5 text-rose-500 text-[11px] font-semibold pt-0.5">

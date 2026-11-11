@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { 
   User, 
   Mail, 
@@ -39,6 +39,14 @@ const formatTimestamp = (date: string | Date | undefined): string => {
   } catch {
     return "Never";
   }
+};
+
+const extractPhDigits = (phoneStr?: string | null): string => {
+  if (!phoneStr) return "";
+  let clean = phoneStr.replace(/\D/g, "");
+  if (clean.startsWith("63")) clean = clean.slice(2);
+  if (clean.startsWith("0")) clean = clean.slice(1);
+  return clean.slice(0, 10);
 };
 
 interface ProfileFormState {
@@ -114,7 +122,7 @@ export default function Profile() {
             fullName,
             email: freshUser.email || prev.email,
             schoolId: freshUser.schoolId || prev.schoolId,
-            phoneNumber: freshUser.phone || "",
+            phoneNumber: extractPhDigits(freshUser.phone),
             avatar: freshUser.avatar || null,
           }));
         }
@@ -135,29 +143,18 @@ export default function Profile() {
   // Edit Profile Form State
   const [editForm, setEditForm] = useState<ProfileFormState>({ ...profileData });
 
-  // Philippine mobile number validation helper
-  const isValidPhilippineNumber = (phoneStr: string): boolean => {
-    if (!phoneStr.trim()) return true; // Optional field - empty is valid
-    const clean = phoneStr.replace(/[\s-]/g, "");
-    return /^(09|\+639)\d{9}$/.test(clean);
-  };
 
-  // Phone input handler with filtering
+
+  // Phone input handler with filtering (10 digits starting with 9)
   const handlePhoneChange = (val: string) => {
-    // Allow only digits, spaces, and leading plus sign
-    let cleaned = val.replace(/[^0-9+ ]/g, "");
-    
-    // Disallow + in positions other than the first
-    if (cleaned.indexOf("+") > 0) {
-      cleaned = cleaned[0] + cleaned.slice(1).replace(/\+/g, "");
-    }
+    let cleaned = val.replace(/\D/g, "");
+    if (cleaned.startsWith("63")) cleaned = cleaned.slice(2);
+    if (cleaned.startsWith("0")) cleaned = cleaned.slice(1);
+    if (cleaned.length > 0 && cleaned[0] !== "9") return;
+    cleaned = cleaned.slice(0, 10);
     
     setEditForm((prev) => ({ ...prev, phoneNumber: cleaned }));
-    
-    // Clear phone error when typing
-    if (phoneError) {
-      setPhoneError(null);
-    }
+    if (phoneError) setPhoneError(null);
   };
 
   // Canvas-based image compression
@@ -249,8 +246,8 @@ export default function Profile() {
 
     // Validate phone number before submitting
     if (editForm.phoneNumber && editForm.phoneNumber.trim() !== "") {
-      if (!isValidPhilippineNumber(editForm.phoneNumber)) {
-        setPhoneError("Invalid Philippine mobile number. Must be 11 digits starting with 09 or +639 followed by 9 digits (e.g., 09123456789).");
+      if (editForm.phoneNumber.length !== 10 || !editForm.phoneNumber.startsWith("9")) {
+        setPhoneError("Phone number must be exactly 10 digits starting with 9.");
         return;
       }
     }
@@ -260,7 +257,7 @@ export default function Profile() {
 
     try {
       const res = await updateUserProfile({
-        phone: editForm.phoneNumber,
+        phone: editForm.phoneNumber.trim() ? `0${editForm.phoneNumber.trim()}` : null,
         firstName: editForm.firstName.trim(),
         lastName: editForm.lastName.trim(),
         avatar: editForm.avatar
@@ -655,19 +652,22 @@ export default function Profile() {
                 {/* Phone Number */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Phone Number:</Label>
-                  <div className="relative">
+                  <div className={`flex items-center rounded-xl border overflow-hidden transition-colors ${
+                    phoneError 
+                      ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20" 
+                      : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus-within:border-[#0053CC] focus-within:bg-white dark:focus-within:bg-slate-800"
+                  }`}>
+                    <span className="flex items-center justify-center px-3.5 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-700 select-none">
+                      +63
+                    </span>
                     <Input
                       value={editForm.phoneNumber}
                       onChange={(e) => handlePhoneChange(e.target.value)}
                       maxLength={16}
-                      placeholder="e.g. 09123456789 or +63 912 345 6789"
-                      className={`h-11 rounded-xl text-xs pr-9 ${
-                        phoneError
-                          ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20"
-                          : "bg-slate-50 dark:bg-slate-800/50"
-                      }`}
+                      placeholder="9XX XXX XXXX"
+                      className="border-0 shadow-none focus-visible:ring-0 text-xs h-11 bg-transparent pr-9"
                     />
-                    <Edit2 className="h-4 w-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                    <Edit2 className="h-4 w-4 text-slate-400 mr-3 pointer-events-none shrink-0" />
                   </div>
                   {phoneError && (
                     <p className="text-[10px] text-red-500 dark:text-red-400 mt-0.5">
