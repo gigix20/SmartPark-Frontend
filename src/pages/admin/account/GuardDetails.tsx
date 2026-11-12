@@ -1,30 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
 export default function GuardDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Sample guard data batay sa ID
-  const [guardData, setGuardData] = useState({
-    id: id || "3",
-    firstName: "Jose",
-    lastName: "Santos",
-    email: "josesantos@qcu.edu.ph",
-    employeeId: "QCU-IT-2024-08",
-    phoneNumber: "+63 912 345 6789",
-    accountStatus: "ACTIVE",
-    dateCreated: "December 2025",
-    lastUpdated: "Sep 28, 2026, 9:30 AM",
-    lastLogin: "Sep 29, 2026, 9:00 PM",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=60"
-  });
-
-  // Modal states
+  const [guardData, setGuardData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchDetails() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success) {
+          setGuardData(res.account);
+        }
+      } catch (err) {
+        console.error("Failed to fetch guard details:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchDetails();
+  }, [id]);
 
   useEffect(() => {
     if (showDeactivateModal || showSuccessModal) {
@@ -37,11 +42,35 @@ export default function GuardDetails() {
     };
   }, [showDeactivateModal, showSuccessModal]);
 
-  const handleDeactivateConfirm = () => {
-    setShowDeactivateModal(false);
-    setGuardData(prev => ({ ...prev, accountStatus: "DEACTIVATED" }));
-    setShowSuccessModal(true);
+  const handleDeactivateConfirm = async () => {
+    try {
+      if (!id) return;
+      await updateAccountStatus(id, "Deactivated");
+      setShowDeactivateModal(false);
+      setGuardData((prev: any) => ({ ...prev, accountStatus: "Deactivated" }));
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Failed to deactivate guard account:", err);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!guardData) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-32 text-slate-500">Guard account not found.</div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

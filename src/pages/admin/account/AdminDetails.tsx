@@ -1,31 +1,38 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
 export default function AdminDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Sample admin data batay sa ID
-  const [adminData, setAdminData] = useState({
-    id: id || "1",
-    firstName: "John",
-    lastName: "Doe",
-    email: "johndoe@qcu.edu.ph",
-    employeeId: "QCU-IT-2024-08",
-    role: "Super Administrator",
-    phoneNumber: "+63 912 345 6789",
-    accountStatus: "ACTIVE",
-    dateCreated: "December 2025",
-    lastUpdated: "Sep 28, 2026, 9:30 AM",
-    lastLogin: "Sep 29, 2026, 9:00 PM",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60"
-  });
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
 
-  // Modal states
+  const [adminData, setAdminData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchDetails() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success) {
+          setAdminData(res.account);
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin details:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchDetails();
+  }, [id]);
 
   useEffect(() => {
     if (showDeactivateModal || showSuccessModal) {
@@ -38,11 +45,35 @@ export default function AdminDetails() {
     };
   }, [showDeactivateModal, showSuccessModal]);
 
-  const handleDeactivateConfirm = () => {
-    setShowDeactivateModal(false);
-    setAdminData(prev => ({ ...prev, accountStatus: "DEACTIVATED" }));
-    setShowSuccessModal(true);
+  const handleDeactivateConfirm = async () => {
+    try {
+      if (!id) return;
+      await updateAccountStatus(id, "Deactivated");
+      setShowDeactivateModal(false);
+      setAdminData((prev: any) => ({ ...prev, accountStatus: "Deactivated" }));
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Failed to deactivate account:", err);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!adminData) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-32 text-slate-500">Account not found.</div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -65,14 +96,16 @@ export default function AdminDetails() {
               </h1>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowDeactivateModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <Ban className="h-3.5 w-3.5" />
-              <span>Deactivate</span>
-            </button>
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowDeactivateModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Ban className="h-3.5 w-3.5" />
+                <span>Deactivate</span>
+              </button>
+            )}
           </div>
 
           {/* Profile Basic Info Row */}
@@ -89,10 +122,10 @@ export default function AdminDetails() {
                     {adminData.firstName} {adminData.lastName}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                    Active
+                    {adminData.accountStatus}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">Employee ID: {adminData.employeeId}</p>
+                <p className="text-xs text-slate-400 mt-0.5">ID: {adminData.schoolId}</p>
               </div>
             </div>
           </div>
@@ -118,8 +151,8 @@ export default function AdminDetails() {
                 <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.email}</p>
               </div>
               <div>
-                <p className="text-slate-400 font-medium">Employee ID</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.employeeId}</p>
+                <p className="text-slate-400 font-medium">Employee / School ID</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.schoolId}</p>
               </div>
 
               <div>
@@ -128,7 +161,7 @@ export default function AdminDetails() {
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Phone Number</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.phoneNumber}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.phone || "N/A"}</p>
               </div>
             </div>
           </div>
@@ -148,12 +181,16 @@ export default function AdminDetails() {
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Date Created</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.dateCreated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.createdAt ? new Date(adminData.createdAt).toLocaleDateString() : "N/A"}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Last Updated</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.lastUpdated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.updatedAt ? new Date(adminData.updatedAt).toLocaleString() : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>
@@ -163,16 +200,18 @@ export default function AdminDetails() {
           </div>
 
           {/* Edit Button at Bottom Right */}
-          <div className="flex justify-end pt-6">
-            <button
-              type="button"
-              onClick={() => navigate(`/admin/accounts/edit/${adminData.id}`)}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-            >
-              <Edit3 className="h-3.5 w-3.5 text-[#0053CC]" />
-              <span>Edit</span>
-            </button>
-          </div>
+          {isSuperAdmin && (
+            <div className="flex justify-end pt-6">
+              <button
+                type="button"
+                onClick={() => navigate(`/admin/accounts/edit/${adminData.id}`)}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                <Edit3 className="h-3.5 w-3.5 text-[#0053CC]" />
+                <span>Edit</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

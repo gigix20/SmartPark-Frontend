@@ -286,8 +286,20 @@ function App() {
           </ProtectedRoute>
         } />
         
+        <Route path="/admin/accounts/create" element={
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+            <AdminCreate />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/accounts/edit/:id" element={
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+            <AdminEdit />
+          </ProtectedRoute>
+        } />
+
         <Route path="/admin/accounts/suspend/:id" element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <AdminSuspend />
           </ProtectedRoute>
         } />

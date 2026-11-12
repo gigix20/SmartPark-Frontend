@@ -7,6 +7,14 @@ import { registerAdminUser } from "@/pages/auth/api/authApi";
 export default function AdminCreate() {
   const navigate = useNavigate();
 
+  // Route guard: only Super Admin can access this page
+  useEffect(() => {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (currentUser?.role?.toUpperCase() !== "SUPER_ADMIN") {
+      navigate("/admin/accounts", { replace: true });
+    }
+  }, [navigate]);
+
   const [currentUser] = useState(() => {
     try {
       const saved = localStorage.getItem("user");

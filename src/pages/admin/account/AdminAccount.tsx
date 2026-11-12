@@ -13,6 +13,10 @@ export default function AdminAccount({ searchTerm }: AdminAccountProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Read current user role for RBAC
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
+
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -139,13 +143,15 @@ export default function AdminAccount({ searchTerm }: AdminAccountProps) {
                     >
                       View
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/admin/accounts/edit/${item.id}`)}
-                      className="font-bold text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
-                    >
-                      Edit
-                    </button>
+                    {isSuperAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/admin/accounts/edit/${item.id}`)}
+                        className="font-bold text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

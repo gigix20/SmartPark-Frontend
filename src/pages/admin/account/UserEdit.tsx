@@ -1,26 +1,55 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Check } from "lucide-react";
+import { ArrowLeft, ChevronDown, Check, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAccountById, updateAccount } from "./api/accountApi";
 
 export default function UserEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const [formData, setFormData] = useState({
-    firstName: "Sophia",
-    lastName: "Reyes",
-    email: "sophiareyes@gmail.com",
-    studentId: "24-0123",
-    phoneNumber: "+63 912 345 6789",
-    accountStatus: "ACTIVE",
-    dateCreated: "December 2025",
-    lastUpdated: "Sep 28, 2026, 9:30 AM",
-    lastLogin: "Sep 29, 2026, 9:00PM",
+    firstName: "",
+    lastName: "",
+    email: "",
+    studentId: "",
+    phoneNumber: "",
+    accountStatus: "Active",
+    dateCreated: "",
+    lastUpdated: "",
   });
 
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchUser() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success && res.account) {
+          const acc = res.account;
+          setFormData({
+            firstName: acc.firstName || "",
+            lastName: acc.lastName || "",
+            email: acc.email || "",
+            studentId: acc.schoolId || "",
+            phoneNumber: acc.phone || "",
+            accountStatus: acc.accountStatus || "Active",
+            dateCreated: acc.createdAt ? new Date(acc.createdAt).toLocaleDateString() : "",
+            lastUpdated: acc.updatedAt ? new Date(acc.updatedAt).toLocaleString() : "",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch user for edit:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchUser();
+  }, [id]);
 
   // Prevent background scrolling kapag bukas ang success modal
   useEffect(() => {
@@ -39,14 +68,40 @@ export default function UserEdit() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    setTimeout(() => {
+    if (!id) return;
+    try {
+      setIsSaving(true);
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        schoolId: formData.studentId,
+        phone: formData.phoneNumber,
+        accountStatus: formData.accountStatus,
+        role: "USER",
+      };
+      const res = await updateAccount(id, payload);
+      if (res.success) {
+        setShowSuccessModal(true);
+      }
+    } catch (err) {
+      console.error("Failed to update user account:", err);
+    } finally {
       setIsSaving(false);
-      setShowSuccessModal(true); // I-trigger ang pop-up modal pagkatapos i-save
-    }, 400);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -202,7 +257,7 @@ export default function UserEdit() {
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-2 text-sm">{formData.lastLogin}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-2 text-sm">N/A</p>
               </div>
             </div>
           </div>
