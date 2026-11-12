@@ -63,6 +63,10 @@ export default function AdminEdit() {
     setShowSuccessModal(true);
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <AdminLayout>
       <div className="w-full max-w-5xl mx-auto space-y-6 relative">
@@ -72,16 +76,18 @@ export default function AdminEdit() {
           onSubmit={handleSaveChanges}
           className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative"
         >
-          {/* Header Section */}
+          {/* Header Section with Circular Back Button */}
           <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">
             <button
               type="button"
-              onClick={() => navigate(`/admin/accounts/details/${id || "1"}`)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            >
+              onClick={handleBack}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+            <h1 
+              onClick={handleBack}
+              className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400 cursor-pointer hover:underline"
+            >
               Admin Profile
             </h1>
           </div>
@@ -270,7 +276,7 @@ export default function AdminEdit() {
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={() => navigate(`/admin/accounts/details/${id || "1"}`)}
+              onClick={handleBack}
               className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               Discard
@@ -303,7 +309,7 @@ export default function AdminEdit() {
               <div className="pt-2">
                 <button 
                   type="button"
-                  onClick={() => navigate(`/admin/accounts/details/${id || "1"}`)}
+                  onClick={handleBack}
                   className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                 >
                   Done
