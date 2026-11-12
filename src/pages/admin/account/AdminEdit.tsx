@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronDown, Check } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function AdminEdit() {
   const navigate = useNavigate();
-  const { id } = useParams();
+
 
   // Route guard: only Super Admin can access this page
   useEffect(() => {
