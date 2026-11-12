@@ -96,7 +96,7 @@ export default function GuardCreate() {
       <div className="space-y-6 w-full relative">
         
         {/* Main Card Container */}
-        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
           
           {/* Header Section with Circular Back Button */}
           <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">

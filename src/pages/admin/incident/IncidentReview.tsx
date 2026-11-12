@@ -51,27 +51,30 @@ export default function IncidentReview() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
+        {/* Back Button & Header */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate("/admin/incidents")}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer">
+            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
+          >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Incident Management</span>
           </button>
-          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
-            Review report
-          </h1>
-          <p className="text-xs text-slate-500">View resolved and past incident records.</p>
+          <div>
+            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+              Review report
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">View resolved and past incident records.</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4 lg:col-span-1">
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4 lg:col-span-1">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Uploaded evidence</h3>
               <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md font-medium">1 photo</span>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-50">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-50">
               <img 
                 src="https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600&auto=format&fit=crop&q=60" 
                 alt="Car Evidence" 
@@ -84,7 +87,7 @@ export default function IncidentReview() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-6 lg:col-span-2">
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 lg:col-span-2">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <p className="text-xs text-slate-400">Reference ID</p>
@@ -131,7 +134,7 @@ export default function IncidentReview() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4">
           <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Registered Owner Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
@@ -170,7 +173,7 @@ export default function IncidentReview() {
       {/* REJECT MODAL WITH RED DESIGN VALIDATION */}
       {isRejectModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-5 border border-slate-100 dark:border-slate-800">
+          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl space-y-5 border border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Reason for rejection</h3>
@@ -236,7 +239,7 @@ export default function IncidentReview() {
       {/* SUCCESS MODAL */}
       {isSuccessModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-slate-900 p-6 text-center shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl space-y-4">
             <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${actionType === "Reviewed" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
               {actionType === "Reviewed" ? <CheckCircle2 className="h-8 w-8" /> : <AlertCircle className="h-8 w-8" />}
             </div>

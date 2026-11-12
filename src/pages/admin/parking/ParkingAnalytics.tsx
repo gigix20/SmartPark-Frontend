@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import CarIcon from "@/assets/car-icon.svg";
+import MotorIcon from "@/assets/motor-icon.svg";
 
 export default function ParkingAnalytics() {
   const navigate = useNavigate();
@@ -16,42 +18,38 @@ export default function ParkingAnalytics() {
 
   return (
     <AdminLayout>
-      <div className="mb-2">
+      {/* Back Button & Header */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate("/admin/parking")}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
+          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to Parking Management</span>
         </button>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Parking Analytics & Forecast</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">Real-time visitor, traffic, and occupancy forecasts.</p>
         </div>
-
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Vehicles entering</p>
           <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">812</h3>
           <p className="text-[10px] text-slate-400 mt-1">Past 24hrs</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Vehicles exiting</p>
           <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">790</h3>
           <p className="text-[10px] text-slate-400 mt-1">Past 24hrs</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Parking demand trends</p>
           <h3 className="font-poppins text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">+5%</h3>
           <p className="text-[10px] text-slate-400 mt-1">vs previous period</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Peak parking hours</p>
           <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">10:00 AM</h3>
           <p className="text-[10px] text-slate-400 mt-1">94% occupancy</p>
@@ -59,7 +57,7 @@ export default function ParkingAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+        <div className="lg:col-span-2 rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4 transition-colors">
           <div className="flex items-center justify-between">
             <h3 className="font-poppins text-sm font-bold text-slate-900 dark:text-white">Weekly Parking Utilization</h3>
             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
@@ -84,7 +82,7 @@ export default function ParkingAnalytics() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
           <h3 className="font-poppins text-sm font-bold text-slate-900 dark:text-white">Vehicle Type Distribution</h3>
           <div className="flex items-center justify-center my-auto py-4">
             <div className="relative flex items-center justify-center h-28 w-28">
@@ -101,14 +99,14 @@ export default function ParkingAnalytics() {
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC] dark:bg-blue-400"></span>
+                <img src={CarIcon} alt="Car" className="h-3.5 w-3.5 object-contain" />
                 <span className="text-slate-600 dark:text-slate-400">Cars (60%)</span>
               </div>
               <span className="font-semibold text-slate-800 dark:text-slate-200">60</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-300"></span>
+                <img src={MotorIcon} alt="Motorcycle" className="h-3.5 w-3.5 object-contain" />
                 <span className="text-slate-600 dark:text-slate-400">Motorcycles (40%)</span>
               </div>
               <span className="font-semibold text-slate-800 dark:text-slate-200">40</span>
@@ -117,13 +115,13 @@ export default function ParkingAnalytics() {
         </div>
       </div>
 
-      <div id="forecast-section" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-6 pt-8 transition-colors">
+      <div id="forecast-section" className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div>
           <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Parking Forecast & Prediction</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">Predict future parking occupancy based on historical data.</p>
         </div>
 
-        <form onSubmit={handleGenerateForecast} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+        <form onSubmit={handleGenerateForecast} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Select forecast date</label>
             <div className="relative">
@@ -162,15 +160,15 @@ export default function ParkingAnalytics() {
           <div className="space-y-4 animate-fade-in pt-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Prediction Outcome</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                 <p className="text-xs text-slate-500 dark:text-slate-400">Predicted vehicle count</p>
                 <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-1">72 vehicles</h3>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                 <p className="text-xs text-slate-500 dark:text-slate-400">Predicted available spaces</p>
                 <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-1">28 spaces</h3>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                 <p className="text-xs text-slate-500 dark:text-slate-400">Predicted availability level</p>
                 <span className="inline-block mt-2 rounded-lg bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                   Moderate Availability
@@ -178,7 +176,7 @@ export default function ParkingAnalytics() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 p-4 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
+            <div className="rounded-2xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 p-4 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
               <p>
                 <strong className="text-slate-900 dark:text-white">Forecast explanation:</strong> Our predictive model indicates a peak influx based on historical data for Tuesday afternoon lunch deliveries and seasonal office occupancy rates.
               </p>

@@ -59,35 +59,31 @@ export default function GateRegistrationForm() {
         <GuardNav isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         <main className="flex-1 p-6 sm:p-8 overflow-y-auto lg:pl-72 transition-all">
-          {/* Binago ang max-w-4xl mx-auto papuntang max-w-6xl para sumabay sa alignment ng ibang pahina */}
           <div className="space-y-6 max-w-6xl mx-auto pb-16">
             
-            {/* Back Button */}
-            <div>
+            {/* Uniform Back Button & Header */}
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleCancelClick}
-                className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back to Registered Vehicles</span>
               </button>
-            </div>
-
-            {/* Page Header */}
-            <div>
-              <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
-                Gate Registration
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Identify the vehicle and driver, verify ID, then create a temporary gate registration.
-              </p>
+              <div>
+                <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+                  Gate Registration
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Identify the vehicle and driver, verify ID, then create a temporary gate registration.
+                </p>
+              </div>
             </div>
 
             {/* Main Form Container */}
             <form
               onSubmit={handleSubmitForm}
-              className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors"
+              className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors"
             >
               <h2 className="font-poppins text-base font-bold text-slate-900 dark:text-white text-center pb-2 border-b border-slate-100 dark:border-slate-800">
                 Gate Registration Form

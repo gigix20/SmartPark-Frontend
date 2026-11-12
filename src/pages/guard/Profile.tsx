@@ -207,8 +207,8 @@ export default function GuardProfile() {
         <main className="flex-1 p-6 sm:p-8 overflow-y-auto lg:pl-72 transition-all">
           <div className="space-y-6 max-w-5xl mx-auto pb-16">
             
-            {/* Main Profile Card Container */}
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
+            {/* Main Profile Card Container na may uniform shadow at border */}
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
               
               {/* Profile Top Banner Info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">

@@ -2,16 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Calendar, ChevronDown, RotateCcw, ArrowLeft } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import CarIcon from "@/assets/car-icon.svg";
+import MotorIcon from "@/assets/motor-icon.svg";
 
 export default function ParkingHistory() {
   const navigate = useNavigate();
   const historyData = [
-    { id: 1, date: "Sept 30, 2025", vehicleName: "Mitsubishi Mirage", plateNo: "NDO 5214", entryTime: "08:30 PM", exitTime: "--", duration: "1h 11m", status: "Complete" },
-    { id: 2, date: "Sept 30, 2025", vehicleName: "Mitsubishi Xpander", plateNo: "DEF 9012", entryTime: "08:02 AM", exitTime: "--", duration: "--", status: "Currently Parked" },
-    { id: 3, date: "Sept 30, 2025", vehicleName: "Honda Civic", plateNo: "NDO 5214", entryTime: "05:30 PM", exitTime: "12:00 PM", duration: "5h 15m", status: "Complete" },
-    { id: 4, date: "Sept 29, 2025", vehicleName: "Toyota Fortuner", plateNo: "MHI 1234", entryTime: "07:30 AM", exitTime: "04:15 PM", duration: "8h 45m", status: "Complete" },
-    { id: 5, date: "Sept 28, 2025", vehicleName: "Yamaha Aerox", plateNo: "XYZ 5678", entryTime: "11:15 AM", exitTime: "01:30 PM", duration: "2h 15m", status: "Complete" },
-    { id: 6, date: "Sept 27, 2025", vehicleName: "Honda Click", plateNo: "PH-8888", entryTime: "03:00 PM", exitTime: "--", duration: "--", status: "Currently Parked" },
+    { id: 1, date: "Sept 30, 2025", vehicleName: "Mitsubishi Mirage", type: "Car", plateNo: "NDO 5214", entryTime: "08:30 PM", exitTime: "--", duration: "1h 11m", status: "Complete" },
+    { id: 2, date: "Sept 30, 2025", vehicleName: "Mitsubishi Xpander", type: "Car", plateNo: "DEF 9012", entryTime: "08:02 AM", exitTime: "--", duration: "--", status: "Currently Parked" },
+    { id: 3, date: "Sept 30, 2025", vehicleName: "Honda Civic", type: "Car", plateNo: "NDO 5214", entryTime: "05:30 PM", exitTime: "12:00 PM", duration: "5h 15m", status: "Complete" },
+    { id: 4, date: "Sept 29, 2025", vehicleName: "Toyota Fortuner", type: "Car", plateNo: "MHI 1234", entryTime: "07:30 AM", exitTime: "04:15 PM", duration: "8h 45m", status: "Complete" },
+    { id: 5, date: "Sept 28, 2025", vehicleName: "Yamaha Aerox", type: "Motorcycle", plateNo: "XYZ 5678", entryTime: "11:15 AM", exitTime: "01:30 PM", duration: "2h 15m", status: "Complete" },
+    { id: 6, date: "Sept 27, 2025", vehicleName: "Honda Click", type: "Motorcycle", plateNo: "PH-8888", entryTime: "03:00 PM", exitTime: "--", duration: "--", status: "Currently Parked" },
   ];
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,23 +26,22 @@ export default function ParkingHistory() {
 
   return (
     <AdminLayout>
-      <div className="mb-2">
+      {/* Back Button & Header */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate("/admin/parking")}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
+          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to Parking Management</span>
         </button>
+        <div>
+          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Parking History</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Historical parking records.</p>
+        </div>
       </div>
 
-      <div>
-        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Parking History</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Historical parking records.</p>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -91,7 +92,14 @@ export default function ParkingHistory() {
               {currentItems.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="py-3 text-slate-600 dark:text-slate-400">{item.date}</td>
-                  <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{item.vehicleName}</td>
+                  <td className="py-3 font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <img 
+                      src={item.type === "Motorcycle" ? MotorIcon : CarIcon} 
+                      alt="Vehicle Icon" 
+                      className="h-3.5 w-3.5 object-contain shrink-0" 
+                    />
+                    {item.vehicleName}
+                  </td>
                   <td className="py-3 font-bold text-slate-900 dark:text-white">{item.plateNo}</td>
                   <td className="py-3 text-slate-600 dark:text-slate-400">{item.entryTime}</td>
                   <td className="py-3 text-slate-500 dark:text-slate-400">{item.exitTime}</td>

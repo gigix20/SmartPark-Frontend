@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { Settings, History, BarChart2, Car, Bike, ArrowRight } from "lucide-react";
+import { Settings, History, BarChart2, ArrowRight } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import CarIcon from "@/assets/car-icon.svg";
+import MotorIcon from "@/assets/motor-icon.svg";
 
 export default function ParkingManagement() {
   return (
@@ -11,7 +13,7 @@ export default function ParkingManagement() {
       </div>
 
       {/* Main Occupancy Card */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center gap-8 transition-colors">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-8 transition-colors">
         <div className="relative flex items-center justify-center h-32 w-32 shrink-0">
           <svg className="h-full w-full transform -rotate-90" viewBox="0 0 36 36">
             <path
@@ -58,11 +60,11 @@ export default function ParkingManagement() {
 
       {/* Vehicle Category Breakdown Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl">
-                <Car className="h-6 w-6" />
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
+                <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
               </div>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cars</span>
             </div>
@@ -82,11 +84,11 @@ export default function ParkingManagement() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl">
-                <Bike className="h-6 w-6" />
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
+                <img src={MotorIcon} alt="Motorcycle" className="h-5 w-5 object-contain" />
               </div>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Motorcycles</span>
             </div>
@@ -107,13 +109,13 @@ export default function ParkingManagement() {
         </div>
       </div>
 
-      {/* Action Cards Section - Pinatindi ang Visual Prominence ng Buttons */}
+      {/* Action Cards Section */}
       <div className="space-y-4 pt-2">
         <h2 className="font-poppins text-base font-bold text-slate-900 dark:text-white">What would you like to do?</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1 */}
-          <div className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="group rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
@@ -135,7 +137,7 @@ export default function ParkingManagement() {
           </div>
 
           {/* Card 2 */}
-          <div className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="group rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
@@ -157,7 +159,7 @@ export default function ParkingManagement() {
           </div>
 
           {/* Card 3 */}
-          <div className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="group rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-xl group-hover:scale-110 transition-transform">

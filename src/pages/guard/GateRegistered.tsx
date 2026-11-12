@@ -26,7 +26,11 @@ export default function GateRegistered() {
   const [activeTab, setActiveTab] = useState<"active" | "deactivated">("active");
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Filter Dropdown States (Kinuha mula sa VehicleRegistration.tsx)
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+  
+  // Filter Dropdown States
   const [selectedFilter, setSelectedFilter] = useState("All Vehicles");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,7 +41,6 @@ export default function GateRegistered() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeactivatedSuccessModal, setShowDeactivatedSuccessModal] = useState(false);
 
-  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -48,7 +51,6 @@ export default function GateRegistered() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Prevent background scrolling when modal is open
   useEffect(() => {
     if (showDetailsModal || showDeactivatedSuccessModal) {
       document.body.style.overflow = "hidden";
@@ -60,7 +62,6 @@ export default function GateRegistered() {
     };
   }, [showDetailsModal, showDeactivatedSuccessModal]);
 
-  // Mock records data
   const [vehicles, setVehicles] = useState<RegisteredVehicle[]>([
     {
       id: "1",
@@ -131,7 +132,6 @@ export default function GateRegistered() {
     },
   ]);
 
-  // Search & Filter Logic (Patterned after VehicleRegistration.tsx)
   const filteredVehicles = vehicles.filter((v) => {
     const matchesTab = activeTab === "active" ? v.status === "Active" : v.status === "Deactivated";
     const matchesSearch = 
@@ -147,6 +147,12 @@ export default function GateRegistered() {
 
     return true;
   });
+
+  // Pagination Calculations
+  const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage) || 1;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentVehicles = filteredVehicles.slice(indexOfFirstItem, indexOfLastItem);
 
   const handleOpenDetails = (v: RegisteredVehicle) => {
     setSelectedVehicle(v);
@@ -185,7 +191,6 @@ export default function GateRegistered() {
                 </p>
               </div>
 
-              {/* Main Action Button */}
               <button
                 type="button"
                 onClick={() => navigate("/guard/registration/new")}
@@ -196,14 +201,14 @@ export default function GateRegistered() {
               </button>
             </div>
 
-            {/* Table Container */}
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-colors">
+            {/* Table Container na may uniform shadow at border */}
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-colors">
               
               {/* Tabs Navigation */}
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 px-6 pt-4">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("active")}
+                  onClick={() => { setActiveTab("active"); setCurrentPage(1); }}
                   className={`pb-3 text-xs font-bold transition-all relative cursor-pointer ${
                     activeTab === "active"
                       ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
@@ -214,7 +219,7 @@ export default function GateRegistered() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab("deactivated")}
+                  onClick={() => { setActiveTab("deactivated"); setCurrentPage(1); }}
                   className={`pb-3 text-xs font-bold transition-all relative cursor-pointer px-4 ${
                     activeTab === "deactivated"
                       ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
@@ -225,20 +230,19 @@ export default function GateRegistered() {
                 </button>
               </div>
 
-              {/* Toolbar: Search and Filter (Matching VehicleRegistration.tsx) */}
+              {/* Toolbar: Search and Filter */}
               <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                     placeholder="Search plate number, owner..."
                     className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
                   />
                 </div>
 
-                {/* Interactive Filter Dropdown (Copied directly from VehicleRegistration.tsx) */}
                 <div className="relative" ref={dropdownRef}>
                   <button
                     type="button"
@@ -257,6 +261,7 @@ export default function GateRegistered() {
                         onClick={() => {
                           setSelectedFilter("All Vehicles");
                           setIsFilterDropdownOpen(false);
+                          setCurrentPage(1);
                         }}
                         className="w-full text-left px-4 py-2.5 text-xs italic text-[#0053CC] dark:text-blue-400 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                       >
@@ -269,6 +274,7 @@ export default function GateRegistered() {
                           onClick={() => {
                             setSelectedFilter(option);
                             setIsFilterDropdownOpen(false);
+                            setCurrentPage(1);
                           }}
                           className={`w-full text-left px-4 py-2.5 transition-colors cursor-pointer ${
                             selectedFilter === option 
@@ -304,8 +310,8 @@ export default function GateRegistered() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                    {filteredVehicles.length > 0 ? (
-                      filteredVehicles.map((v) => (
+                    {currentVehicles.length > 0 ? (
+                      currentVehicles.map((v) => (
                         <tr
                           key={v.id}
                           onClick={() => handleOpenDetails(v)}
@@ -350,25 +356,35 @@ export default function GateRegistered() {
                 </table>
               </div>
 
-              {/* Table Pagination Footer */}
+              {/* Functional Pagination Footer */}
               <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
-                <span>Showing {filteredVehicles.length} of {vehicles.length} records</span>
+                <span>Showing {filteredVehicles.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredVehicles.length)} of {filteredVehicles.length} records</span>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium disabled:opacity-50"
                   >
                     Previous
                   </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                    <button
+                      key={number}
+                      type="button"
+                      onClick={() => setCurrentPage(number)}
+                      className={`px-3 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
+                        currentPage === number ? "bg-[#0053CC] text-white" : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
                   <button
                     type="button"
-                    className="px-3 py-1 rounded-lg bg-[#0053CC] text-white font-bold cursor-pointer"
-                  >
-                    1
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium disabled:opacity-50"
                   >
                     Next
                   </button>

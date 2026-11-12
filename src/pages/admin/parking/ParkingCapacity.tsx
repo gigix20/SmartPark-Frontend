@@ -59,48 +59,48 @@ export default function ParkingCapacity() {
 
   return (
     <AdminLayout>
-      <div className="mb-2">
+      {/* Back Button & Header */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate("/admin/parking")}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer">
+          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
+        >
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to Parking Management</span>
         </button>
-      </div>
-
-      <div>
-        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Manage Parking Capacity</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Update the number of spaces for cars and motorcycles.</p>
+        <div>
+          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Manage Parking Capacity</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Update the number of spaces for cars and motorcycles.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total capacity</p>
           <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{totalCapacity}</h3>
           <p className="text-[10px] font-medium text-slate-400 mt-1">Total configured stalls</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Car capacity</p>
           <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{carParked}</h3>
           <p className="text-[10px] font-medium text-slate-400 mt-1">Inside now: {carParked}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Motorcycle capacity</p>
           <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{motorcycleParked}</h3>
           <p className="text-[10px] font-medium text-slate-400 mt-1">Inside now: {motorcycleParked}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
           <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Occupied</p>
           <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{totalOccupied}</h3>
           <p className="text-[10px] font-medium text-slate-400 mt-1">Inside now: {totalOccupied}</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-3 transition-colors">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-3 transition-colors">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400 pb-1">Utilization Percentage</span>
           <span className="text-slate-500 dark:text-slate-400 font-semibold">{utilizationPercentage}% used</span>
@@ -113,7 +113,7 @@ export default function ParkingCapacity() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-6 transition-colors">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div>
           <h2 className="font-poppins text-sm font-bold text-[#0053CC] dark:text-blue-400">Update capacity</h2>
           <p className="text-xs text-slate-400">Specify the maximum vehicle stall thresholds.</p>

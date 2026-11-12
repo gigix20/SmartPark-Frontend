@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw } from "lucide-react";
+import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw, ArrowUpRight } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 
@@ -8,7 +8,7 @@ export default function ScanQR() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Modal states para sa buong simulation flow
+  // Modal states para sa buong simulation flow kasama na ang exitRecorded
   const [activeModal, setActiveModal] = useState<
     "none" | "verifyInfo" | "entryRecorded" | "exitRecorded" | "vehicleMismatch" | "parkingFull" | "invalidQR"
   >("none");
@@ -50,7 +50,7 @@ export default function ScanQR() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Left Column: Scanner Viewport Box */}
-              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 lg:col-span-2 flex flex-col items-center justify-center transition-colors">
+              <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 lg:col-span-2 flex flex-col items-center justify-center transition-colors">
                 
                 <div className="w-full max-w-md h-72 rounded-2xl border-2 border-dashed border-[#0053CC]/40 dark:border-blue-500/40 bg-blue-50/20 dark:bg-blue-950/10 flex flex-col items-center justify-center relative p-6 space-y-4">
                   <div className="h-28 w-28 rounded-2xl border-2 border-[#0053CC] dark:border-blue-400 flex items-center justify-center bg-white dark:bg-slate-900 shadow-sm animate-pulse">
@@ -80,6 +80,13 @@ export default function ScanQR() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setActiveModal("exitRecorded")}
+                    className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-colors cursor-pointer"
+                  >
+                    Exit QR Scan
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setActiveModal("vehicleMismatch")}
                     className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors cursor-pointer"
                   >
@@ -104,7 +111,7 @@ export default function ScanQR() {
               </div>
 
               {/* Right Column: Important Instructions */}
-              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4 transition-colors">
+              <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4 transition-colors">
                 <div className="flex items-center gap-2.5 text-slate-900 dark:text-white font-poppins font-bold text-sm">
                   <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
                     <Car className="h-4 w-4" />
@@ -195,7 +202,7 @@ export default function ScanQR() {
               </div>
             </div>
 
-            {/* Action Buttons (Konsistent na istilo sa lahat ng modals) */}
+            {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
@@ -253,7 +260,43 @@ export default function ScanQR() {
         </div>
       )}
 
-      {/* 3. VEHICLE MISMATCH MODAL */}
+      {/* 3. EXIT RECORDED SUCCESS MODAL (Idinagdag na rin) */}
+      {activeModal === "exitRecorded" && (
+        <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
+            
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-950/40">
+              <ArrowUpRight className="h-7 w-7" />
+            </div>
+
+            <div>
+              <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Exit Recorded</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
+                Vehicle exit was recorded successfully and facility occupancy has been updated.
+              </p>
+            </div>
+
+            {/* Receipt Summary Card */}
+            <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 text-[11px] text-left space-y-1">
+              <div className="flex justify-between"><span className="text-slate-400">Vehicle:</span> <span className="font-bold text-slate-800 dark:text-slate-200">ABD 3654 - Toyota Vios</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Exit Time:</span> <span className="font-bold text-slate-800 dark:text-slate-200">October 2, 2026 - 04:15 PM</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Status:</span> <span className="font-bold text-purple-600 dark:text-purple-400">Exited</span></div>
+            </div>
+            
+            <div className="pt-2">
+              <button 
+                onClick={() => setActiveModal("none")}
+                className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 4. VEHICLE MISMATCH MODAL */}
       {activeModal === "vehicleMismatch" && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
@@ -282,7 +325,7 @@ export default function ScanQR() {
         </div>
       )}
 
-      {/* 4. PARKING LOT IS FULL MODAL */}
+      {/* 5. PARKING LOT IS FULL MODAL */}
       {activeModal === "parkingFull" && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
@@ -322,7 +365,7 @@ export default function ScanQR() {
         </div>
       )}
 
-      {/* 5. INVALID OR EXPIRED QR MODAL */}
+      {/* 6. INVALID OR EXPIRED QR MODAL */}
       {activeModal === "invalidQR" && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">

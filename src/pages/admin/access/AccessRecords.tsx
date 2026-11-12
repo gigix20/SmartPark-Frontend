@@ -95,7 +95,7 @@ export default function AccessRecords() {
   });
 
   // Pagination logic
-  const itemsPerPage = 3; // Pwede mong baguhin depende sa gusto mo kada pahina
+  const itemsPerPage = 3; 
   const totalPages = Math.ceil(filteredRecords.length / itemsPerPage) || 1;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -119,21 +119,21 @@ export default function AccessRecords() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Today's Entry Logs</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">86</h3>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Today's Exit Logs</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">71</h3>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Currently inside</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">15</h3>
@@ -141,7 +141,7 @@ export default function AccessRecords() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -150,7 +150,7 @@ export default function AccessRecords() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); // Bumalik sa page 1 kapag naghahanap
+                setCurrentPage(1);
               }}
               placeholder="Search owner, id, or plate" 
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
@@ -164,7 +164,7 @@ export default function AccessRecords() {
                 type="button"
                 onClick={() => {
                   setActiveTab(tab);
-                  setCurrentPage(1); // Bumalik sa page 1 kapag lumipat ng tab
+                  setCurrentPage(1);
                 }}
                 className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === tab 

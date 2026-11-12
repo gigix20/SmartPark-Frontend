@@ -143,8 +143,6 @@ export default function Profile() {
   // Edit Profile Form State
   const [editForm, setEditForm] = useState<ProfileFormState>({ ...profileData });
 
-
-
   // Phone input handler with filtering (10 digits starting with 9)
   const handlePhoneChange = (val: string) => {
     let cleaned = val.replace(/\D/g, "");
@@ -209,6 +207,7 @@ export default function Profile() {
     reader.readAsDataURL(file);
     e.target.value = "";
   };
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -244,7 +243,6 @@ export default function Profile() {
       return;
     }
 
-    // Validate phone number before submitting
     if (editForm.phoneNumber && editForm.phoneNumber.trim() !== "") {
       if (editForm.phoneNumber.length !== 10 || !editForm.phoneNumber.startsWith("9")) {
         setPhoneError("Phone number must be exactly 10 digits starting with 9.");
@@ -269,7 +267,6 @@ export default function Profile() {
         }
         const updatedFullName = `${res.user.firstName} ${res.user.lastName}`.trim();
 
-        // Update local state
         setProfileData((prev) => ({
           ...prev,
           firstName: res.user.firstName,
@@ -288,7 +285,6 @@ export default function Profile() {
           avatar: res.user.avatar || null,
         }));
 
-        // Update localStorage with fresh user data
         const updatedUser = {
           ...currentUser,
           firstName: res.user.firstName,
@@ -299,7 +295,6 @@ export default function Profile() {
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setCurrentUser(updatedUser as ApiUser);
 
-        // Broadcast updates to Header and across open tabs
         window.dispatchEvent(new Event("userProfileUpdated"));
         window.dispatchEvent(new Event("storage"));
 
@@ -346,7 +341,6 @@ export default function Profile() {
         newPassword: passwordForm.newPassword
       });
 
-      // Success - reset form and show success modal
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       const updatedTimestamp = res?.updatedAt ? formatTimestamp(res.updatedAt) : formatTimestamp(new Date());
       setProfileData((prev) => ({ ...prev, lastPasswordUpdate: updatedTimestamp }));
@@ -362,7 +356,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-28 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-32 transition-colors duration-300">
       {/* Hidden File Input for Profile Photo Upload */}
       <input
         type="file"
@@ -383,8 +377,8 @@ export default function Profile() {
           <div className="space-y-6">
             
             {/* Header Banner */}
-            <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors duration-300">
-              <h1 className="font-poppins text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs transition-colors duration-300">
+              <h1 className="font-poppins text-xl sm:text-2xl font-extrabold text-[#0053CC] dark:text-blue-400">
                 Profile
               </h1>
               <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -393,8 +387,8 @@ export default function Profile() {
             </div>
 
             {/* User Profile Card */}
-            <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex items-center gap-5 transition-colors duration-300">
-              <div className="relative">
+            <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex items-center gap-5 transition-colors duration-300">
+              <div className="relative shrink-0">
                 <img
                   src={profileData.avatar || DEFAULT_AVATAR}
                   alt={profileData.fullName}
@@ -442,7 +436,7 @@ export default function Profile() {
                 </button>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 shadow-sm divide-y divide-slate-100 dark:divide-slate-800 transition-colors duration-300">
+              <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-xs divide-y divide-slate-100 dark:divide-slate-800 transition-colors duration-300">
                 
                 {/* Full Name */}
                 <div className="flex items-center gap-4 p-4">
@@ -471,7 +465,7 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* Phone Number (Static Row, no arrow) */}
+                {/* Phone Number */}
                 <div className="flex items-center gap-4 p-4">
                   <Phone className="h-5 w-5 text-slate-400 shrink-0" />
                   <div className="flex-1">
@@ -505,10 +499,10 @@ export default function Profile() {
             <button
               type="button"
               onClick={() => setViewState("change-password")}
-              className="w-full flex items-center justify-between p-5 rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer group"
+              className="w-full flex items-center justify-between p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 shrink-0">
                   <Lock className="h-5 w-5" />
                 </div>
                 <div className="text-left">
@@ -520,7 +514,7 @@ export default function Profile() {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="h-5 w-5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </button>
 
           </div>
@@ -528,51 +522,59 @@ export default function Profile() {
 
         {/* ----------------- VIEW 2: EDIT PROFILE FORM ----------------- */}
         {viewState === "edit-profile" && (
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
             
-            <button
-              type="button"
-              onClick={() => setViewState("main")}
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-[#0053CC] dark:hover:text-blue-400 cursor-pointer"
-            >
-              <ArrowLeft className="h-4 w-4" /> Edit Profile
-            </button>
+            {/* Top Navigation / Back Button Header */}
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setViewState("main")}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+                title="Back to Profile"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Edit Profile</h2>
+                <p className="text-[11px] text-slate-400">Update your account details and profile photo.</p>
+              </div>
+            </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-6 pt-2">
+            <form onSubmit={handleSaveProfile} className="space-y-6">
               
               {/* Profile Photo Upload & Remove Section */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-5 cursor-pointer group"
+                  className="flex items-center gap-4 cursor-pointer group"
                   title="Click to upload new photo"
                 >
-                  <div className="relative">
+                  <div className="relative shrink-0">
                     <img
                       src={editForm.avatar || DEFAULT_AVATAR}
                       alt={editForm.fullName}
-                      className="h-20 w-20 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 group-hover:border-[#0053CC] transition-colors"
+                      className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 group-hover:border-[#0053CC] transition-colors"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
                       }}
                     />
                     <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                      <Camera className="h-5 w-5 text-white" />
+                      <Camera className="h-4 w-4 text-white" />
                     </div>
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0053CC] transition-colors">Profile Photo</h4>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Accepted formats: JPG, PNG, WebP (Max 5MB). Click photo to change.
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                      JPG, PNG, WebP (Max 5MB). Click to replace photo.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-end sm:self-center">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     <Camera className="h-3.5 w-3.5 text-[#0053CC]" />
                     <span>Upload New</span>
@@ -581,9 +583,9 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={() => setEditForm((prev) => ({ ...prev, avatar: null }))}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100/60 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100/60 transition-colors cursor-pointer"
                     >
-                      <span>Remove Photo</span>
+                      <span>Remove</span>
                     </button>
                   )}
                 </div>
@@ -595,9 +597,9 @@ export default function Profile() {
                 {/* First Name & Last Name Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* First Name */}
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      First Name: <span className="text-[#EF4444]">*</span>
+                      First Name <span className="text-[#EF4444]">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -612,9 +614,9 @@ export default function Profile() {
                   </div>
 
                   {/* Last Name */}
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Last Name: <span className="text-[#EF4444]">*</span>
+                      Last Name <span className="text-[#EF4444]">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -630,8 +632,8 @@ export default function Profile() {
                 </div>
 
                 {/* Email Address (Readonly) */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Email Address:</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Email Address</Label>
                   <Input
                     value={editForm.email}
                     disabled
@@ -640,8 +642,8 @@ export default function Profile() {
                 </div>
 
                 {/* Student/Employee ID No */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Student/Employee ID No:</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Student/Employee ID No</Label>
                   <Input
                     value={editForm.schoolId}
                     disabled
@@ -650,8 +652,8 @@ export default function Profile() {
                 </div>
 
                 {/* Phone Number */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Phone Number:</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Phone Number</Label>
                   <div className={`flex items-center rounded-xl border overflow-hidden transition-colors ${
                     phoneError 
                       ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/20" 
@@ -670,7 +672,7 @@ export default function Profile() {
                     <Edit2 className="h-4 w-4 text-slate-400 mr-3 pointer-events-none shrink-0" />
                   </div>
                   {phoneError && (
-                    <p className="text-[10px] text-red-500 dark:text-red-400 mt-0.5">
+                    <p className="text-[10px] text-red-500 dark:text-red-400 mt-1">
                       {phoneError}
                     </p>
                   )}
@@ -684,7 +686,7 @@ export default function Profile() {
                   type="button"
                   variant="outline"
                   onClick={() => setViewState("main")}
-                className="h-11 px-6 rounded-xl border border-slate-200 text- font-semibold text-[#0053CC] hover:bg-slate-50"
+                  className="h-11 px-6 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   Cancel
                 </Button>
@@ -704,17 +706,25 @@ export default function Profile() {
 
         {/* ----------------- VIEW 3: CHANGE PASSWORD FORM ----------------- */}
         {viewState === "change-password" && (
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
             
-            <button
-              type="button"
-              onClick={() => setViewState("main")}
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-[#0053CC] dark:hover:text-blue-400 cursor-pointer"
-            >
-              <ArrowLeft className="h-4 w-4" /> Change Password
-            </button>
+            {/* Top Navigation / Back Button Header */}
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setViewState("main")}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+                title="Back to Profile"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Change Password</h2>
+                <p className="text-[11px] text-slate-400">Ensure your account is secure by updating your password.</p>
+              </div>
+            </div>
 
-            <form onSubmit={handleSavePassword} className="space-y-4 pt-2">
+            <form onSubmit={handleSavePassword} className="space-y-4">
               
               {/* Current Password */}
               <div className="space-y-1">
@@ -810,7 +820,7 @@ export default function Profile() {
                   type="button"
                   variant="outline"
                   onClick={() => setViewState("main")}
-                  className="h-11 px-6 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="h-11 px-6 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   Cancel
                 </Button>

@@ -70,24 +70,28 @@ export default function AdminChangePassword() {
 
   return (
     <AdminLayout>
-      {/* Tinanggal ang max-w at mx-auto para sumunod sa gilid tulad ng iba pang pages */}
       <div className="space-y-6">
         {/* Back Button & Header */}
-        <div className="space-y-1">
-          <Link
-            to="/admin/profile"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/profile")}
+            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Profile</span>
-          </Link>
-          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
-            Change Password
-          </h1>
+          </button>
+          <div>
+            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+              Change Password
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Update your account password to keep your profile secure.
+            </p>
+          </div>
         </div>
 
         {/* Form Card Container */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
           <form onSubmit={handleChangePassword} className="space-y-5">
             {/* Current Password Field */}
             <div className="space-y-1.5">
@@ -269,7 +273,7 @@ export default function AdminChangePassword() {
 
       {/* Success Modal */}
       {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-100 dark:border-emerald-900">
               <CheckCircle2 className="h-8 w-8" />

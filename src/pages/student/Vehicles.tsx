@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { 
-  Car, 
-  Bike, 
   Plus, 
   QrCode, 
   Edit3, 
@@ -15,6 +13,10 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+// Import ang mga icon mula sa src/assets/
+import carIcon from "@/assets/car-icon.svg";
+import motorIcon from "@/assets/motor-icon.svg";
 
 interface Vehicle {
   id: string;
@@ -184,6 +186,10 @@ export default function Vehicles() {
     setIsSuccessModalOpen(true);
   };
 
+  // Filtered lists para sa Cars at Motorcycles
+  const carsList = vehicles.filter((v) => v.type === "Car");
+  const motorcyclesList = vehicles.filter((v) => v.type === "Motorcycle");
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-28 transition-colors duration-300">
       {/* Top Header */}
@@ -193,9 +199,9 @@ export default function Vehicles() {
       <main className="mx-auto max-w-5xl p-4 sm:p-8 space-y-6">
         
         {/* VEHICLE MANAGEMENT BANNER */}
-        <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors duration-300">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors duration-300">
           <div>
-            <h1 className="font-poppins text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            <h1 className="font-poppins text-xl sm:text-2xl font-extrabold text-[#0053CC] dark:text-blue-400">  
               Vehicle Management
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -215,12 +221,12 @@ export default function Vehicles() {
           </Button>
         </div>
 
-        {/* CONDITIONAL CONTENT: EMPTY STATE VS VEHICLE CARDS */}
+        {/* CONDITIONAL CONTENT: EMPTY STATE VS SEPARATED SECTIONS */}
         {vehicles.length === 0 ? (
           /* EMPTY STATE */
-          <div className="flex flex-col items-center justify-center py-16 px-6 text-center rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
-              <Car className="h-10 w-10" />
+              <img src={carIcon} alt="Car" className="h-10 w-10 object-contain" />
             </div>
             <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
               No registered vehicle found.
@@ -240,115 +246,240 @@ export default function Vehicles() {
             </Button>
           </div>
         ) : (
-          /* VEHICLE LIST CARDS */
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {vehicles.map((vehicle) => (
-                <div
-                  key={vehicle.id}
-                  className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between transition-all duration-300"
-                >
-                  <div>
-                    {/* Top Row: Icon & Status Badge */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
-                        {vehicle.type === "Car" ? <Car className="h-7 w-7" /> : <Bike className="h-7 w-7" />}
-                      </div>
-
-                      <span
-                        className={`px-3 py-1 rounded-full text-[11px] font-bold ${
-                          vehicle.status === "Approved"
-                            ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400"
-                            : vehicle.status === "Pending"
-                            ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400"
-                            : vehicle.status === "Rejected"
-                            ? "bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-                        }`}
-                      >
-                        {vehicle.status}
-                      </span>
-                    </div>
-
-                    {/* Plate Number & Details */}
-                    <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white mb-3">
-                      {vehicle.plateNumber}
-                    </h3>
-
-                    <div className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-3">
-                      <div className="flex justify-between">
-                        <span>Vehicle Type</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.type}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Brand</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.brand}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Model</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.model}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Color</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.color}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Year Registered</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.year}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 pt-5 border-t border-slate-100 dark:border-slate-800 mt-5">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center gap-1.5 cursor-pointer"
+          <div className="space-y-8">
+            
+            {/* ----------------- CARS SECTION ----------------- */}
+            {carsList.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="font-poppins text-base font-bold text-slate-600 dark:text-slate-300">
+                  Cars
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {carsList.map((vehicle) => (
+                    <div
+                      key={vehicle.id}
+                      className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-all duration-300"
                     >
-                      <QrCode className="h-3.5 w-3.5" /> View QR Code
-                    </Button>
+                      <div>
+                        {/* Top Row: Custom Car Icon & Status Badge */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex h-16 w-20 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 p-2">
+                            <img src={carIcon} alt="Car Icon" className="h-10 w-auto object-contain" />
+                          </div>
 
-                    {vehicle.status !== "Inactive" && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedVehicle(vehicle);
-                          setFormData({
-                            type: vehicle.type,
-                            plateNumber: vehicle.plateNumber,
-                            brand: vehicle.brand,
-                            model: vehicle.model,
-                            color: vehicle.color,
-                            year: vehicle.year,
-                            declaration: true,
-                          });
-                          setIsEditOpen(true);
-                        }}
-                        className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" /> Edit
-                      </Button>
-                    )}
+                          <span
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold ${
+                              vehicle.status === "Approved"
+                                ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400"
+                                : vehicle.status === "Pending"
+                                ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400"
+                                : vehicle.status === "Rejected"
+                                ? "bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                            }`}
+                          >
+                            {vehicle.status}
+                          </span>
+                        </div>
 
-                    {vehicle.status !== "Inactive" && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedVehicle(vehicle);
-                          setIsDeactivateOpen(true);
-                        }}
-                        className="h-9 px-3 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1 cursor-pointer"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Deactivate
-                      </Button>
-                    )}
-                  </div>
+                        {/* Plate Number & Details */}
+                        <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white mb-3">
+                          {vehicle.plateNumber}
+                        </h3>
+
+                        <div className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-3">
+                          <div className="flex justify-between">
+                            <span>Vehicle Type</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.type}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Brand</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.brand}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Model</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.model}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Color</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.color}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Year Registered</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.year}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 pt-5 border-t border-slate-100 dark:border-slate-800 mt-5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <QrCode className="h-3.5 w-3.5" /> View QR Code
+                        </Button>
+
+                        {vehicle.status !== "Inactive" && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedVehicle(vehicle);
+                              setFormData({
+                                type: vehicle.type,
+                                plateNumber: vehicle.plateNumber,
+                                brand: vehicle.brand,
+                                model: vehicle.model,
+                                color: vehicle.color,
+                                year: vehicle.year,
+                                declaration: true,
+                              });
+                              setIsEditOpen(true);
+                            }}
+                            className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" /> Edit
+                          </Button>
+                        )}
+
+                        {vehicle.status !== "Inactive" && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedVehicle(vehicle);
+                              setIsDeactivateOpen(true);
+                            }}
+                            className="h-9 px-3 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Deactivate
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* ----------------- MOTORCYCLE SECTION ----------------- */}
+            {motorcyclesList.length > 0 && (
+              <div className="space-y-4 pt-4">
+                  <h2 className="font-poppins text-base font-bold text-slate-600 dark:text-slate-300">
+                  Motorcycle
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {motorcyclesList.map((vehicle) => (
+                    <div
+                      key={vehicle.id}
+                      className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-all duration-300"
+                    >
+                      <div>
+                        {/* Top Row: Custom Motor Icon & Status Badge */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex h-16 w-20 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 p-2">
+                            <img src={motorIcon} alt="Motorcycle Icon" className="h-10 w-auto object-contain" />
+                          </div>
+
+                          <span
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold ${
+                              vehicle.status === "Approved"
+                                ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400"
+                                : vehicle.status === "Pending"
+                                ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400"
+                                : vehicle.status === "Rejected"
+                                ? "bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                            }`}
+                          >
+                            {vehicle.status}
+                          </span>
+                        </div>
+
+                        {/* Plate Number & Details */}
+                        <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white mb-3">
+                          {vehicle.plateNumber}
+                        </h3>
+
+                        <div className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-3">
+                          <div className="flex justify-between">
+                            <span>Vehicle Type</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.type}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Brand</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.brand}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Model</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.model}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Color</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.color}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Year Registered</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{vehicle.year}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 pt-5 border-t border-slate-100 dark:border-slate-800 mt-5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <QrCode className="h-3.5 w-3.5" /> View QR Code
+                        </Button>
+
+                        {vehicle.status !== "Inactive" && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedVehicle(vehicle);
+                              setFormData({
+                                type: vehicle.type,
+                                plateNumber: vehicle.plateNumber,
+                                brand: vehicle.brand,
+                                model: vehicle.model,
+                                color: vehicle.color,
+                                year: vehicle.year,
+                                declaration: true,
+                              });
+                              setIsEditOpen(true);
+                            }}
+                            className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" /> Edit
+                          </Button>
+                        )}
+
+                        {vehicle.status !== "Inactive" && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedVehicle(vehicle);
+                              setIsDeactivateOpen(true);
+                            }}
+                            className="h-9 px-3 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Deactivate
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 
@@ -356,7 +487,7 @@ export default function Vehicles() {
 
       {/* ----------------- MODAL 1: REGISTER VEHICLE FORM ----------------- */}
       {isRegisterOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
           <div className="w-full max-w-lg rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 my-8">
             
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -505,7 +636,7 @@ export default function Vehicles() {
 
       {/* ----------------- MODAL 2: EDIT VEHICLE FORM ----------------- */}
       {isEditOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
           <div className="w-full max-w-lg rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 my-8">
             
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -611,7 +742,7 @@ export default function Vehicles() {
 
       {/* ----------------- MODAL 3: DEACTIVATE CONFIRMATION ----------------- */}
       {isDeactivateOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-500">
               <ShieldAlert className="h-7 w-7" />
@@ -645,7 +776,7 @@ export default function Vehicles() {
 
       {/* ----------------- MODAL 4: SUCCESS POPUP ----------------- */}
       {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-500">
               <CheckCircle2 className="h-7 w-7" />

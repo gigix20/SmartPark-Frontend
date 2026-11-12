@@ -109,7 +109,7 @@ export default function UserAccount({ searchTerm }: UserAccountProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
         <table className="w-full text-left text-xs min-w-150">
           <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">
             <tr>
@@ -161,42 +161,42 @@ export default function UserAccount({ searchTerm }: UserAccountProps) {
             )}
           </tbody>
         </table>
-      </div>
 
-      {/* Pagination Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
-        <span>Showing {currentItems.length} of {filteredData.length} records</span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded-lg font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Previous
-          </button>
-          {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((number) => (
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
+          <span>Showing {currentItems.length} of {filteredData.length} records</span>
+          <div className="flex items-center gap-1">
             <button
-              key={number}
               type="button"
-              onClick={() => setCurrentPage(number)}
-              className={`px-3 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                currentPage === number
-                  ? "bg-[#0053CC] text-white"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-              }`}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded-lg font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
             >
-              {number}
+              Previous
             </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages || totalPages === 0}
-            className="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Next
-          </button>
+            {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((number) => (
+              <button
+                key={number}
+                type="button"
+                onClick={() => setCurrentPage(number)}
+                className={`px-3 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
+                  currentPage === number
+                    ? "bg-[#0053CC] text-white"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {number}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

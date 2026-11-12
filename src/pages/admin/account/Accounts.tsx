@@ -194,7 +194,7 @@ export default function Accounts() {
 
       {/* ================= STATIC METRIC CARDS ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Account</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
@@ -207,7 +207,7 @@ export default function Accounts() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Administrators</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
@@ -220,7 +220,7 @@ export default function Accounts() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Security Guards</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
@@ -233,7 +233,7 @@ export default function Accounts() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Users</p>
             <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
@@ -247,8 +247,8 @@ export default function Accounts() {
         </div>
       </div>
 
-      {/* ================= TABLE CONTAINER SECTION ================= */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+      {/* ================= UNIFIED TABLE CONTAINER SECTION ================= */}
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
             <div className="relative w-full sm:w-72">

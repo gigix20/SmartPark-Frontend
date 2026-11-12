@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, Car, ShieldCheck, ChevronDown } from "lucide-react";
+import { Search, Filter, ShieldCheck, ChevronDown } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import CarIcon from "@/assets/car-icon.svg";
+import MotorIcon from "@/assets/motor-icon.svg";
 
 export default function VehicleManagement() {
   const navigate = useNavigate();
@@ -17,10 +19,13 @@ export default function VehicleManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState("All"); 
   const [selectedStatus, setSelectedStatus] = useState("All"); 
+  const [selectedType, setSelectedType] = useState("All"); 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const itemsPerPage = 5;
 
   const statusOptions = ["Approved", "Pending", "Rejected"];
+  const typeOptions = ["Car", "Motorcycle"];
 
   const getStatusColorClass = (status: string) => {
     switch (status) {
@@ -40,6 +45,9 @@ export default function VehicleManagement() {
       return false;
     }
     if (selectedStatus !== "All" && item.status !== selectedStatus) {
+      return false;
+    }
+    if (selectedType !== "All" && item.type !== selectedType) {
       return false;
     }
     return true;
@@ -64,30 +72,30 @@ export default function VehicleManagement() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-            <span>Total Registered</span>
-            <Car className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Registered</span>
+            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,247</h3>
           </div>
-          <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,247</h3>
+          <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-            <span>Cars & SUVs</span>
-            <Car className="h-4 w-4 text-blue-500" />
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Cars & SUVs</span>
+            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">890</h3>
           </div>
-          <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">890</h3>
+          <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-            <span>Motorcycles</span>
-            <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Motorcycles</span>
+            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">357</h3>
           </div>
-          <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">357</h3>
+          <img src={MotorIcon} alt="Motorcycle" className="h-5 w-5 object-contain" />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -119,11 +127,65 @@ export default function VehicleManagement() {
               ))}
             </div>
 
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTypeDropdownOpen(!isTypeDropdownOpen);
+                  setIsStatusDropdownOpen(false);
+                }}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+              >
+                <img 
+                  src={selectedType === "Motorcycle" ? MotorIcon : CarIcon} 
+                  alt="Type" 
+                  className="h-3.5 w-3.5 object-contain" 
+                />
+                <span>Type: {selectedType}</span>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </button>
+
+              {isTypeDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1 z-20 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedType("All");
+                      setIsTypeDropdownOpen(false);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer text-slate-500 italic border-b border-slate-100 dark:border-slate-700/50"
+                  >
+                    All Types
+                  </button>
+                  {typeOptions.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        setSelectedType(type);
+                        setIsTypeDropdownOpen(false);
+                        setCurrentPage(1);
+                      }}
+                      className={`w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer ${
+                        selectedType === type ? "font-bold text-[#0053CC] dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {!isGateRegistered && (
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  onClick={() => {
+                    setIsStatusDropdownOpen(!isStatusDropdownOpen);
+                    setIsTypeDropdownOpen(false);
+                  }}
                   className={`flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold transition-colors cursor-pointer ${getStatusColorClass(selectedStatus)}`}
                 >
                   <Filter className="h-3.5 w-3.5" />
@@ -189,7 +251,12 @@ export default function VehicleManagement() {
                     <td className="py-3 font-semibold text-slate-900 dark:text-white">{vehicle.plateNo}</td>
                     <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{vehicle.owner}</td>
                     <td className="py-3">
-                      <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-400">
+                      <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5 w-max">
+                        <img 
+                          src={vehicle.type === "Motorcycle" ? MotorIcon : CarIcon} 
+                          alt={vehicle.type} 
+                          className="h-3 w-3 object-contain" 
+                        />
                         {vehicle.type}
                       </span>
                     </td>
@@ -211,7 +278,7 @@ export default function VehicleManagement() {
                       <button 
                         type="button" 
                         onClick={() => handleActionClick(vehicle.id)}
-                        className="text-[#0053CC] dark:text-blue-400 hover:underline font-medium cursor-pointer"
+                        className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
                       >
                         {vehicle.status === "Pending" || vehicle.status === "Rejected" ? "Review" : "View"}
                       </button>

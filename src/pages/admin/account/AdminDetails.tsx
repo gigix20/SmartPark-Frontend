@@ -49,7 +49,7 @@ export default function AdminDetails() {
       <div className="w-full max-w-5xl mx-auto space-y-6">
         
         {/* Main Card Container */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative transition-colors">
           
           {/* Header Section */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-6">

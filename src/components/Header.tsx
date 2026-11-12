@@ -213,7 +213,7 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
                   >
                     <LogOut className="h-3.5 w-3.5" />
-                    <span>Sign Out</span>
+                    <span>Log Out</span>
                   </button>
                 </div>
               </>
@@ -227,7 +227,7 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 sm:p-8 text-center shadow-2xl transition-all animate-in zoom-in-95">
             <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
-              Sign Out
+              Log Out
             </h3>
             <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
               Are you sure you want to logout?

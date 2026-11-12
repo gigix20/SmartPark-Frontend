@@ -58,13 +58,11 @@ export default function GuardChangePassword() {
     setCurrentError("");
     setConfirmError("");
 
-    // Validate that new password and confirm password match
     if (newPassword !== confirmPassword) {
       setConfirmError("Passwords do not match.");
       return;
     }
 
-    // Validate minimum length
     if (newPassword.length < 8) {
       setConfirmError("New password must be at least 8 characters.");
       return;
@@ -73,7 +71,6 @@ export default function GuardChangePassword() {
     setIsSubmitting(true);
     try {
       await changePassword({ currentPassword, newPassword });
-      // Clear form fields on success
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -96,23 +93,29 @@ export default function GuardChangePassword() {
         <GuardNav isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         <main className="flex-1 p-6 sm:p-8 overflow-y-auto lg:pl-72 transition-all">
-          {/* Ginawa nang max-w-5xl para eksaktong kasing-lapad ng Profile.tsx */}
           <div className="space-y-6 max-w-5xl mx-auto pb-16">
             
-            {/* Main Change Password Card Container */}
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
-              
-              {/* Back Button & Title */}
-              <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-                <h1 className="font-poppins text-xl font-bold text-slate-900 dark:text-white">Change Password</h1>
+            {/* Uniform Back Button & Header sa labas ng card (gaya ng AdminChangePassword) */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/guard/profile")}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+                  Change Password
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Update your account password to keep your profile secure.
+                </p>
               </div>
+            </div>
+
+            {/* Main Change Password Card Container */}
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -179,7 +182,6 @@ export default function GuardChangePassword() {
                     </button>
                   </div>
                   
-                  {/* Dynamic Strength Bar */}
                   {newPassword && (
                     <div className="space-y-1 pt-1.5 animate-in fade-in duration-200">
                       <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -240,7 +242,7 @@ export default function GuardChangePassword() {
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate("/guard/profile")}
                     className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   >
                     Cancel
@@ -262,7 +264,7 @@ export default function GuardChangePassword() {
         </main>
       </div>
 
-      {/* ================= SUCCESS MODAL (LOCKED BACKGROUND SCROLL) ================= */}
+      {/* ================= SUCCESS MODAL ================= */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">

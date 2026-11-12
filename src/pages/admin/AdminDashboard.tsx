@@ -93,7 +93,7 @@ export default function AdminDashboard() {
 
       {/* Middle Section: Chart & Awaiting Action */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs lg:col-span-2 flex flex-col justify-between transition-colors">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs lg:col-span-2 flex flex-col justify-between transition-colors">
           <div>
             <div className="flex items-center justify-between">
               <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs flex flex-col gap-4 transition-colors">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs flex flex-col gap-4 transition-colors">
           <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
             Awaiting Action
           </h3>
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Activity Section */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs transition-colors">
+      <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs transition-colors">
         <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white mb-4">
           Recent Activity
         </h3>

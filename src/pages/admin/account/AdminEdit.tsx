@@ -66,7 +66,7 @@ export default function AdminEdit() {
         {/* Main Form Container */}
         <form
           onSubmit={handleSaveChanges}
-          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative"
+          className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative transition-colors"
         >
           {/* Header Section with Circular Back Button */}
           <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   FileText, 
   History, 
@@ -7,7 +7,8 @@ import {
   X, 
   ChevronRight, 
   ArrowLeft,
-  Info
+  Info,
+  Image as ImageIcon
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
@@ -32,6 +33,7 @@ interface Incident {
 
 export default function Reports() {
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Active View Tab: 'main' (Home/Recent) o 'history' (Full History View)
   const [activeTab, setActiveTab] = useState<"main" | "history">("main");
@@ -87,9 +89,33 @@ export default function Reports() {
     plateNumber: "ABC-1234",
     reportType: "Blocking Parking Space",
     photo: null as File | null,
+    photoPreview: "",
   });
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Handle File Upload Change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size exceeds 10MB limit.");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setFormData((prev) => ({
+      ...prev,
+      photo: file,
+      photoPreview: previewUrl,
+    }));
+    if (formErrors.photo) {
+      const updatedErrors = { ...formErrors };
+      delete updatedErrors.photo;
+      setFormErrors(updatedErrors);
+    }
+  };
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +126,7 @@ export default function Reports() {
     if (!formData.model) errors.model = "Model is required.";
     if (!formData.plateNumber) errors.plateNumber = "Plate number is required.";
     if (!formData.reportType) errors.reportType = "Report type is required.";
+    if (!formData.photo) errors.photo = "Photo evidence is required.";
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -117,13 +144,22 @@ export default function Reports() {
       plateNumber: formData.plateNumber,
       dateTime: "October 18, 2026 • 10:23AM",
       status: "In Progress",
-      image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500",
+      image: formData.photoPreview || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500",
       description: "Reported incident directly by user. Pending supervisor review."
     };
 
     setIncidents([newInc, ...incidents]);
     setSelectedIncident(newInc);
     setIsNewReportOpen(false);
+    setFormData({
+      vehicleType: "Car (Sedan)",
+      color: "Silver",
+      model: "Honda Civic",
+      plateNumber: "ABC-1234",
+      reportType: "Blocking Parking Space",
+      photo: null,
+      photoPreview: "",
+    });
     setIsSuccessOpen(true);
     setFormErrors({});
   };
@@ -135,7 +171,16 @@ export default function Reports() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-28 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-32 transition-colors duration-300">
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/png, image/jpeg, application/pdf"
+        className="hidden"
+      />
+
       {/* Top Header */}
       <Header currentUser={currentUser} />
 
@@ -143,18 +188,41 @@ export default function Reports() {
       <main className="mx-auto max-w-5xl p-4 sm:p-8 space-y-6">
         
         {/* BANNER HEADER */}
-        <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors duration-300">
-          <h1 className="font-poppins text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-            {activeTab === "main" ? "Incident Report" : "Incident History"}
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Report accidents, damages, or safety concerns directly to fleet supervisors and receive official digital receipts.
-          </p>
-        </div>
+        {activeTab === "main" ? (
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs transition-colors duration-300">
+            <h1 className="font-poppins text-xl sm:text-2xl font-extrabold text-[#0053CC] dark:text-blue-400">  
+              Incident Report
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Report accidents, damages, or safety concerns directly to fleet supervisors and receive official digital receipts.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4 transition-colors duration-300">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveTab("main")}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+                title="Back to Summary"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h1 className="font-poppins text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                  Incident History
+                </h1>
+                <p className="text-[11px] text-slate-400">
+                  Report accidents, damages, or safety concerns directly to fleet supervisors and receive official digital receipts.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* TOP ACTION CARDS (Report New Incident / View History) */}
         {activeTab === "main" && (
-          <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm transition-colors duration-300">
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs transition-colors duration-300">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               {/* Card 1: Report New Incident */}
@@ -201,7 +269,7 @@ export default function Reports() {
 
         {/* ----------------- TAB CONTENT 1: MAIN RECENT REPORTS ----------------- */}
         {activeTab === "main" && (
-          <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors duration-300">
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs transition-colors duration-300">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
                 Recent reports
@@ -209,7 +277,7 @@ export default function Reports() {
               <button
                 type="button"
                 onClick={() => setActiveTab("history")}
-                className="text-xs font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
+                className="bg-[#0053CC] px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors w-fit shadow-xs rounded-xl cursor-pointer"
               >
                 View All
               </button>
@@ -223,7 +291,7 @@ export default function Reports() {
                     setSelectedIncident(item);
                     setIsDetailsOpen(true);
                   }}
-                  className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer group"
+                  className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-3.5">
                     <img
@@ -256,7 +324,7 @@ export default function Reports() {
                     >
                       {item.status}
                     </span>
-                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
                   </div>
                 </div>
               ))}
@@ -269,16 +337,8 @@ export default function Reports() {
           <div className="space-y-6">
             
             {/* Filter Pill Tabs */}
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setActiveTab("main")}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0053CC] dark:hover:text-blue-400 cursor-pointer"
-              >
-                <ArrowLeft className="h-4 w-4" /> Back to Summary
-              </button>
-
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="flex items-center justify-end overflow-x-auto pb-1">
+              <div className="flex items-center gap-2">
                 {["All", "In Progress", "Resolved", "Closed"].map((tab) => (
                   <button
                     key={tab}
@@ -299,7 +359,7 @@ export default function Reports() {
             {/* List */}
             <div className="space-y-3">
               {filteredIncidents.length === 0 ? (
-                <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-[24px] border border-slate-200 dark:border-slate-800">
+                <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-xs">
                   <p className="text-xs text-slate-400">No incident reports found for this status.</p>
                 </div>
               ) : (
@@ -310,7 +370,7 @@ export default function Reports() {
                       setSelectedIncident(item);
                       setIsDetailsOpen(true);
                     }}
-                    className="flex items-center justify-between p-4 rounded-[20px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all cursor-pointer shadow-xs group"
+                    className="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all cursor-pointer shadow-xs group"
                   >
                     <div className="flex items-center gap-4">
                       <img
@@ -352,10 +412,10 @@ export default function Reports() {
 
       </main>
 
-      {/* ----------------- MODAL 1: NEW INCIDENT REPORT FORM ----------------- */}
+      {/* ----------------- MODAL 1: NEW INCIDENT REPORT FORM (WIDE LANDSCAPE LAYOUT) ----------------- */}
       {isNewReportOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 my-8">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 my-8">
             
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
@@ -364,7 +424,7 @@ export default function Reports() {
                 </div>
                 <div>
                   <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">New Incident Report</h3>
-                  <p className="text-[11px] text-slate-400">Add a new report.</p>
+                  <p className="text-[11px] text-slate-400">Fill in the report details below.</p>
                 </div>
               </div>
               <button
@@ -378,120 +438,153 @@ export default function Reports() {
 
             <form onSubmit={handleCreateSubmit} className="space-y-5 pt-4">
               
-              {/* SECTION 1: Vehicle Details */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  1. Vehicle Details
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Vehicle Type<span className="text-red-500 ml-0.5">*</span>
-                    </Label>
-                    <Input
-                      value={formData.vehicleType}
-                      onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                      className="h-10 rounded-xl text-xs"
-                    />
-                    {formErrors.vehicleType && <span className="text-[10px] text-red-500 font-medium">{formErrors.vehicleType}</span>}
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Color<span className="text-red-500 ml-0.5">*</span>
-                    </Label>
-                    <Input
-                      value={formData.color}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      className="h-10 rounded-xl text-xs"
-                    />
-                    {formErrors.color && <span className="text-[10px] text-red-500 font-medium">{formErrors.color}</span>}
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Model<span className="text-red-500 ml-0.5">*</span>
-                    </Label>
-                    <Input
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="h-10 rounded-xl text-xs"
-                    />
-                    {formErrors.model && <span className="text-[10px] text-red-500 font-medium">{formErrors.model}</span>}
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Plate Number<span className="text-red-500 ml-0.5">*</span>
-                    </Label>
-                    <Input
-                      value={formData.plateNumber}
-                      onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
-                      className="h-10 rounded-xl text-xs"
-                    />
-                    {formErrors.plateNumber && <span className="text-[10px] text-red-500 font-medium">{formErrors.plateNumber}</span>}
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION 2: Report Details */}
-              <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  2. Report Details
-                </h4>
-
+              {/* TWO COLUMN WIDE LAYOUT FOR FORM FIELDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Vehicle Type */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    Report Type<span className="text-red-500 ml-0.5">*</span>
+                    Vehicle Type<span className="text-red-500 ml-0.5">*</span>
                   </Label>
-                  <select
-                    value={formData.reportType}
-                    onChange={(e) => setFormData({ ...formData, reportType: e.target.value })}
-                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
-                  >
-                    <option value="Illegal / Improper Parking">Illegal / Improper Parking</option>
-                    <option value="Blocking Parking Space">Blocking Parking Space</option>
-                    <option value="Obstructing Driveway">Obstructing Driveway</option>
-                    <option value="Minor Scratch / Damage">Minor Scratch / Damage</option>
-                    <option value="Others">Others</option>
-                  </select>
+                  <Input
+                    value={formData.vehicleType}
+                    onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="e.g. Car (Sedan)"
+                  />
+                  {formErrors.vehicleType && <span className="text-[10px] text-red-500 font-medium">{formErrors.vehicleType}</span>}
                 </div>
+
+                {/* Color */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Color<span className="text-red-500 ml-0.5">*</span>
+                  </Label>
+                  <Input
+                    value={formData.color}
+                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="e.g. Silver"
+                  />
+                  {formErrors.color && <span className="text-[10px] text-red-500 font-medium">{formErrors.color}</span>}
+                </div>
+
+                {/* Model */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Model<span className="text-red-500 ml-0.5">*</span>
+                  </Label>
+                  <Input
+                    value={formData.model}
+                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="e.g. Honda Civic"
+                  />
+                  {formErrors.model && <span className="text-[10px] text-red-500 font-medium">{formErrors.model}</span>}
+                </div>
+
+                {/* Plate Number */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Plate Number<span className="text-red-500 ml-0.5">*</span>
+                  </Label>
+                  <Input
+                    value={formData.plateNumber}
+                    onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="e.g. ABC-1234"
+                  />
+                  {formErrors.plateNumber && <span className="text-[10px] text-red-500 font-medium">{formErrors.plateNumber}</span>}
+                </div>
+
               </div>
 
-              {/* SECTION 3: Upload Photo Evidence */}
-              <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  3. Upload Photo Evidence
-                </h4>
-                <p className="text-[10px] text-red-500 font-medium">*Required</p>
+              {/* Report Type */}
+              <div className="space-y-1 pt-1">
+                <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  Report Type<span className="text-red-500 ml-0.5">*</span>
+                </Label>
+                <select
+                  value={formData.reportType}
+                  onChange={(e) => setFormData({ ...formData, reportType: e.target.value })}
+                  className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
+                >
+                  <option value="Illegal / Improper Parking">Illegal / Improper Parking</option>
+                  <option value="Blocking Parking Space">Blocking Parking Space</option>
+                  <option value="Obstructing Driveway">Obstructing Driveway</option>
+                  <option value="Minor Scratch / Damage">Minor Scratch / Damage</option>
+                  <option value="Others">Others</option>
+                </select>
+                {formErrors.reportType && <span className="text-[10px] text-red-500 font-medium">{formErrors.reportType}</span>}
+              </div>
 
-                <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center hover:border-[#0053CC] dark:hover:border-blue-400 transition-colors bg-slate-50/50 dark:bg-slate-800/30 cursor-pointer">
-                  <UploadCloud className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    Click to upload or drag photo here
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    PNG, JPG or PDF formats accepted (Max 10MB)
-                  </p>
+              {/* Upload Photo Evidence Section (Functional) */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-slate-900 dark:text-white">
+                    Upload Photo Evidence <span className="text-red-500">*</span>
+                  </Label>
+                  {formData.photo && (
+                    <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> File attached
+                    </span>
+                  )}
                 </div>
+
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-5 text-center transition-colors bg-slate-50/50 dark:bg-slate-800/30 cursor-pointer ${
+                    formErrors.photo 
+                      ? "border-red-400 bg-red-50/20" 
+                      : formData.photoPreview 
+                      ? "border-emerald-500 bg-emerald-50/10" 
+                      : "border-slate-300 dark:border-slate-700 hover:border-[#0053CC] dark:hover:border-blue-400"
+                  }`}
+                >
+                  {formData.photoPreview ? (
+                    <div className="flex items-center justify-center gap-4">
+                      <img 
+                        src={formData.photoPreview} 
+                        alt="Evidence preview" 
+                        className="h-16 w-20 rounded-xl object-cover border border-slate-300 shadow-xs" 
+                      />
+                      <div className="text-left">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[220px]">
+                          {formData.photo?.name || "Uploaded Image"}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Click to change photo</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <UploadCloud className="h-7 w-7 text-slate-400 mx-auto mb-1.5" />
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Click to upload or drag photo here
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        PNG, JPG or PDF formats accepted (Max 10MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {formErrors.photo && <span className="text-[10px] text-red-500 font-medium">{formErrors.photo}</span>}
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-2.5 pt-4">
-                <Button
-                  type="submit"
-                  className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
-                >
-                  Submit
-                </Button>
+              <div className="grid grid-cols-2 gap-3 pt-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsNewReportOpen(false)}
-                  className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                  className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
+                >
+                  Submit Report
                 </Button>
               </div>
 
@@ -503,7 +596,7 @@ export default function Reports() {
 
       {/* ----------------- MODAL 2: INCIDENT REPORT SUBMITTED RECEIPT ----------------- */}
       {isSuccessOpen && selectedIncident && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-500">
               <CheckCircle2 className="h-6 w-6" />
@@ -547,17 +640,13 @@ export default function Reports() {
 
       {/* ----------------- MODAL 3: INCIDENT DETAILS MODAL ----------------- */}
       {isDetailsOpen && selectedIncident && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 space-y-4">
             
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <button
-                type="button"
-                onClick={() => setIsDetailsOpen(false)}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#0053CC] dark:hover:text-blue-400 cursor-pointer"
-              >
-                <ArrowLeft className="h-4 w-4" /> Incident Details
-              </button>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                Incident Details
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsDetailsOpen(false)}
@@ -577,7 +666,7 @@ export default function Reports() {
             {/* Title & Report ID */}
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                <h3 className="font-bold text-slate-900 dark:text-base text-slate-900 dark:text-white">
                   {selectedIncident.type}
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">
@@ -589,7 +678,7 @@ export default function Reports() {
               </div>
 
               <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                REPORT ID: #{selectedIncident.reportId}
+                #{selectedIncident.reportId}
               </span>
             </div>
 

@@ -101,23 +101,22 @@ export default function AccessHistory() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="mb-2">
+        {/* Back Button & Header */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate("/admin/access-records")}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
+            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Access & Records</span>
           </button>
+          <div>
+            <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Access History</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Review and manage parking incident reports submitted by users.</p>
+          </div>
         </div>
 
-        <div>
-          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Access History</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Review and manage parking incident reports submitted by users.</p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
             
             {/* Search Bar */}
@@ -190,7 +189,7 @@ export default function AccessHistory() {
                 )}
               </div>
 
-              {/* Action Dropdown na may "Clear Filter (All)" */}
+              {/* Action Dropdown */}
               <div className="relative">
                 <button
                   type="button"
@@ -240,7 +239,7 @@ export default function AccessHistory() {
                 )}
               </div>
 
-              {/* Source Dropdown na may "Clear Filter (All)" */}
+              {/* Source Dropdown */}
               <div className="relative">
                 <button
                   type="button"

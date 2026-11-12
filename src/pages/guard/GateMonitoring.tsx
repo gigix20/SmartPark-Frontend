@@ -9,7 +9,7 @@ interface MonitoringRecord {
   plate: string;
   vehicleType?: "Car" | "Motorcycle";
   timeOrDate: string;
-  rawDate?: string; // Para sa eksaktong date filtering (YYYY-MM-DD)
+  rawDate?: string; 
   registrationSource?: string;
   guard?: string;
   duration?: string;
@@ -21,14 +21,17 @@ export default function GateMonitoring() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"entries" | "exits" | "inside" | "history">("entries");
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
   // Dynamic Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All Vehicle");
-  const [selectedDate, setSelectedDate] = useState(""); // Nilagyan ng state ang Date Input
+  const [selectedDate, setSelectedDate] = useState(""); 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown sa labas kapag ginawa ang click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
@@ -39,7 +42,6 @@ export default function GateMonitoring() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Mock data na may kasamang rawDate at vehicleType para sa filtering
   const dataEntries: MonitoringRecord[] = [
     { id: "1", owner: "Maria Santos", plate: "ABC 4901", vehicleType: "Car", timeOrDate: "10:42 AM", rawDate: "2026-09-29", registrationSource: "User registration", guard: "James Miller" },
     { id: "2", owner: "Daniel Reyes", plate: "NQX 772", vehicleType: "Motorcycle", timeOrDate: "10:30 AM", rawDate: "2026-09-29", registrationSource: "Gate registration", guard: "Sofia Chen" },
@@ -83,7 +85,6 @@ export default function GateMonitoring() {
 
   // COMPLETE FILTERING LOGIC
   const filteredData = getActiveData().filter((item) => {
-    // 1. Text Search Filter (Owner, Plate, or Guard)
     const matchesSearch = 
       item.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,12 +92,10 @@ export default function GateMonitoring() {
 
     if (!matchesSearch) return false;
 
-    // 2. Vehicle Type Filter Dropdown
     if (selectedFilter !== "All Vehicle" && item.vehicleType) {
       if (item.vehicleType !== selectedFilter) return false;
     }
 
-    // 3. Date Input Filter
     if (selectedDate && item.rawDate) {
       if (item.rawDate !== selectedDate) return false;
     }
@@ -104,11 +103,17 @@ export default function GateMonitoring() {
     return true;
   });
 
-  // Handler para i-clear ang lahat ng filter
+  // Pagination Calculations
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
   const handleClearAllFilters = () => {
     setSelectedFilter("All Vehicle");
     setSearchQuery("");
     setSelectedDate("");
+    setCurrentPage(1);
   };
 
   return (
@@ -141,55 +146,28 @@ export default function GateMonitoring() {
               </button>
             </div>
 
-            {/* Main Table Container */}
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-colors">
+            {/* Main Table Container na may uniform shadow at border */}
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-colors">
               
               {/* Tabs Navigation */}
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 px-6 pt-4 overflow-x-auto">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("entries")}
-                  className={`pb-3 text-xs font-bold transition-all relative cursor-pointer whitespace-nowrap ${
-                    activeTab === "entries"
-                      ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
-                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Recent Entries
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("exits")}
-                  className={`pb-3 text-xs font-bold transition-all relative cursor-pointer whitespace-nowrap px-4 ${
-                    activeTab === "exits"
-                      ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
-                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Recent Exits
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("inside")}
-                  className={`pb-3 text-xs font-bold transition-all relative cursor-pointer whitespace-nowrap px-4 ${
-                    activeTab === "inside"
-                      ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
-                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Vehicles Currently Inside
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("history")}
-                  className={`pb-3 text-xs font-bold transition-all relative cursor-pointer whitespace-nowrap px-4 ${
-                    activeTab === "history"
-                      ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
-                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Access History
-                </button>
+                {(["entries", "exits", "inside", "history"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+                    className={`pb-3 text-xs font-bold transition-all relative cursor-pointer whitespace-nowrap px-4 ${
+                      activeTab === tab
+                        ? "text-[#0053CC] dark:text-blue-400 border-b-2 border-[#0053CC] dark:border-blue-400"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    {tab === "entries" && "Recent Entries"}
+                    {tab === "exits" && "Recent Exits"}
+                    {tab === "inside" && "Vehicles Currently Inside"}
+                    {tab === "history" && "Access History"}
+                  </button>
+                ))}
               </div>
 
               {/* Toolbar: Search, Vehicle Type Filter, Date Picker */}
@@ -199,7 +177,7 @@ export default function GateMonitoring() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                     placeholder="Search plate, owner, vehicle type..."
                     className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
                   />
@@ -221,14 +199,14 @@ export default function GateMonitoring() {
                       <div className="absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl py-1 z-30 text-xs">
                         <button
                           type="button"
-                          onClick={() => { setSelectedFilter("All Vehicle"); setIsFilterOpen(false); }}
+                          onClick={() => { setSelectedFilter("All Vehicle"); setIsFilterOpen(false); setCurrentPage(1); }}
                           className="w-full text-left px-4 py-2 text-blue-600 dark:text-blue-400 font-bold italic border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                         >
                           Clear Filter (All)
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setSelectedFilter("Car"); setIsFilterOpen(false); }}
+                          onClick={() => { setSelectedFilter("Car"); setIsFilterOpen(false); setCurrentPage(1); }}
                           className={`w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer font-medium ${
                             selectedFilter === "Car" ? "bg-blue-50 dark:bg-blue-950/40 text-[#0053CC] font-bold" : "text-slate-700 dark:text-slate-300"
                           }`}
@@ -237,7 +215,7 @@ export default function GateMonitoring() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setSelectedFilter("Motorcycle"); setIsFilterOpen(false); }}
+                          onClick={() => { setSelectedFilter("Motorcycle"); setIsFilterOpen(false); setCurrentPage(1); }}
                           className={`w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer font-medium ${
                             selectedFilter === "Motorcycle" ? "bg-blue-50 dark:bg-blue-950/40 text-[#0053CC] font-bold" : "text-slate-700 dark:text-slate-300"
                           }`}
@@ -252,7 +230,7 @@ export default function GateMonitoring() {
                   <input
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) => { setSelectedDate(e.target.value); setCurrentPage(1); }}
                     className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none transition-colors cursor-pointer"
                   />
 
@@ -300,8 +278,8 @@ export default function GateMonitoring() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                    {filteredData.length > 0 ? (
-                      filteredData.map((item) => (
+                    {currentItems.length > 0 ? (
+                      currentItems.map((item) => (
                         <tr
                           key={item.id}
                           className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors"
@@ -379,14 +357,38 @@ export default function GateMonitoring() {
                 </table>
               </div>
 
-              {/* Table Pagination Footer */}
+              {/* Functional Pagination Footer */}
               <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
-                <span>Showing {filteredData.length} of {getActiveData().length} records</span>
+                <span>Showing {filteredData.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredData.length)} of {filteredData.length} records</span>
                 <div className="flex items-center gap-1.5">
-                  <button type="button" className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium">Previous</button>
-                  <button type="button" className="px-3 py-1 rounded-lg bg-[#0053CC] text-white font-bold cursor-pointer">1</button>
-                  <button type="button" className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium">2</button>
-                  <button type="button" className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium">Next</button>
+                  <button 
+                    type="button" 
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                    <button
+                      key={number}
+                      type="button"
+                      onClick={() => setCurrentPage(number)}
+                      className={`px-3 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
+                        currentPage === number ? "bg-[#0053CC] text-white" : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
+                  <button 
+                    type="button" 
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium disabled:opacity-50"
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
 

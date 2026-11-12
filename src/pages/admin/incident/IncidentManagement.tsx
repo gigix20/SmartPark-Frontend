@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, ArrowLeft } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function IncidentManagement() {
@@ -155,7 +155,7 @@ export default function IncidentManagement() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
             <div>
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Waiting for review</p>
               <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">2</h3>
@@ -163,7 +163,7 @@ export default function IncidentManagement() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
             <div>
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Reviewed this week</p>
               <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">12</h3>
@@ -171,7 +171,7 @@ export default function IncidentManagement() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
             <div>
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Target metrics</p>
               <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">18</h3>
@@ -180,7 +180,7 @@ export default function IncidentManagement() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
             <div className="relative w-full lg:w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -322,7 +322,7 @@ export default function IncidentManagement() {
       {/* VIEW MODAL (Fixed background scroll) */}
       {isViewModalOpen && selectedIncident && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-hidden">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-6 border border-slate-100 dark:border-slate-800 my-auto">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-100 dark:border-slate-800 my-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Report details</h3>

@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Search, Filter, Car, CheckCircle2, Clock, X, Check, AlertCircle, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, CheckCircle2, Clock, X, Check, AlertCircle, ChevronDown } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import CarIcon from "@/assets/car-icon.svg";
+import MotorIcon from "@/assets/motor-icon.svg";
 
 export default function VehicleRegistration() {
   const [pendingVehicles, setPendingVehicles] = useState([
@@ -8,7 +10,6 @@ export default function VehicleRegistration() {
     { id: 2, owner: "Juan De La Cruz", vehicleType: "Honda Civic", brand: "Honda", model: "Civic", color: "Gray", plateNo: "ABC 1234", status: "Pending", date: "Sep 25, 2026", email: "juandc@gmail.com", phone: "+63 918 765 4321", idNo: "24-0456" },
   ]);
 
-  // States para sa search, filter dropdown, at pagination
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All Vehicles");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -18,9 +19,19 @@ export default function VehicleRegistration() {
   const [modalType, setModalType] = useState<"review" | "confirmApprove" | "rejectReason" | "confirmReject" | "approvedSuccess" | "rejectedSuccess" | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  useEffect(() => {
+    if (modalType !== null) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [modalType]);
+
   const filterOptions = ["Pending", "Approved", "Rejected"];
 
-  // Filter at Search Logic
   const filteredVehicles = pendingVehicles.filter((vehicle) => {
     const matchesSearch = 
       vehicle.plateNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,32 +75,32 @@ export default function VehicleRegistration() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
-            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span>Total Registered</span>
-              <Car className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+            <div>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Registered</span>
+              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,240</h3>
             </div>
-            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,240</h3>
+            <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
           </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
-            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span>Pending Approvals</span>
-              <Clock className="h-4 w-4 text-amber-500" />
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+            <div>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Approvals</span>
+              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                {pendingVehicles.filter(v => v.status === "Pending").length}
+              </h3>
             </div>
-            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
-              {pendingVehicles.filter(v => v.status === "Pending").length}
-            </h3>
+            <Clock className="h-4 w-4 text-amber-500" />
           </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs transition-colors">
-            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span>Active Passes</span>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+            <div>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Active Passes</span>
+              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,226</h3>
             </div>
-            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,226</h3>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -105,7 +116,6 @@ export default function VehicleRegistration() {
               />
             </div>
 
-            {/* Interactive Filter Dropdown with Clear Filter (All) */}
             <div className="relative">
               <button
                 type="button"
@@ -186,9 +196,9 @@ export default function VehicleRegistration() {
                         <button 
                           type="button" 
                           onClick={() => { setSelectedVehicle(item); setModalType("review"); }}
-                          className="h-9 px-4 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                          className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
                         >
-                          Review
+                          {item.status === "Approved" ? "View" : "Review"}
                         </button>
                       </td>
                     </tr>
@@ -204,7 +214,6 @@ export default function VehicleRegistration() {
             </table>
           </div>
 
-          {/* Functional Pagination Controls */}
           {filteredVehicles.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
               <span>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredVehicles.length)} of {filteredVehicles.length} records</span>
@@ -244,8 +253,6 @@ export default function VehicleRegistration() {
       </div>
 
       {/* --- MODALS --- */}
-
-      {/* 1. Review Details Modal */}
       {modalType === "review" && selectedVehicle && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-2xl rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 relative max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
@@ -257,7 +264,11 @@ export default function VehicleRegistration() {
             </div>
 
             <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <Car className="h-16 w-16 text-[#0053CC] dark:text-blue-400" />
+              <img 
+                src={selectedVehicle.vehicleType.toLowerCase().includes("motorcycle") ? MotorIcon : CarIcon} 
+                alt="Vehicle Icon" 
+                className="h-12 w-12 object-contain" 
+              />
               <div>
                 <h3 className="font-poppins text-xl font-extrabold text-slate-900 dark:text-white">{selectedVehicle.plateNo}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{selectedVehicle.vehicleType} • {selectedVehicle.color}</p>
@@ -303,7 +314,6 @@ export default function VehicleRegistration() {
         </div>
       )}
 
-      {/* 2. Confirmation Modal para sa Approve */}
       {modalType === "confirmApprove" && selectedVehicle && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95">
@@ -327,7 +337,6 @@ export default function VehicleRegistration() {
         </div>
       )}
 
-      {/* 3. Reason for Rejection Modal */}
       {modalType === "rejectReason" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">
@@ -361,7 +370,6 @@ export default function VehicleRegistration() {
         </div>
       )}
 
-      {/* 4. Confirmation Modal para sa Disapprove */}
       {modalType === "confirmReject" && selectedVehicle && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95">
@@ -385,7 +393,6 @@ export default function VehicleRegistration() {
         </div>
       )}
 
-      {/* 5. Approved Success Pop-up */}
       {modalType === "approvedSuccess" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">
@@ -403,7 +410,6 @@ export default function VehicleRegistration() {
         </div>
       )}
 
-      {/* 6. Disapproved Success Pop-up */}
       {modalType === "rejectedSuccess" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">

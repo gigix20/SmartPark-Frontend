@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Car, Clock, ShieldCheck, ArrowRight, Gauge, History } from "lucide-react";
+import { Clock, ShieldCheck, Gauge } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
 import { logoutUser, getCurrentUser, type User as UserType } from "@/pages/auth/api/authApi";
+
+// Import ang mga icon mula sa src/assets/
+import carIcon from "@/assets/car-icon.svg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -58,7 +60,7 @@ export default function Dashboard() {
         </div>
 
         {/* PARKING OVERVIEW CARD (Circular Progress & Stats) */}
-        <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors duration-300">
+        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs transition-colors duration-300">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             
             {/* Circular Progress Graphic Simulation */}
@@ -112,7 +114,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Card 1: Parking Availability Status */}
-          <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between transition-colors duration-300">
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors duration-300">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
@@ -132,12 +134,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Card 2: My Vehicles (Mas pinalaki ang numero at pinaluwag ang vertical display para maayos tingnan) */}
-          <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between transition-colors duration-300">
+          {/* Card 2: My Vehicles */}
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors duration-300">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                  <Car className="h-4 w-4 text-[#0053CC] dark:text-blue-400" /> My Vehicles
+                  <img src={carIcon} alt="Car Icon" className="h-4 w-auto object-contain" /> My Vehicles
                 </h3>
               </div>
 
@@ -155,7 +157,7 @@ export default function Dashboard() {
           </div>
 
           {/* Card 3: Vehicle History Preview */}
-          <div className="rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between transition-colors duration-300">
+          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors duration-300">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
@@ -163,33 +165,27 @@ export default function Dashboard() {
                 </h3>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800">
                   <div>
                     <p className="font-bold text-slate-800 dark:text-slate-200">Toyota Vios (ABC-6521)</p>
-                    <p className="text-[10px] text-slate-400">Oct 22, 2026 • 10:12 PM</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Oct 22, 2026 • 10:12 PM</p>
                   </div>
                   <span className="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 font-bold text-[10px]">EXIT</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800">
                   <div>
                     <p className="font-bold text-slate-800 dark:text-slate-200">Toyota Fortuner (XYZ-4521)</p>
-                    <p className="text-[10px] text-slate-400">Oct 24, 2026 • 10:45 AM</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Oct 24, 2026 • 10:45 AM</p>
                   </div>
                   <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">ENTRANCE</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-              <Button 
-                onClick={() => navigate("/history")}
-                variant="ghost"
-                className="w-full h-8 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <History className="h-3.5 w-3.5" /> View Full Logs <ArrowRight className="h-3 w-3" />
-              </Button>
+            <div className="pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+              <span className="text-[11px] text-slate-400 font-medium">Recent activity logs</span>
             </div>
           </div>
 

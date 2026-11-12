@@ -51,7 +51,6 @@ export default function AdminSuspend() {
       } else if (duration === "30 Days") {
         resultDate.setDate(resultDate.getDate() + 30);
       } else if (duration === "Permanent") {
-        // Halimbawa ay magset ng 100 taon o i-blank/i-disable kung permanent
         resultDate.setFullYear(resultDate.getFullYear() + 100);
       }
 
@@ -86,7 +85,7 @@ export default function AdminSuspend() {
         </div>
 
         {/* Main Form Container */}
-        <form onSubmit={handleSuspendSubmit} noValidate className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
+        <form onSubmit={handleSuspendSubmit} noValidate className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
           
           {/* Header Title */}
           <div className="border-b border-slate-100 dark:border-slate-800 pb-6">

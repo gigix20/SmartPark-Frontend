@@ -16,7 +16,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4">
-      <nav className="flex w-full max-w-md items-center justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-3 py-2 shadow-xl backdrop-blur-md transition-colors duration-300">
+      <nav className="flex w-full max-w-md items-center justify-between rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 px-3 py-2 shadow-xl backdrop-blur-md transition-colors duration-300">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);

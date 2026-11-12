@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit3, Car, Ban, AlertTriangle, Search, Calendar, ChevronDown, RotateCcw } from "lucide-react";
+import { ArrowLeft, Edit3, Ban, AlertTriangle, Search, Calendar, ChevronDown, RotateCcw } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import CarIcon from "@/assets/car-icon.svg";
+import MotorIcon from "@/assets/motor-icon.svg";
 
 export default function VehicleDetails() {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +13,18 @@ export default function VehicleDetails() {
   const [isManaging, setIsManaging] = useState(false);
   const [vehicleStatus, setVehicleStatus] = useState<"Active" | "Inactive">("Active");
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  
+  // Prevent background scrolling kapag bukas ang Deactivate Modal
+  useEffect(() => {
+    if (showDeactivateModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showDeactivateModal]);
   
   // States para sa Table Functionality (Search, Time Filter, Calendar Date Filter, Pagination)
   const [searchQuery, setSearchQuery] = useState("");
@@ -105,36 +119,37 @@ export default function VehicleDetails() {
 
   return (
     <AdminLayout>
-      {/* Back Button */}
-      <div className="mb-2">
+      {/* Back Button & Header */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate("/admin/vehicles")}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
+          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to Vehicle Management</span>
         </button>
-      </div>
-
-      {/* Header */}
-      <div>
-        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
-          Vehicle Details
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          View comprehensive vehicle and owner profile details.
-        </p>
+        <div>
+          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+            Vehicle Details
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            View comprehensive vehicle and owner profile details.
+          </p>
+        </div>
       </div>
 
       {/* Main Details Card */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-6 transition-colors">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         
         {/* Vehicle Banner & Action Button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-20 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 shrink-0">
-              <Car className="h-9 w-9" />
+              <img 
+                src={vehicle.vehicleType.toLowerCase().includes("motorcycle") ? MotorIcon : CarIcon} 
+                alt="Vehicle Icon" 
+                className="h-8 w-8 object-contain" 
+              />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
@@ -345,7 +360,7 @@ export default function VehicleDetails() {
       </div>
 
       {/* Vehicle History Section */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4 transition-colors mt-6">
+      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors mt-6">
         <div>
           <h3 className="font-poppins text-lg font-bold text-[#0053CC] dark:text-blue-400">
             Vehicle History
