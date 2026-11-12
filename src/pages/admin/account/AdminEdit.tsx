@@ -7,6 +7,14 @@ export default function AdminEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  // Route guard: only Super Admin can access this page
+  useEffect(() => {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (currentUser?.role?.toUpperCase() !== "SUPER_ADMIN") {
+      navigate("/admin/accounts", { replace: true });
+    }
+  }, [navigate]);
+
   // Admin initial editable states
   const [firstName, setFirstName] = useState("John");
   const [lastName, setLastName] = useState("Doe");

@@ -7,6 +7,10 @@ export default function AdminDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  // Read current user role for RBAC
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
+
   // Sample admin data batay sa ID
   const [adminData, setAdminData] = useState({
     id: id || "1",
@@ -66,14 +70,16 @@ export default function AdminDetails() {
               </h1>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowDeactivateModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <Ban className="h-3.5 w-3.5" />
-              <span>Deactivate</span>
-            </button>
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowDeactivateModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Ban className="h-3.5 w-3.5" />
+                <span>Deactivate</span>
+              </button>
+            )}
           </div>
 
           {/* Profile Basic Info Row */}
@@ -164,16 +170,18 @@ export default function AdminDetails() {
           </div>
 
           {/* Edit Button at Bottom Right */}
-          <div className="flex justify-end pt-6">
-            <button
-              type="button"
-              onClick={() => navigate(`/admin/accounts/edit/${adminData.id}`)}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-            >
-              <Edit3 className="h-3.5 w-3.5 text-[#0053CC]" />
-              <span>Edit</span>
-            </button>
-          </div>
+          {isSuperAdmin && (
+            <div className="flex justify-end pt-6">
+              <button
+                type="button"
+                onClick={() => navigate(`/admin/accounts/edit/${adminData.id}`)}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                <Edit3 className="h-3.5 w-3.5 text-[#0053CC]" />
+                <span>Edit</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

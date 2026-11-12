@@ -6,6 +6,10 @@ import { AdminLayout } from "@/components/AdminLayout";
 export default function Accounts() {
   const navigate = useNavigate();
   
+  // Read current user role for RBAC
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
+  
   // Basahin ang huling tab mula sa localStorage, o i-default sa "All"
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem("admin_accounts_active_tab") || "All";
@@ -180,7 +184,8 @@ export default function Accounts() {
           </p>
         </div>
 
-        {(activeTab === "Administrators" || activeTab === "Guards") && (
+        {/* Only show Add button for Administrators if isSuperAdmin; Both can add Guards; No one can add Users */}
+        {((activeTab === "Administrators" && isSuperAdmin) || activeTab === "Guards") && (
           <button
             type="button"
             onClick={handleAddClick}
@@ -388,13 +393,17 @@ export default function Accounts() {
                       >
                         View
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(item)}
-                        className="font-bold text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
-                      >
-                        Edit
-                      </button>
+                      
+                      {/* Show Edit only if it's NOT an Admin, OR if the current user is a Super Admin */}
+                      {(!item.role.includes("Admin") || isSuperAdmin) && (
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(item)}
+                          className="font-bold text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
