@@ -1,35 +1,38 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
 export default function AdminDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Read current user role for RBAC
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
   const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
 
-  // Sample admin data batay sa ID
-  const [adminData, setAdminData] = useState({
-    id: id || "1",
-    firstName: "John",
-    lastName: "Doe",
-    email: "johndoe@qcu.edu.ph",
-    employeeId: "QCU-IT-2024-08",
-    role: "Super Administrator",
-    phoneNumber: "+63 912 345 6789",
-    accountStatus: "ACTIVE",
-    dateCreated: "December 2025",
-    lastUpdated: "Sep 28, 2026, 9:30 AM",
-    lastLogin: "Sep 29, 2026, 9:00 PM",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60"
-  });
-
-  // Modal states
+  const [adminData, setAdminData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchDetails() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success) {
+          setAdminData(res.account);
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin details:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchDetails();
+  }, [id]);
 
   useEffect(() => {
     if (showDeactivateModal || showSuccessModal) {
@@ -42,11 +45,35 @@ export default function AdminDetails() {
     };
   }, [showDeactivateModal, showSuccessModal]);
 
-  const handleDeactivateConfirm = () => {
-    setShowDeactivateModal(false);
-    setAdminData(prev => ({ ...prev, accountStatus: "DEACTIVATED" }));
-    setShowSuccessModal(true);
+  const handleDeactivateConfirm = async () => {
+    try {
+      if (!id) return;
+      await updateAccountStatus(id, "Deactivated");
+      setShowDeactivateModal(false);
+      setAdminData((prev: any) => ({ ...prev, accountStatus: "Deactivated" }));
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Failed to deactivate account:", err);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!adminData) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-32 text-slate-500">Account not found.</div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -95,10 +122,10 @@ export default function AdminDetails() {
                     {adminData.firstName} {adminData.lastName}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                    Active
+                    {adminData.accountStatus}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">Employee ID: {adminData.employeeId}</p>
+                <p className="text-xs text-slate-400 mt-0.5">ID: {adminData.schoolId}</p>
               </div>
             </div>
           </div>
@@ -124,8 +151,8 @@ export default function AdminDetails() {
                 <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.email}</p>
               </div>
               <div>
-                <p className="text-slate-400 font-medium">Employee ID</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.employeeId}</p>
+                <p className="text-slate-400 font-medium">Employee / School ID</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.schoolId}</p>
               </div>
 
               <div>
@@ -134,7 +161,7 @@ export default function AdminDetails() {
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Phone Number</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.phoneNumber}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.phone || "N/A"}</p>
               </div>
             </div>
           </div>
@@ -154,12 +181,16 @@ export default function AdminDetails() {
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Date Created</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.dateCreated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.createdAt ? new Date(adminData.createdAt).toLocaleDateString() : "N/A"}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Last Updated</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.lastUpdated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.updatedAt ? new Date(adminData.updatedAt).toLocaleString() : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>

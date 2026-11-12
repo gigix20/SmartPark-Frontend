@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Check } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, ChevronDown, Check, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAccountById, updateAccount } from "./api/accountApi";
 
 export default function AdminEdit() {
   const navigate = useNavigate();
-
+  const { id } = useParams();
 
   // Route guard: only Super Admin can access this page
   useEffect(() => {
@@ -15,14 +16,17 @@ export default function AdminEdit() {
     }
   }, [navigate]);
 
-  // Admin initial editable states
-  const [firstName, setFirstName] = useState("John");
-  const [lastName, setLastName] = useState("Doe");
-  const [email, setEmail] = useState("johndoe@qcu.edu.ph");
-  const [employeeId, setEmployeeId] = useState("QCU-IT-2024-08");
-  const [role, setRole] = useState("Super Administrator");
-  const [phoneNumber, setPhoneNumber] = useState("+63 912 345 6789");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [role, setRole] = useState("ADMIN");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [status, setStatus] = useState("Active");
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   // Dropdown states para sa Role at Status
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
@@ -32,6 +36,31 @@ export default function AdminEdit() {
 
   // Success Modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchAccount() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success && res.account) {
+          const acc = res.account;
+          setFirstName(acc.firstName || "");
+          setLastName(acc.lastName || "");
+          setEmail(acc.email || "");
+          setEmployeeId(acc.schoolId || "");
+          setRole(acc.role || "ADMIN");
+          setPhoneNumber(acc.phone || "");
+          setStatus(acc.accountStatus || "Active");
+        }
+      } catch (err) {
+        console.error("Failed to load account for editing:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchAccount();
+  }, [id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,14 +87,45 @@ export default function AdminEdit() {
     };
   }, [showSuccessModal]);
 
-  const handleSaveChanges = (e: React.FormEvent) => {
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSuccessModal(true);
+    if (!id) return;
+    try {
+      setIsSaving(true);
+      setApiError("");
+      const payload = {
+        firstName,
+        lastName,
+        email,
+        schoolId: employeeId,
+        phone: phoneNumber,
+        role,
+        accountStatus: status,
+      };
+      const res = await updateAccount(id, payload);
+      if (res.success) {
+        setShowSuccessModal(true);
+      }
+    } catch (err: any) {
+      setApiError(err.response?.data?.message || "Failed to update account");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleBack = () => {
     navigate(-1);
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -273,19 +333,24 @@ export default function AdminEdit() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+            {apiError && (
+              <p className="text-rose-500 text-xs font-semibold mr-auto">{apiError}</p>
+            )}
             <button
               type="button"
               onClick={handleBack}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              disabled={isSaving}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               Discard
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              disabled={isSaving}
+              className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              Save Changes
+              {isSaving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

@@ -1,31 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit, UserX, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { ArrowLeft, Edit, UserX, AlertCircle, CheckCircle2, X, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
 export default function UserDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Sample user data batay sa ID
-  const [userData, setUserData] = useState({
-    id: id || "4",
-    firstName: "Sophia",
-    lastName: "Reyes",
-    email: "sophiareyes@gmail.com",
-    studentId: "24-0123",
-    role: "User",
-    phoneNumber: "+63 912 345 6789",
-    status: "Active",
-    dateCreated: "December 2025",
-    lastUpdated: "Sep 28, 2026, 9:30 AM",
-    lastLogin: "Sep 29, 2026, 9:00 PM",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60"
-  });
-
-  // Modal states
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchDetails() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success) {
+          setUserData(res.account);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user details:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchDetails();
+  }, [id]);
 
   useEffect(() => {
     if (showDeactivateModal || showSuccessModal) {
@@ -38,11 +42,35 @@ export default function UserDetails() {
     };
   }, [showDeactivateModal, showSuccessModal]);
 
-  const handleConfirmDeactivate = () => {
-    setUserData(prev => ({ ...prev, status: "Inactive" }));
-    setShowDeactivateModal(false);
-    setShowSuccessModal(true);
+  const handleConfirmDeactivate = async () => {
+    try {
+      if (!id) return;
+      await updateAccountStatus(id, "Deactivated");
+      setUserData((prev: any) => ({ ...prev, accountStatus: "Deactivated" }));
+      setShowDeactivateModal(false);
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Failed to deactivate user account:", err);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-32 text-slate-500">User account not found.</div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
