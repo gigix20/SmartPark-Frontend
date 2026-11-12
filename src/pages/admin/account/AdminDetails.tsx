@@ -57,8 +57,7 @@ export default function AdminDetails() {
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
