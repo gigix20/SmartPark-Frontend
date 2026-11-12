@@ -7,8 +7,7 @@ import {
   X, 
   ChevronRight, 
   ArrowLeft,
-  Info,
-  Image as ImageIcon
+  Info
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";

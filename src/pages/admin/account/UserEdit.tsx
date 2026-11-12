@@ -22,6 +22,7 @@ export default function UserEdit() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   useEffect(() => {
     async function fetchUser() {
@@ -73,6 +74,7 @@ export default function UserEdit() {
     if (!id) return;
     try {
       setIsSaving(true);
+      setApiError("");
       const payload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -86,8 +88,9 @@ export default function UserEdit() {
       if (res.success) {
         setShowSuccessModal(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update user account:", err);
+      setApiError(err.response?.data?.message || "Failed to update user account");
     } finally {
       setIsSaving(false);
     }
@@ -116,7 +119,7 @@ export default function UserEdit() {
           <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">
             <button
               type="button"
-              onClick={() => navigate(`/admin/users/details/${id || "4"}`)}
+              onClick={() => navigate(-1)}
               className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -130,8 +133,8 @@ export default function UserEdit() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
-                alt="Sophia Reyes"
+                src={(formData as any).avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((formData.firstName || '') + ' ' + (formData.lastName || ''))}&background=0053CC&color=fff`}
+                alt={`${formData.firstName} ${formData.lastName}`}
                 className="h-16 w-16 rounded-full object-cover border border-slate-200 dark:border-slate-700"
               />
               <div>
@@ -140,7 +143,7 @@ export default function UserEdit() {
                     {formData.firstName} {formData.lastName}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                    Active
+                    {formData.accountStatus || "Active"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">Student ID: {formData.studentId}</p>
@@ -210,14 +213,22 @@ export default function UserEdit() {
               {/* Phone Number */}
               <div className="space-y-1.5">
                 <label className="font-medium text-slate-400">Phone Number</label>
-                <input
-                  type="text"
-                  name="phoneNumber"
-                  required
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 focus:outline-none focus:border-[#0053CC] font-semibold text-xs"
-                />
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-slate-500 text-xs">+63</span>
+                  <input
+                    type="text"
+                    name="phoneNumber"
+                    value={formData.phoneNumber ? formData.phoneNumber.replace(/^\+63/, '') : ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      if (val.length <= 10) {
+                        setFormData(prev => ({ ...prev, phoneNumber: val ? `+63${val}` : '' }));
+                      }
+                    }}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 pl-10 focus:outline-none focus:border-[#0053CC] font-semibold text-xs"
+                    placeholder="999 888 7777"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -263,10 +274,15 @@ export default function UserEdit() {
           </div>
 
           {/* Action Buttons (Discard & Save Changes) sa kanang ibaba */}
+          {apiError && (
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-semibold text-center mb-4">
+              {apiError}
+            </div>
+          )}
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={() => navigate(`/admin/users/details/${id || "4"}`)}
+              onClick={() => navigate(-1)}
               className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               Discard
@@ -300,7 +316,7 @@ export default function UserEdit() {
               <div className="pt-2">
                 <button 
                   type="button"
-                  onClick={() => navigate(`/admin/users/details/${id || "4"}`)}
+                  onClick={() => navigate(-1)}
                   className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                 >
                   Done

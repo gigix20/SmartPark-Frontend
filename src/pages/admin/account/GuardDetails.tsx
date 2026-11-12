@@ -71,6 +71,13 @@ export default function GuardDetails() {
       </AdminLayout>
     );
   }
+  const status = guardData.accountStatus || guardData.status || "Active";
+  const employeeId = guardData.schoolId || guardData.employeeId || "N/A";
+  const phone = guardData.phone || guardData.phoneNumber || "N/A";
+  const dateCreated = guardData.createdAt ? new Date(guardData.createdAt).toLocaleDateString() : (guardData.dateCreated || "N/A");
+  const lastUpdated = guardData.updatedAt ? new Date(guardData.updatedAt).toLocaleString() : (guardData.lastUpdated || "N/A");
+  const isDeactivated = status?.toUpperCase() === "DEACTIVATED" || status?.toUpperCase() === "INACTIVE";
+
 
   return (
     <AdminLayout>
@@ -94,21 +101,23 @@ export default function GuardDetails() {
               </h1>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowDeactivateModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <Ban className="h-3.5 w-3.5" />
-              <span>Deactivate</span>
-            </button>
+            {!isDeactivated && (
+              <button
+                type="button"
+                onClick={() => setShowDeactivateModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Ban className="h-3.5 w-3.5" />
+                <span>Deactivate</span>
+              </button>
+            )}
           </div>
 
           {/* Profile Basic Info Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src={guardData.avatar}
+                src={guardData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((guardData.firstName || '') + ' ' + (guardData.lastName || ''))}&background=0053CC&color=fff`}
                 alt={guardData.firstName}
                 className="h-16 w-16 rounded-full object-cover border border-slate-200 dark:border-slate-700"
               />
@@ -118,10 +127,10 @@ export default function GuardDetails() {
                     {guardData.firstName} {guardData.lastName}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                    Active
+                    {status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">Employee ID: {guardData.employeeId}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Employee ID: {employeeId}</p>
               </div>
             </div>
           </div>
@@ -148,12 +157,12 @@ export default function GuardDetails() {
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Employee ID</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.employeeId}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{employeeId}</p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Phone Number</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.phoneNumber}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{phone}</p>
               </div>
             </div>
           </div>
@@ -167,22 +176,25 @@ export default function GuardDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">Account Status</p>
-                <span className="inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                  {guardData.accountStatus}
+                <span className={`inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold ${
+                  status === "Active" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" :
+                  "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+                }`}>
+                  {status.toUpperCase()}
                 </span>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Date Created</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.dateCreated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{dateCreated}</p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Last Updated</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.lastUpdated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{lastUpdated}</p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.lastLogin}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.lastLogin || "N/A"}</p>
               </div>
             </div>
           </div>

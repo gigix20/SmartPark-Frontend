@@ -72,6 +72,13 @@ export default function UserDetails() {
     );
   }
 
+  const status = userData.accountStatus || userData.status || "Active";
+  const isDeactivated = status?.toUpperCase() === "DEACTIVATED" || status?.toUpperCase() === "INACTIVE";
+  const studentId = userData.schoolId || userData.studentId || "N/A";
+  const phone = userData.phone || userData.phoneNumber || "N/A";
+  const dateCreated = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : (userData.dateCreated || "N/A");
+  const lastUpdated = userData.updatedAt ? new Date(userData.updatedAt).toLocaleString() : (userData.lastUpdated || "N/A");
+
   return (
     <AdminLayout>
       <div className="space-y-6 max-w-5xl mx-auto relative">
@@ -95,21 +102,23 @@ export default function UserDetails() {
               </div>
             </div>
             
-            <button
-              type="button"
-              onClick={() => setShowDeactivateModal(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 px-4 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors w-fit cursor-pointer"
-            >
-              <UserX className="h-3.5 w-3.5" />
-              <span>Deactivate</span>
-            </button>
+            {!isDeactivated && (
+              <button
+                type="button"
+                onClick={() => setShowDeactivateModal(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 px-4 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors w-fit cursor-pointer"
+              >
+                <UserX className="h-3.5 w-3.5" />
+                <span>Deactivate</span>
+              </button>
+            )}
           </div>
 
           {/* Profile Overview Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <div className="flex items-center gap-4">
               <img 
-                src={userData.avatar} 
+                src={userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((userData.firstName || '') + ' ' + (userData.lastName || ''))}&background=0053CC&color=fff`} 
                 alt={userData.firstName} 
                 className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
               />
@@ -124,12 +133,12 @@ export default function UserDetails() {
                     "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-400"
                   }`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${
-                      userData.status === "Active" ? "bg-emerald-500" : userData.status === "Suspended" ? "bg-amber-500" : "bg-rose-500"
+                      status === "Active" ? "bg-emerald-500" : status === "Suspended" ? "bg-amber-500" : "bg-rose-500"
                     }`}></span>
-                    {userData.status}
+                    {status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 font-medium">Student ID: {userData.studentId}</p>
+                <p className="text-xs text-slate-400 font-medium">Student ID: {studentId}</p>
               </div>
             </div>
           </div>
@@ -154,7 +163,7 @@ export default function UserDetails() {
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Student ID</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">{userData.studentId}</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">{studentId}</p>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Role</span>
@@ -162,7 +171,7 @@ export default function UserDetails() {
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Phone Number</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">{userData.phoneNumber}</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">{phone}</p>
               </div>
             </div>
           </div>
@@ -180,17 +189,17 @@ export default function UserDetails() {
                     userData.status === "Active" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" :
                     "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
                   }`}>
-                    {userData.status.toUpperCase()}
+                    {status.toUpperCase()}
                   </span>
                 </div>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Date Created</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">{userData.dateCreated}</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">{dateCreated}</p>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Last Updated</span>
-                <p className="font-bold text-slate-800 dark:text-slate-200">{userData.lastUpdated}</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200">{lastUpdated}</p>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400">Last Login</span>

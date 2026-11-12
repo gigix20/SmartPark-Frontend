@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ShieldCheck, ChevronDown } from "lucide-react";
+import { Search, Filter, ChevronDown } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";

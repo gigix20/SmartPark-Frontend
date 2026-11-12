@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, ArrowLeft } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
 export default function IncidentManagement() {

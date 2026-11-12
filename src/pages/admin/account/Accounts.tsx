@@ -12,9 +12,7 @@ export default function Accounts() {
   const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
   
   // Basahin ang huling tab mula sa localStorage, o i-default sa "All"
-  const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem("admin_accounts_active_tab") || "All";
-  });
+  const [activeTab, setActiveTab] = useState("All");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -89,7 +87,6 @@ export default function Accounts() {
     setStatusFilter("All");
     setIsStatusDropdownOpen(false);
     setCurrentPage(1);
-    localStorage.setItem("admin_accounts_active_tab", tab);
   };
 
   const statusOptions = ["Active", "Suspended", "Inactive", "Deactivated"];
@@ -138,7 +135,6 @@ export default function Accounts() {
   };
 
   const handleView = (item: any) => {
-    localStorage.setItem("admin_accounts_active_tab", activeTab);
     const r = item.role?.toUpperCase();
     if (r === "GUARD") {
       navigate(`/admin/guards/details/${item.id}`, { state: { activeTab } });
@@ -150,7 +146,6 @@ export default function Accounts() {
   };
 
   const handleEdit = (item: any) => {
-    localStorage.setItem("admin_accounts_active_tab", activeTab);
     const r = item.role?.toUpperCase();
     if (r === "GUARD") {
       navigate(`/admin/guards/edit/${item.id}`);
@@ -195,7 +190,6 @@ export default function Accounts() {
   };
 
   const handleAddClick = () => {
-    localStorage.setItem("admin_accounts_active_tab", activeTab);
     if (activeTab === "Administrators") {
       navigate("/admin/accounts/create");
     } else if (activeTab === "Guards") {

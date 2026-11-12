@@ -12,6 +12,8 @@ export default function AdminDetails() {
   const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
 
   const [adminData, setAdminData] = useState<any>(null);
+  const status = adminData?.accountStatus || adminData?.status || "Active";
+  const isDeactivated = status?.toUpperCase() === "DEACTIVATED" || status?.toUpperCase() === "INACTIVE";
   const [isLoading, setIsLoading] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -96,7 +98,7 @@ export default function AdminDetails() {
               </h1>
             </div>
 
-            {isSuperAdmin && (
+            {isSuperAdmin && !isDeactivated && (
               <button
                 type="button"
                 onClick={() => setShowDeactivateModal(true)}
@@ -112,7 +114,7 @@ export default function AdminDetails() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src={adminData.avatar}
+                src={adminData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((adminData.firstName || "") + " " + (adminData.lastName || ""))}&background=0053CC&color=fff`}
                 alt={adminData.firstName}
                 className="h-16 w-16 rounded-full object-cover border border-slate-200 dark:border-slate-700"
               />
