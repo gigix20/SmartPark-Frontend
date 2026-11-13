@@ -36,6 +36,10 @@ export default function UserEdit() {
         const res = await getAccountById(id);
         if (res.success && res.account) {
           const acc = res.account;
+          if (acc.role?.toUpperCase() === "USER") {
+            navigate("/admin/accounts", { replace: true });
+            return;
+          }
           const rawStatus = acc.accountStatus || "Active";
           const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
 

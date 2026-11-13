@@ -19,3 +19,24 @@ export async function updateAccountStatus(id: string | number, status: string) {
   const response = await api.patch(`/admin/accounts/${id}/status`, { status });
   return response.data;
 }
+
+export async function suspendAccount(id: string | number, data: { durationDays?: number; suspendedUntil?: string; reason: string }) {
+  const response = await api.post(`/admin/accounts/${id}/suspend`, data);
+  return response.data;
+}
+
+export async function deactivateAccount(id: string | number) {
+  const response = await api.post(`/admin/accounts/${id}/deactivate`);
+  return response.data;
+}
+
+export async function reactivateAccount(id: string | number) {
+  const response = await api.post(`/admin/accounts/${id}/set-status`, { status: "Active" });
+  return response.data;
+}
+
+export async function setAccountInactive(id: string | number) {
+  const response = await api.post(`/admin/accounts/${id}/set-status`, { status: "Inactive" });
+  return response.data;
+}
+
