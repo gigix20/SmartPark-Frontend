@@ -12,7 +12,9 @@ export default function Accounts() {
   const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
   
   // Basahin ang huling tab mula sa localStorage, o i-default sa "All"
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem("accountsActiveTab") || "All";
+  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -84,6 +86,7 @@ export default function Accounts() {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+    localStorage.setItem("accountsActiveTab", tab); // I-save sa localStorage para hindi mawala
     setStatusFilter("All");
     setIsStatusDropdownOpen(false);
     setCurrentPage(1);

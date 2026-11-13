@@ -51,7 +51,11 @@ export default function AdminEdit() {
           setEmployeeId(acc.schoolId || "");
           setRole(acc.role || "ADMIN");
           setPhoneNumber(acc.phone || "");
-          setStatus(acc.accountStatus || "Active");
+          
+          // I-format ang status para maging Proper Case (Active, Suspended, etc.)
+          const rawStatus = acc.accountStatus || "Active";
+          const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+          setStatus(formattedStatus);
         }
       } catch (err) {
         console.error("Failed to load account for editing:", err);
@@ -100,7 +104,7 @@ export default function AdminEdit() {
         schoolId: employeeId,
         phone: phoneNumber,
         role,
-        accountStatus: status,
+        accountStatus: status.toUpperCase(), // Ipinapasa uppercase sa backend kung kinakailangan
       };
       const res = await updateAccount(id, payload);
       if (res.success) {
@@ -283,15 +287,15 @@ export default function AdminEdit() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
-              {/* Account Status Dropdown */}
+              {/* Account Status Dropdown (Custom Styled, Not All-Caps) */}
               <div className="space-y-1.5 relative" ref={statusDropdownRef}>
                 <label className="font-medium text-slate-400">Account Status</label>
                 <button
                   type="button"
                   onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 font-bold text-slate-900 dark:text-white text-xs cursor-pointer"
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 font-bold text-slate-900 dark:text-white text-xs cursor-pointer shadow-xs"
                 >
-                  <span>{status.toUpperCase()}</span>
+                  <span>{status}</span>
                   <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isStatusDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 

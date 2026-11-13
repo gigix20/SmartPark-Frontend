@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronDown, Check, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -24,6 +24,10 @@ export default function UserEdit() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [apiError, setApiError] = useState("");
 
+  // Dropdown state para sa Account Status
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     async function fetchUser() {
       if (!id) return;
@@ -32,13 +36,16 @@ export default function UserEdit() {
         const res = await getAccountById(id);
         if (res.success && res.account) {
           const acc = res.account;
+          const rawStatus = acc.accountStatus || "Active";
+          const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+
           setFormData({
             firstName: acc.firstName || "",
             lastName: acc.lastName || "",
             email: acc.email || "",
             studentId: acc.schoolId || "",
             phoneNumber: acc.phone || "",
-            accountStatus: acc.accountStatus || "Active",
+            accountStatus: formattedStatus,
             dateCreated: acc.createdAt ? new Date(acc.createdAt).toLocaleDateString() : "",
             lastUpdated: acc.updatedAt ? new Date(acc.updatedAt).toLocaleString() : "",
           });
@@ -52,6 +59,16 @@ export default function UserEdit() {
     fetchUser();
   }, [id]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setIsStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Prevent background scrolling kapag bukas ang success modal
   useEffect(() => {
     if (showSuccessModal) {
@@ -64,7 +81,7 @@ export default function UserEdit() {
     };
   }, [showSuccessModal]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -81,7 +98,7 @@ export default function UserEdit() {
         email: formData.email,
         schoolId: formData.studentId,
         phone: formData.phoneNumber,
-        accountStatus: formData.accountStatus,
+        accountStatus: formData.accountStatus.toUpperCase(),
         role: "USER",
       };
       const res = await updateAccount(id, payload);
@@ -94,6 +111,10 @@ export default function UserEdit() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   if (isLoading) {
@@ -119,7 +140,7 @@ export default function UserEdit() {
           <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -240,21 +261,37 @@ export default function UserEdit() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
-              {/* Account Status Dropdown */}
-              <div className="space-y-1.5">
+              {/* Account Status Custom Dropdown */}
+              <div className="space-y-1.5 relative" ref={statusDropdownRef}>
                 <label className="font-medium text-slate-400">Account Status</label>
-                <div className="relative">
-                  <select
-                    name="accountStatus"
-                    value={formData.accountStatus}
-                    onChange={handleChange}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 appearance-none focus:outline-none focus:border-[#0053CC] font-bold text-xs cursor-pointer"
-                  >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="SUSPENDED">SUSPENDED</option>
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 font-bold text-slate-900 dark:text-white text-xs cursor-pointer shadow-xs"
+                >
+                  <span>{formData.accountStatus}</span>
+                  <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isStatusDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isStatusDropdownOpen && (
+                  <div className="absolute left-0 mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl py-1 z-30">
+                    {["Active", "Suspended", "Inactive"].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, accountStatus: opt }));
+                          setIsStatusDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer ${
+                          formData.accountStatus === opt ? "font-bold text-[#0053CC] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -273,7 +310,7 @@ export default function UserEdit() {
             </div>
           </div>
 
-          {/* Action Buttons (Discard & Save Changes) sa kanang ibaba */}
+          {/* Action Buttons */}
           {apiError && (
             <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-semibold text-center mb-4">
               {apiError}
@@ -282,8 +319,8 @@ export default function UserEdit() {
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={() => navigate(-1)}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              onClick={handleBack}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               Discard
             </button>
@@ -316,7 +353,7 @@ export default function UserEdit() {
               <div className="pt-2">
                 <button 
                   type="button"
-                  onClick={() => navigate(-1)}
+                  onClick={handleBack}
                   className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                 >
                   Done
