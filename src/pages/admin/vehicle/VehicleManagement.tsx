@@ -1,31 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ChevronDown } from "lucide-react";
+import { Search, Filter, ChevronDown, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";
+import { getAdminVehicles, type Vehicle } from "@/api/vehicleApi";
 
 export default function VehicleManagement() {
   const navigate = useNavigate();
-  const vehiclesData = [
-    { id: 1, plateNo: "ABC 1234", owner: "Dela Cruz, Rafael", type: "Car", brandModel: "Toyota Vios", color: "White", regDate: "15 Dec 2025", status: "Approved" },
-    { id: 2, plateNo: "XYZ 5678", owner: "Cruz, Mark Anthony", type: "Motorcycle", brandModel: "Honda Click 125", color: "Black", regDate: "02 Jan 2026", status: "Approved" },
-    { id: 3, plateNo: "DEF 9012", owner: "Santos, Maria", type: "Car", brandModel: "Mitsubishi L300", color: "Silver", regDate: "14 Jan 2026", status: "Pending" },
-    { id: 4, plateNo: "GHI 3456", owner: "Reyes, Jose", type: "Car", brandModel: "Hyundai Accent", color: "Red", regDate: "20 Jan 2026", status: "Approved" },
-    { id: 5, plateNo: "JKL 7890", owner: "Del Prado, Juan", type: "Motorcycle", brandModel: "Yamaha Mio", color: "Blue", regDate: "22 Jan 2026", status: "Rejected" },
-    { id: 6, plateNo: "MNO 1122", owner: "Villanueva, Ana", type: "Car", brandModel: "Honda Civic", color: "Gray", regDate: "05 Feb 2026", status: "Approved" },
-  ];
+
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [metrics, setMetrics] = useState({
+    totalRegistered: 0,
+    totalCars: 0,
+    totalMotorcycles: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All"); 
   const [selectedStatus, setSelectedStatus] = useState("All"); 
   const [selectedType, setSelectedType] = useState("All"); 
+
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
-  const itemsPerPage = 5;
 
-  const statusOptions = ["Approved", "Pending", "Rejected"];
+  const statusOptions = ["Approved", "Pending", "Rejected", "Inactive"];
   const typeOptions = ["Car", "Motorcycle"];
+
+  const fetchAdminVehicles = async () => {
+    try {
+      setIsLoading(true);
+      const res = await getAdminVehicles({
+        search: searchQuery,
+        tab: activeTab,
+        status: selectedStatus,
+        type: selectedType,
+        page: currentPage,
+        limit: 10,
+      });
+
+      if (res.success) {
+        setVehicles(res.vehicles || []);
+        if (res.metrics) {
+          setMetrics(res.metrics);
+        }
+        if (res.pagination) {
+          setTotalRecords(res.pagination.total);
+          setTotalPages(res.pagination.totalPages);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch admin vehicles:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminVehicles();
+  }, [searchQuery, activeTab, selectedStatus, selectedType, currentPage]);
 
   const getStatusColorClass = (status: string) => {
     switch (status) {
@@ -35,32 +73,16 @@ export default function VehicleManagement() {
         return "text-amber-600 dark:text-amber-400";
       case "Rejected":
         return "text-rose-600 dark:text-rose-400";
+      case "Inactive":
+        return "text-slate-500 dark:text-slate-400";
       default:
         return "text-slate-700 dark:text-slate-300";
     }
   };
 
-  const filteredData = vehiclesData.filter((item) => {
-    if (activeTab === "Gate Registered Vehicles" && item.status !== "Approved") {
-      return false;
-    }
-    if (selectedStatus !== "All" && item.status !== selectedStatus) {
-      return false;
-    }
-    if (selectedType !== "All" && item.type !== selectedType) {
-      return false;
-    }
-    return true;
-  });
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
   const isGateRegistered = activeTab === "Gate Registered Vehicles";
 
-  const handleActionClick = (vehicleId: number) => {
+  const handleActionClick = (vehicleId: number | string) => {
     navigate(`/admin/vehicles/details/${vehicleId}`);
   };
 
@@ -68,45 +90,59 @@ export default function VehicleManagement() {
     <AdminLayout>
       <div>
         <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Vehicle Management</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Manage registered vehicles of users.</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Manage registered vehicles of campus users.</p>
       </div>
 
+      {/* METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Registered</span>
-            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,247</h3>
+            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+              {metrics.totalRegistered}
+            </h3>
           </div>
           <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
         </div>
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Cars & SUVs</span>
-            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">890</h3>
+            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+              {metrics.totalCars}
+            </h3>
           </div>
           <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
         </div>
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Motorcycles</span>
-            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">357</h3>
+            <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+              {metrics.totalMotorcycles}
+            </h3>
           </div>
           <img src={MotorIcon} alt="Motorcycle" className="h-5 w-5 object-contain" />
         </div>
       </div>
 
+      {/* MAIN TABLE CONTAINER */}
       <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search plates, names, logs..." 
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search plates, names, student ID..." 
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+            {/* Tabs */}
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
               {["All", "Gate Registered Vehicles"].map((tab) => (
                 <button
@@ -127,6 +163,7 @@ export default function VehicleManagement() {
               ))}
             </div>
 
+            {/* Type Filter */}
             <div className="relative">
               <button
                 type="button"
@@ -178,6 +215,7 @@ export default function VehicleManagement() {
               )}
             </div>
 
+            {/* Status Filter (Only if not Gate Registered tab) */}
             {!isGateRegistered && (
               <div className="relative">
                 <button
@@ -230,6 +268,7 @@ export default function VehicleManagement() {
           </div>
         </div>
 
+        {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-187.5">
             <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">
@@ -245,11 +284,22 @@ export default function VehicleManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-              {currentItems.length > 0 ? (
-                currentItems.map((vehicle) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={isGateRegistered ? 7 : 8} className="py-12 text-center text-slate-400 text-xs">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#0053CC] dark:text-blue-400 mx-auto mb-2" />
+                    Loading vehicles...
+                  </td>
+                </tr>
+              ) : vehicles.length > 0 ? (
+                vehicles.map((vehicle) => (
                   <tr key={vehicle.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3 font-semibold text-slate-900 dark:text-white">{vehicle.plateNo}</td>
-                    <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{vehicle.owner}</td>
+                    <td className="py-3 font-semibold text-slate-900 dark:text-white">
+                      {vehicle.plateNo || vehicle.plateNumber}
+                    </td>
+                    <td className="py-3 font-medium text-slate-800 dark:text-slate-200">
+                      {vehicle.owner || (vehicle.user ? `${vehicle.user.lastName}, ${vehicle.user.firstName}` : "--")}
+                    </td>
                     <td className="py-3">
                       <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5 w-max">
                         <img 
@@ -260,14 +310,17 @@ export default function VehicleManagement() {
                         {vehicle.type}
                       </span>
                     </td>
-                    <td className="py-3 text-slate-600 dark:text-slate-400">{vehicle.brandModel}</td>
+                    <td className="py-3 text-slate-600 dark:text-slate-400">
+                      {vehicle.brandModel || `${vehicle.brand} ${vehicle.model}`}
+                    </td>
                     <td className="py-3 text-slate-500 dark:text-slate-400">{vehicle.color}</td>
-                    <td className="py-3 text-slate-500 dark:text-slate-400">{vehicle.regDate}</td>
+                    <td className="py-3 text-slate-500 dark:text-slate-400">{vehicle.regDate || vehicle.createdAt?.split("T")[0]}</td>
                     {!isGateRegistered && (
                       <td className="py-3">
                         <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
                           vehicle.status === "Approved" ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" :
                           vehicle.status === "Pending" ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800" : 
+                          vehicle.status === "Inactive" ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700" :
                           "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
                         }`}>
                           {vehicle.status}
@@ -280,7 +333,7 @@ export default function VehicleManagement() {
                         onClick={() => handleActionClick(vehicle.id)}
                         className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
                       >
-                        {vehicle.status === "Pending" || vehicle.status === "Rejected" ? "Review" : "View"}
+                        {vehicle.status === "Pending" ? "Review" : "View"}
                       </button>
                     </td>
                   </tr>
@@ -288,7 +341,7 @@ export default function VehicleManagement() {
               ) : (
                 <tr>
                   <td colSpan={isGateRegistered ? 7 : 8} className="py-8 text-center text-slate-400 text-xs italic">
-                    No records found for this filter.
+                    No vehicle records found for this filter.
                   </td>
                 </tr>
               )}
@@ -296,8 +349,9 @@ export default function VehicleManagement() {
           </table>
         </div>
 
+        {/* PAGINATION */}
         <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
-          <span>Showing {currentItems.length} of {filteredData.length} records</span>
+          <span>Showing {vehicles.length} of {totalRecords} records</span>
           <div className="flex items-center gap-1">
             <button 
               type="button" 

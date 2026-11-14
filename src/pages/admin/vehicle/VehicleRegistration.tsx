@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, CheckCircle2, Clock, X, Check, AlertCircle, ChevronDown } from "lucide-react";
+import { Search, Filter, CheckCircle2, Clock, X, Check, AlertCircle, ChevronDown, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";
+import { 
+  getAdminVehicleRegistrations, 
+  approveVehicle, 
+  rejectVehicle 
+} from "@/api/vehicleApi";
 
 export default function VehicleRegistration() {
-  const [pendingVehicles, setPendingVehicles] = useState([
-    { id: 1, owner: "Maria Clara Reyes", vehicleType: "Toyota Wigo (Sedan)", brand: "Toyota", model: "Wigo", color: "White", plateNo: "XYZ 9091", status: "Pending", date: "Sep 28, 2026", email: "mariaclare@gmail.com", phone: "+63 912 345 6789", idNo: "24-0123" },
-    { id: 2, owner: "Juan De La Cruz", vehicleType: "Honda Civic", brand: "Honda", model: "Civic", color: "Gray", plateNo: "ABC 1234", status: "Pending", date: "Sep 25, 2026", email: "juandc@gmail.com", phone: "+63 918 765 4321", idNo: "24-0456" },
-  ]);
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState({
+    totalRegistered: 0,
+    pendingApprovals: 0,
+    activePasses: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All Vehicles");
@@ -18,6 +26,31 @@ export default function VehicleRegistration() {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [modalType, setModalType] = useState<"review" | "confirmApprove" | "rejectReason" | "confirmReject" | "approvedSuccess" | "rejectedSuccess" | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  const fetchRegistrations = async () => {
+    try {
+      setIsLoading(true);
+      const res = await getAdminVehicleRegistrations({
+        search: searchQuery,
+        filter: selectedFilter === "All Vehicles" ? "All" : selectedFilter,
+      });
+
+      if (res.success) {
+        setRegistrations(res.registrations || []);
+        if (res.metrics) {
+          setMetrics(res.metrics);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch vehicle registrations:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRegistrations();
+  }, [searchQuery, selectedFilter]);
 
   useEffect(() => {
     if (modalType !== null) {
@@ -32,37 +65,37 @@ export default function VehicleRegistration() {
 
   const filterOptions = ["Pending", "Approved", "Rejected"];
 
-  const filteredVehicles = pendingVehicles.filter((vehicle) => {
-    const matchesSearch = 
-      vehicle.plateNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle.owner.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-
-    if (selectedFilter !== "All Vehicles" && vehicle.status !== selectedFilter) {
-      return false;
-    }
-
-    return true;
-  });
-
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(registrations.length / itemsPerPage) || 1;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredVehicles.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = registrations.slice(indexOfFirstItem, indexOfLastItem);
 
-  const confirmApproveAction = () => {
+  const confirmApproveAction = async () => {
     if (selectedVehicle) {
-      setPendingVehicles(pendingVehicles.map(v => v.id === selectedVehicle.id ? { ...v, status: "Approved" } : v));
-      setModalType("approvedSuccess");
+      try {
+        await approveVehicle(selectedVehicle.id);
+        await fetchRegistrations();
+        setModalType("approvedSuccess");
+      } catch (err: any) {
+        alert(err.response?.data?.message || "Failed to approve vehicle registration.");
+      }
     }
   };
 
-  const confirmRejectAction = () => {
+  const confirmRejectAction = async () => {
     if (selectedVehicle) {
-      setPendingVehicles(pendingVehicles.map(v => v.id === selectedVehicle.id ? { ...v, status: "Rejected" } : v));
-      setModalType("rejectedSuccess");
+      if (!rejectionReason.trim()) {
+        alert("Rejection reason cannot be blank.");
+        return;
+      }
+      try {
+        await rejectVehicle(selectedVehicle.id, rejectionReason.trim());
+        await fetchRegistrations();
+        setModalType("rejectedSuccess");
+      } catch (err: any) {
+        alert(err.response?.data?.message || "Failed to reject vehicle registration.");
+      }
     }
   };
 
@@ -71,14 +104,17 @@ export default function VehicleRegistration() {
       <div className="space-y-6">
         <div>
           <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Vehicle Registration</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Manage and approve registered vehicles entering QCU premises.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Review and approve registered vehicles entering QCU premises.</p>
         </div>
 
+        {/* METRICS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
             <div>
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Registered</span>
-              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,240</h3>
+              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                {metrics.totalRegistered}
+              </h3>
             </div>
             <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
           </div>
@@ -86,7 +122,7 @@ export default function VehicleRegistration() {
             <div>
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Approvals</span>
               <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
-                {pendingVehicles.filter(v => v.status === "Pending").length}
+                {metrics.pendingApprovals}
               </h3>
             </div>
             <Clock className="h-4 w-4 text-amber-500" />
@@ -94,12 +130,15 @@ export default function VehicleRegistration() {
           <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
             <div>
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Active Passes</span>
-              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">1,226</h3>
+              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                {metrics.activePasses}
+              </h3>
             </div>
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
         </div>
 
+        {/* REGISTRATION TABLE */}
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative w-full sm:w-72">
@@ -176,7 +215,14 @@ export default function VehicleRegistration() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                {currentItems.length > 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                      <Loader2 className="h-6 w-6 animate-spin text-[#0053CC] dark:text-blue-400 mx-auto mb-2" />
+                      Loading registrations...
+                    </td>
+                  </tr>
+                ) : currentItems.length > 0 ? (
                   currentItems.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="py-3 font-medium text-slate-900 dark:text-white">{item.owner}</td>
@@ -184,9 +230,9 @@ export default function VehicleRegistration() {
                       <td className="py-3 font-semibold text-slate-800 dark:text-slate-200">{item.plateNo}</td>
                       <td className="py-3">
                         <span className={`rounded-md px-2.5 py-1 text-[10px] font-bold ${
-                          item.status === "Approved" ? "bg-emerald-50 text-emerald-600 border border-emerald-200" :
-                          item.status === "Pending" ? "bg-amber-50 text-amber-600 border border-amber-200" :
-                          "bg-rose-50 text-rose-600 border border-rose-200"
+                          item.status === "Approved" ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800" :
+                          item.status === "Pending" ? "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800" :
+                          "bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800"
                         }`}>
                           {item.status}
                         </span>
@@ -198,14 +244,14 @@ export default function VehicleRegistration() {
                           onClick={() => { setSelectedVehicle(item); setModalType("review"); }}
                           className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
                         >
-                          {item.status === "Approved" ? "View" : "Review"}
+                          {item.status === "Pending" ? "Review" : "View"}
                         </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-400 text-xs italic">
+                    <td colSpan={6} className="py-8 text-center text-slate-400 text-xs italic">
                       No vehicle records found.
                     </td>
                   </tr>
@@ -214,9 +260,9 @@ export default function VehicleRegistration() {
             </table>
           </div>
 
-          {filteredVehicles.length > 0 && (
+          {registrations.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
-              <span>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredVehicles.length)} of {filteredVehicles.length} records</span>
+              <span>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, registrations.length)} of {registrations.length} records</span>
               <div className="flex items-center gap-1">
                 <button 
                   type="button" 
@@ -252,12 +298,12 @@ export default function VehicleRegistration() {
         </div>
       </div>
 
-      {/* --- MODALS --- */}
+      {/* --- MODAL: REVIEW / VIEW --- */}
       {modalType === "review" && selectedVehicle && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-2xl rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 relative max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-              <h2 className="font-poppins text-lg font-bold text-[#0053CC] dark:text-blue-400">Vehicle Details</h2>
+              <h2 className="font-poppins text-lg font-bold text-[#0053CC] dark:text-blue-400">Vehicle Registration Details</h2>
               <button onClick={() => setModalType(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
@@ -265,21 +311,30 @@ export default function VehicleRegistration() {
 
             <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
               <img 
-                src={selectedVehicle.vehicleType.toLowerCase().includes("motorcycle") ? MotorIcon : CarIcon} 
+                src={selectedVehicle.type === "Motorcycle" ? MotorIcon : CarIcon} 
                 alt="Vehicle Icon" 
                 className="h-12 w-12 object-contain" 
               />
               <div>
                 <h3 className="font-poppins text-xl font-extrabold text-slate-900 dark:text-white">{selectedVehicle.plateNo}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{selectedVehicle.vehicleType} • {selectedVehicle.color}</p>
-                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-[#0053CC] dark:text-blue-300 text-[10px] font-bold">Car</span>
+                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-[#0053CC] dark:text-blue-300 text-[10px] font-bold">
+                  {selectedVehicle.type || (selectedVehicle.vehicleType?.includes("Motorcycle") ? "Motorcycle" : "Car")}
+                </span>
               </div>
             </div>
+
+            {/* Rejection Notice if rejected */}
+            {selectedVehicle.status === "Rejected" && selectedVehicle.rejectionReason && (
+              <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 p-4 text-xs text-rose-700 dark:text-rose-300">
+                <span className="font-bold">Dahilan ng Disapproval:</span> {selectedVehicle.rejectionReason}
+              </div>
+            )}
 
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Vehicle Information</h4>
               <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                <div><span className="text-slate-400 block">Vehicle Type</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.vehicleType}</strong></div>
+                <div><span className="text-slate-400 block">Vehicle Type</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.type || selectedVehicle.vehicleType}</strong></div>
                 <div><span className="text-slate-400 block">Brand</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.brand}</strong></div>
                 <div><span className="text-slate-400 block">Model</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.model}</strong></div>
                 <div><span className="text-slate-400 block">Color</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.color}</strong></div>
@@ -296,24 +351,58 @@ export default function VehicleRegistration() {
               </div>
             </div>
 
+            {/* DYNAMIC ACTION FOOTER */}
             <div className="flex items-center justify-center gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setModalType("rejectReason")}
-                className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer" >
-                Disapprove
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalType("confirmApprove")}
-                className="flex-1 h-10 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer">
-                Approve 
-              </button>		
+              {selectedVehicle.status === "Pending" ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setModalType("rejectReason")}
+                    className="flex-1 h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" 
+                  >
+                    Disapprove
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalType("confirmApprove")}
+                    className="flex-1 h-10 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer"
+                  >
+                    Approve 
+                  </button>
+                </>
+              ) : selectedVehicle.status === "Approved" ? (
+                <div className="w-full flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                    Registration is Already Approved
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setModalType(null)}
+                    className="px-6 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-200 cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-md bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-200 dark:border-rose-800">
+                    Registration Disapproved
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setModalType(null)}
+                    className="px-6 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-200 cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
+      {/* CONFIRM APPROVE MODAL */}
       {modalType === "confirmApprove" && selectedVehicle && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95">
@@ -337,23 +426,24 @@ export default function VehicleRegistration() {
         </div>
       )}
 
+      {/* REJECT REASON MODAL */}
       {modalType === "rejectReason" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between">
-              <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Reason for Rejection</h3>
+              <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Reason for Disapproval</h3>
               <button onClick={() => setModalType(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-xs text-slate-500">The reporter will receive an email with the reason.</p>
+            <p className="text-xs text-slate-500">The vehicle owner will see this reason in their portal.</p>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Reason for rejection*</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Reason for rejection *</label>
               <textarea
                 rows={3}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="e.g., Insufficient vehicle documentation or incorrect plate number."
+                placeholder="e.g., Insufficient vehicle documentation, blurry registration, or mismatched plate number."
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
               />
             </div>
@@ -362,7 +452,16 @@ export default function VehicleRegistration() {
               <button onClick={() => setModalType("review")} className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">
                 Cancel
               </button>
-              <button onClick={() => setModalType("confirmReject")} className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 cursor-pointer">
+              <button 
+                onClick={() => {
+                  if (!rejectionReason.trim()) {
+                    alert("Please provide a reason for disapproval.");
+                    return;
+                  }
+                  setModalType("confirmReject");
+                }} 
+                className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 cursor-pointer"
+              >
                 Disapprove
               </button>
             </div>
@@ -370,6 +469,7 @@ export default function VehicleRegistration() {
         </div>
       )}
 
+      {/* CONFIRM REJECT MODAL */}
       {modalType === "confirmReject" && selectedVehicle && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95">
@@ -393,6 +493,7 @@ export default function VehicleRegistration() {
         </div>
       )}
 
+      {/* APPROVED SUCCESS MODAL */}
       {modalType === "approvedSuccess" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">
@@ -401,7 +502,7 @@ export default function VehicleRegistration() {
             </div>
             <div>
               <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Vehicle Registration Approved</h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">The vehicle is now listed under Registered Vehicles.</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">The vehicle is now Approved and a QR gate pass has been issued.</p>
             </div>
             <button onClick={() => setModalType(null)} className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer">
               Close
@@ -410,6 +511,7 @@ export default function VehicleRegistration() {
         </div>
       )}
 
+      {/* REJECTED SUCCESS MODAL */}
       {modalType === "rejectedSuccess" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in zoom-in-95">
@@ -418,7 +520,7 @@ export default function VehicleRegistration() {
             </div>
             <div>
               <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Vehicle Registration Disapproved</h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">The vehicle is not Approved.</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">The disapproval reason has been recorded and the owner will be notified.</p>
             </div>
             <button onClick={() => setModalType(null)} className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer">
               Close
