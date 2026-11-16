@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Car,
   TrendingUp,
@@ -6,8 +8,48 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getAdminIncidents, type IncidentItem } from "@/api/incidentApi";
+import { getAdminVehicles, type Vehicle } from "@/api/vehicleApi";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const [latestIncident, setLatestIncident] = useState<IncidentItem | null>(null);
+  const [pendingIncidentCount, setPendingIncidentCount] = useState<number>(0);
+  const [latestVehicle, setLatestVehicle] = useState<Vehicle | null>(null);
+  const [pendingVehicleCount, setPendingVehicleCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [incRes, vehRes] = await Promise.allSettled([
+          getAdminIncidents({ status: "Pending", limit: 1 }),
+          getAdminVehicles({ status: "Pending", limit: 1 }),
+        ]);
+
+        if (incRes.status === "fulfilled" && incRes.value.success) {
+          if (incRes.value.incidents && incRes.value.incidents.length > 0) {
+            setLatestIncident(incRes.value.incidents[0]);
+          }
+          if (incRes.value.metrics) {
+            setPendingIncidentCount(incRes.value.metrics.waitingForReview);
+          }
+        }
+
+        if (vehRes.status === "fulfilled" && vehRes.value.success) {
+          if (vehRes.value.vehicles && vehRes.value.vehicles.length > 0) {
+            setLatestVehicle(vehRes.value.vehicles[0]);
+          }
+          if (vehRes.value.pagination) {
+            setPendingVehicleCount(vehRes.value.pagination.total);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending data for dashboard:", err);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
   return (
     <AdminLayout>
       <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
@@ -82,10 +124,10 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-3">
             <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">
-              5
+              {pendingIncidentCount}
             </h3>
             <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-              3 high priority
+              {pendingIncidentCount === 0 ? "No pending reports" : `${pendingIncidentCount} awaiting review`}
             </p>
           </div>
         </div>
@@ -137,55 +179,91 @@ export default function AdminDashboard() {
           </h3>
 
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Pending Vehicle Registrations
-            </p>
-            <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 space-y-2">
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Reyes, Maria Clara
-                </h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Toyota Wigo • Plate: XYZ 9091
-                </p>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  type="button"
-                  className="rounded-lg bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
-                >
-                  Approve
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg bg-red-50 dark:bg-red-950/50 px-3 py-1 text-[11px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 transition-colors cursor-pointer"
-                >
-                  Reject
-                </button>
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Pending Vehicle Registrations
+              </p>
+              {pendingVehicleCount > 0 && (
+                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                  {pendingVehicleCount} waiting
+                </span>
+              )}
             </div>
+            {latestVehicle ? (
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 space-y-2">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    {latestVehicle.user ? `${latestVehicle.user.lastName}, ${latestVehicle.user.firstName}` : latestVehicle.owner || "Pending Owner"}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {latestVehicle.brand} {latestVehicle.model} • Plate: {latestVehicle.plateNumber || latestVehicle.plateNo}
+                  </p>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/vehicles/registration")}
+                    className="rounded-lg bg-[#0053CC] px-3 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    Review
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3 text-xs text-slate-400 text-center">
+                No pending vehicle registrations.
+              </div>
+            )}
           </div>
 
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Pending Incident Reports
-            </p>
-            <div className="rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 p-3 flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-bold text-rose-700 dark:text-rose-400">
-                  Blocking Parking Space
-                </h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Toyota Avanza • Plate QWE 0987
-                </p>
-              </div>
-              <button
-                type="button"
-                className="rounded-lg bg-rose-100 dark:bg-rose-900/60 px-3 py-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-200 hover:bg-rose-200 transition-colors cursor-pointer"
-              >
-                Review
-              </button>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Pending Incident Reports
+              </p>
+              {pendingIncidentCount > 0 && (
+                <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">
+                  {pendingIncidentCount} waiting
+                </span>
+              )}
             </div>
+            {latestIncident ? (
+              <div className="rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 p-3 flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-rose-700 dark:text-rose-400">
+                    {latestIncident.reportType}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {latestIncident.model} • Plate {latestIncident.plate}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/admin/incidents/review/${latestIncident.id}`)}
+                  className="rounded-lg bg-rose-100 dark:bg-rose-900/60 px-3 py-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-200 hover:bg-rose-200 transition-colors cursor-pointer"
+                >
+                  Review
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3 flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    No Pending Incidents
+                  </h4>
+                  <p className="text-[11px] text-slate-400">
+                    All submitted reports have been reviewed.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/admin/incidents")}
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  View All
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

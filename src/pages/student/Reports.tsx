@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   FileText, 
   History, 
@@ -7,13 +7,15 @@ import {
   X, 
   ChevronRight, 
   ArrowLeft,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { submitIncidentReport, getMyIncidentReports } from "@/api/incidentApi";
 
 interface Incident {
   id: string;
@@ -40,37 +42,48 @@ export default function Reports() {
   // History Filter State: 'All' | 'In Progress' | 'Resolved' | 'Closed'
   const [historyFilter, setHistoryFilter] = useState<string>("All");
 
-  // Mock List ng Incidents
-  const [incidents, setIncidents] = useState<Incident[]>([
-    {
-      id: "1",
-      reportId: "DFGA12VDJA",
-      title: "Minor Scratch - Sedan",
-      type: "Minor Scratch",
-      vehicleType: "Car (Sedan)",
-      color: "White",
-      model: "Toyota Vios",
-      plateNumber: "ABC-1234",
-      dateTime: "October 11, 2026 • 10:30AM",
-      status: "In Progress",
-      image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500",
-      description: "Vehicle is parked overlapping the line, rendering the adjacent space completely inaccessible for other cars. Checked around 10:15 AM."
-    },
-    {
-      id: "2",
-      reportId: "DFGA99XYZ1",
-      title: "Parking Violation",
-      type: "Illegal / Improper Parking",
-      vehicleType: "Motorcycle",
-      color: "Black",
-      model: "Yamaha NMAX",
-      plateNumber: "XYZ-5678",
-      dateTime: "October 11, 2026 • 09:15AM",
-      status: "Resolved",
-      image: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500",
-      description: "Motorcycle parked blocking the main driveway near the Gate 1 entrance."
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Fetch student's real reports from backend
+  const fetchMyReports = async () => {
+    try {
+      setIsLoading(true);
+      const res = await getMyIncidentReports();
+      if (res.success && Array.isArray(res.reports)) {
+        const mapped: Incident[] = res.reports.map((r) => ({
+          id: r.id.toString(),
+          reportId: r.referenceId,
+          title: `${r.reportType} - ${r.vehicleType}`,
+          type: r.reportType,
+          vehicleType: r.vehicleType,
+          color: r.color || "--",
+          model: r.model || "--",
+          plateNumber: r.plateNumber,
+          dateTime: new Date(r.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          status: r.status === "Reviewed" ? "Resolved" : r.status === "Rejected" ? "Closed" : "In Progress",
+          image: r.evidenceImage || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500",
+          description: r.description,
+        }));
+        setIncidents(mapped);
+      }
+    } catch (err) {
+      console.error("Failed to load user incident reports:", err);
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchMyReports();
+  }, []);
 
   // Modal States
   const [isNewReportOpen, setIsNewReportOpen] = useState(false);
@@ -82,11 +95,12 @@ export default function Reports() {
 
   // Form Fields & Errors
   const [formData, setFormData] = useState({
-    vehicleType: "Car (Sedan)",
-    color: "Silver",
-    model: "Honda Civic",
-    plateNumber: "ABC-1234",
+    vehicleType: "",
+    color: "",
+    model: "",
+    plateNumber: "",
     reportType: "Blocking Parking Space",
+    description: "",
     photo: null as File | null,
     photoPreview: "",
   });
@@ -116,7 +130,7 @@ export default function Reports() {
     }
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: { [key: string]: string } = {};
 
@@ -125,42 +139,69 @@ export default function Reports() {
     if (!formData.model) errors.model = "Model is required.";
     if (!formData.plateNumber) errors.plateNumber = "Plate number is required.";
     if (!formData.reportType) errors.reportType = "Report type is required.";
-    if (!formData.photo) errors.photo = "Photo evidence is required.";
+    if (!formData.photo && !formData.photoPreview) errors.photo = "Photo evidence is required.";
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
 
-    const newInc: Incident = {
-      id: Date.now().toString(),
-      reportId: `DFGA${Math.floor(1000 + Math.random() * 9000)}`,
-      title: `${formData.reportType} - ${formData.vehicleType}`,
-      type: formData.reportType,
-      vehicleType: formData.vehicleType,
-      color: formData.color,
-      model: formData.model,
-      plateNumber: formData.plateNumber,
-      dateTime: "October 18, 2026 • 10:23AM",
-      status: "In Progress",
-      image: formData.photoPreview || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500",
-      description: "Reported incident directly by user. Pending supervisor review."
-    };
+    try {
+      setIsSubmitting(true);
+      const res = await submitIncidentReport({
+        vehicleType: formData.vehicleType,
+        color: formData.color,
+        model: formData.model,
+        plateNumber: formData.plateNumber,
+        reportType: formData.reportType,
+        description: formData.description || "Reported incident directly by user.",
+        evidenceImage: formData.photoPreview || null,
+      });
 
-    setIncidents([newInc, ...incidents]);
-    setSelectedIncident(newInc);
-    setIsNewReportOpen(false);
-    setFormData({
-      vehicleType: "Car (Sedan)",
-      color: "Silver",
-      model: "Honda Civic",
-      plateNumber: "ABC-1234",
-      reportType: "Blocking Parking Space",
-      photo: null,
-      photoPreview: "",
-    });
-    setIsSuccessOpen(true);
-    setFormErrors({});
+      if (res.success && res.incident) {
+        const created = res.incident;
+        const newInc: Incident = {
+          id: created.id.toString(),
+          reportId: created.referenceId,
+          title: `${created.reportType} - ${created.vehicleType}`,
+          type: created.reportType,
+          vehicleType: created.vehicleType,
+          color: created.color || "--",
+          model: created.model || "--",
+          plateNumber: created.plateNumber,
+          dateTime: new Date(created.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          status: "In Progress",
+          image: created.evidenceImage || formData.photoPreview,
+          description: created.description,
+        };
+
+        setIncidents((prev) => [newInc, ...prev]);
+        setSelectedIncident(newInc);
+        setIsNewReportOpen(false);
+        setFormData({
+          vehicleType: "",
+          color: "",
+          model: "",
+          plateNumber: "",
+          reportType: "Blocking Parking Space",
+          description: "",
+          photo: null,
+          photoPreview: "",
+        });
+        setIsSuccessOpen(true);
+        setFormErrors({});
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to submit incident report.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Filtered list for History View
@@ -282,16 +323,26 @@ export default function Reports() {
               </button>
             </div>
 
-            <div className="space-y-3">
-              {incidents.slice(0, 3).map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setSelectedIncident(item);
-                    setIsDetailsOpen(true);
-                  }}
-                  className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer group"
-                >
+            {isLoading ? (
+              <div className="py-8 flex items-center justify-center gap-2 text-xs text-slate-400">
+                <Loader2 className="h-4 w-4 animate-spin text-[#0053CC]" />
+                <span>Loading reports...</span>
+              </div>
+            ) : incidents.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                No incident reports submitted yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {incidents.slice(0, 3).map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setSelectedIncident(item);
+                      setIsDetailsOpen(true);
+                    }}
+                    className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer group"
+                  >
                   <div className="flex items-center gap-3.5">
                     <img
                       src={item.image}
@@ -328,8 +379,9 @@ export default function Reports() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
         {/* ----------------- TAB CONTENT 2: INCIDENT HISTORY WITH FILTER ----------------- */}
         {activeTab === "history" && (
@@ -581,9 +633,11 @@ export default function Reports() {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs transition-all shadow-sm cursor-pointer"
+                  disabled={isSubmitting}
+                  className="h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-xs transition-all shadow-sm cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
                 >
-                  Submit Report
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isSubmitting ? "Submitting..." : "Submit Report"}</span>
                 </Button>
               </div>
 
