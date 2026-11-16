@@ -1,113 +1,190 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Settings, History, BarChart2, ArrowRight } from "lucide-react";
+import { Settings, History, BarChart2, ArrowRight, Loader2, RefreshCw } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";
+import { getParkingOverview, type ParkingOverviewData } from "@/api/parkingApi";
 
 export default function ParkingManagement() {
+  const [overview, setOverview] = useState<ParkingOverviewData>({
+    totalCapacity: 100,
+    totalOccupied: 0,
+    availableSpaces: 100,
+    occupancyRate: 0,
+    cars: {
+      capacity: 60,
+      parked: 0,
+      available: 60,
+      occupancyRate: 0,
+    },
+    motorcycles: {
+      capacity: 40,
+      parked: 0,
+      available: 40,
+      occupancyRate: 0,
+    },
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchOverview = async (showRefreshSpinner = false) => {
+    try {
+      if (showRefreshSpinner) setIsRefreshing(true);
+      const res = await getParkingOverview();
+      if (res.success && res.data) {
+        setOverview(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch parking overview:", err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOverview();
+  }, []);
+
   return (
     <AdminLayout>
-      <div>
-        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Parking Management</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Live occupancy based on vehicles currently inside.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Parking Management</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Live occupancy based on vehicles currently inside.</p>
+        </div>
+        <button
+          onClick={() => fetchOverview(true)}
+          disabled={isRefreshing || isLoading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs cursor-pointer disabled:opacity-60"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-[#0053CC]" : ""}`} />
+          <span>Refresh</span>
+        </button>
       </div>
 
-      {/* Main Occupancy Card */}
-      <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-8 transition-colors">
-        <div className="relative flex items-center justify-center h-32 w-32 shrink-0">
-          <svg className="h-full w-full transform -rotate-90" viewBox="0 0 36 36">
-            <path
-              className="text-slate-100 dark:text-slate-800"
-              strokeWidth="3.8"
-              stroke="currentColor"
-              fill="none"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <path
-              className="text-[#0053CC] dark:text-blue-400"
-              strokeDasharray="57, 100"
-              strokeWidth="3.8"
-              strokeLinecap="round"
-              stroke="currentColor"
-              fill="none"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-          </svg>
-          <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="font-poppins text-xl font-bold text-slate-900 dark:text-white">57%</span>
-            <span className="text-[10px] font-medium text-slate-400">full</span>
-          </div>
+      {isLoading ? (
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 flex flex-col items-center justify-center text-center space-y-3">
+          <Loader2 className="h-8 w-8 text-[#0053CC] animate-spin" />
+          <p className="text-xs text-slate-500 dark:text-slate-400">Loading live occupancy data...</p>
         </div>
-
-        <div className="space-y-3 w-full text-center sm:text-left">
-          <p className="text-xs font-semibold text-slate-400">Available spaces</p>
-          <div className="flex items-baseline justify-center sm:justify-start gap-1.5">
-            <span className="font-poppins text-4xl font-extrabold text-slate-900 dark:text-white">43</span>
-            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">/ 100 total spaces</span>
-          </div>
-          <div className="flex items-center justify-center sm:justify-start gap-6 pt-1 text-xs font-medium">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC] dark:bg-blue-400"></span>
-              <span className="text-slate-600 dark:text-slate-300">57 occupied</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-slate-200 dark:bg-slate-700"></span>
-              <span className="text-slate-500 dark:text-slate-400">43 available</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Vehicle Category Breakdown Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
-                <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
+      ) : (
+        <>
+          {/* Main Occupancy Card */}
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-8 transition-colors">
+            <div className="relative flex items-center justify-center h-32 w-32 shrink-0">
+              <svg className="h-full w-full transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-slate-100 dark:text-slate-800"
+                  strokeWidth="3.8"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-[#0053CC] dark:text-blue-400"
+                  strokeDasharray={`${Math.min(overview.occupancyRate, 100)}, 100`}
+                  strokeWidth="3.8"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center text-center">
+                <span className="font-poppins text-xl font-bold text-slate-900 dark:text-white">
+                  {overview.occupancyRate}%
+                </span>
+                <span className="text-[10px] font-medium text-slate-400">full</span>
               </div>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cars</span>
             </div>
-            <div className="text-right">
-              <span className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">22</span>
-              <span className="text-xs text-slate-400"> / 60 spaces</span>
-            </div>
-          </div>
-          <div>
-            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-[#0053CC] dark:bg-blue-500 w-[63%] rounded-full"></div>
-            </div>
-            <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
-              <span>38 parked now</span>
-              <span>22 available</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
-                <img src={MotorIcon} alt="Motorcycle" className="h-5 w-5 object-contain" />
+            <div className="space-y-3 w-full text-center sm:text-left">
+              <p className="text-xs font-semibold text-slate-400">Available spaces</p>
+              <div className="flex items-baseline justify-center sm:justify-start gap-1.5">
+                <span className="font-poppins text-4xl font-extrabold text-slate-900 dark:text-white">
+                  {overview.availableSpaces}
+                </span>
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  / {overview.totalCapacity} total spaces
+                </span>
               </div>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Motorcycles</span>
-            </div>
-            <div className="text-right">
-              <span className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">21</span>
-              <span className="text-xs text-slate-400"> / 40 spaces</span>
-            </div>
-          </div>
-          <div>
-            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-[#0053CC] dark:bg-blue-500 w-[47.5%] rounded-full"></div>
-            </div>
-            <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
-              <span>19 parked now</span>
-              <span>21 available</span>
+              <div className="flex items-center justify-center sm:justify-start gap-6 pt-1 text-xs font-medium">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC] dark:bg-blue-400"></span>
+                  <span className="text-slate-600 dark:text-slate-300">{overview.totalOccupied} occupied</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+                  <span className="text-slate-500 dark:text-slate-400">{overview.availableSpaces} available</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+
+          {/* Vehicle Category Breakdown Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
+                    <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cars</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">
+                    {overview.cars.available}
+                  </span>
+                  <span className="text-xs text-slate-400"> / {overview.cars.capacity} spaces</span>
+                </div>
+              </div>
+              <div>
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#0053CC] dark:bg-blue-500 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(overview.cars.occupancyRate, 100)}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
+                  <span>{overview.cars.parked} parked now</span>
+                  <span>{overview.cars.available} available</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
+                    <img src={MotorIcon} alt="Motorcycle" className="h-5 w-5 object-contain" />
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Motorcycles</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">
+                    {overview.motorcycles.available}
+                  </span>
+                  <span className="text-xs text-slate-400"> / {overview.motorcycles.capacity} spaces</span>
+                </div>
+              </div>
+              <div>
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#0053CC] dark:bg-blue-500 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(overview.motorcycles.occupancyRate, 100)}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
+                  <span>{overview.motorcycles.parked} parked now</span>
+                  <span>{overview.motorcycles.available} available</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Action Cards Section */}
       <div className="space-y-4 pt-2">
