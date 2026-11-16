@@ -11,6 +11,7 @@ import {
   RotateCcw, 
   Check, 
   X, 
+  Clock,
   Loader2 
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -21,7 +22,7 @@ import {
   updateAdminVehicleStatus, 
   approveVehicle, 
   rejectVehicle,
-  getVehicleParkingHistory
+  getVehicleParkingHistory 
 } from "@/api/vehicleApi";
 
 export default function VehicleDetails() {
@@ -59,7 +60,7 @@ export default function VehicleDetails() {
   useEffect(() => {
     fetchVehicle();
   }, [id]);
-  
+
   // Prevent background scrolling when modals are open
   useEffect(() => {
     if (showDeactivateModal || showApproveModal || showRejectModal) {
@@ -71,8 +72,8 @@ export default function VehicleDetails() {
       document.body.style.overflow = "unset";
     };
   }, [showDeactivateModal, showApproveModal, showRejectModal]);
-  
-  // History Table Functionality (Live Backend Integration)
+
+  // History Table Functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTimeFilter, setSelectedTimeFilter] = useState("All");
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
@@ -90,7 +91,7 @@ export default function VehicleDetails() {
   const timeOptions = ["All", "Morning (AM)", "Afternoon / Evening (PM)"];
 
   const fetchParkingHistory = async () => {
-    if (!id) return;
+    if (!id || vehicle?.status === "Pending") return;
     try {
       setIsHistoryLoading(true);
       const res = await getVehicleParkingHistory(id, {
@@ -118,8 +119,10 @@ export default function VehicleDetails() {
   };
 
   useEffect(() => {
-    fetchParkingHistory();
-  }, [id, searchQuery, selectedDate, selectedTimeFilter, currentPage]);
+    if (vehicle && vehicle.status !== "Pending") {
+      fetchParkingHistory();
+    }
+  }, [id, vehicle?.status, searchQuery, selectedDate, selectedTimeFilter, currentPage]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
@@ -127,7 +130,6 @@ export default function VehicleDetails() {
     setSelectedDate("All Dates");
     setCurrentPage(1);
   };
-
 
   const handleSaveStatus = async () => {
     if (!vehicle) return;
@@ -246,6 +248,41 @@ export default function VehicleDetails() {
         </div>
       ) : (
         <>
+          {/* PENDING REVIEW CARD NOTIFICATION */}
+          {vehicle.status === "Pending" && (
+            <div className="rounded-3xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800/80 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 shrink-0">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-poppins text-sm font-bold text-amber-900 dark:text-amber-200">
+                    FOR REVIEW: Pending Registration
+                  </h3>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+                    This vehicle is awaiting administrator review. Verify the vehicle and owner information below to grant campus gate access.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowRejectModal(true)}
+                  className="px-4 py-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-100/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Disapprove
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowApproveModal(true)}
+                  className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-blue-700 text-xs font-bold text-white shadow-sm transition-colors cursor-pointer"
+                >
+                  Approve Vehicle
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Main Details Card */}
           <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors mt-6">
             
@@ -494,188 +531,203 @@ export default function VehicleDetails() {
               </h3>
             </div>
 
-            {/* Search & Filters */}
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-              <div className="relative w-full lg:w-72">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Search date, guard, status..." 
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
-                />
+            {/* If vehicle is Pending, do not show empty table, show clear explanation */}
+            {vehicle.status === "Pending" ? (
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 p-8 text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                <Clock className="h-8 w-8 text-amber-500 mx-auto mb-1 animate-pulse" />
+                <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                  No Parking Records Available
+                </p>
+                <p className="max-w-md mx-auto leading-relaxed">
+                  Ang sasakyang ito ay kasalukuyang <strong>Pending Approval</strong>. Magkakaroon lamang ng parking records kapag naaprubahan na ng administrator ang rehistrasyon at ginamit na sa campus gate.
+                </p>
               </div>
+            ) : (
+              <>
+                {/* Search & Filters */}
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                  <div className="relative w-full lg:w-72">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <input 
+                      type="text" 
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Search date, guard, status..." 
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
+                    />
+                  </div>
 
-              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                    className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 cursor-pointer"
-                  >
-                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                    <span>{selectedDate}</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                        className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 cursor-pointer"
+                      >
+                        <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                        <span>{selectedDate}</span>
+                        <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                      </button>
 
-                  {isCalendarOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1 z-20 text-xs">
-                      {dateOptions.map((date) => (
-                        <button
-                          key={date}
-                          type="button"
-                          onClick={() => {
-                            setSelectedDate(date);
-                            setIsCalendarOpen(false);
-                            setCurrentPage(1);
-                          }}
-                          className={`w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer ${
-                            selectedDate === date ? "font-bold text-[#0053CC] dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
-                          }`}
-                        >
-                          {date}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 min-w-35 cursor-pointer"
-                  >
-                    <span>{selectedTimeFilter}</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-                  </button>
-
-                  {isTimeDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1 z-20 text-xs">
-                      {timeOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => {
-                            setSelectedTimeFilter(option);
-                            setIsTimeDropdownOpen(false);
-                            setCurrentPage(1);
-                          }}
-                          className={`w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer ${
-                            selectedTimeFilter === option ? "font-bold text-[#0053CC] dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <button 
-                  type="button" 
-                  onClick={handleResetFilters}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-[#0053CC] px-2 py-1 transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  <span>Reset</span>
-                </button>
-              </div>
-            </div>
-
-            {/* History Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs min-w-162.5">
-                <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">
-                  <tr>
-                    <th className="pb-3">Date</th>
-                    <th className="pb-3">Entry Time</th>
-                    <th className="pb-3">Exit Time</th>
-                    <th className="pb-3">Duration</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3">Registered By</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                  {isHistoryLoading ? (
-                    <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Loader2 className="h-6 w-6 animate-spin text-[#0053CC]" />
-                          <span>Loading parking history logs...</span>
+                      {isCalendarOpen && (
+                        <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1 z-20 text-xs">
+                          {dateOptions.map((date) => (
+                            <button
+                              key={date}
+                              type="button"
+                              onClick={() => {
+                                setSelectedDate(date);
+                                setIsCalendarOpen(false);
+                                setCurrentPage(1);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer ${
+                                selectedDate === date ? "font-bold text-[#0053CC] dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
+                              }`}
+                            >
+                              {date}
+                            </button>
+                          ))}
                         </div>
-                      </td>
-                    </tr>
-                  ) : historyList.length > 0 ? (
-                    historyList.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="py-3 font-semibold text-slate-900 dark:text-white">{item.date}</td>
-                        <td className="py-3 text-slate-600 dark:text-slate-400">{item.entryTime}</td>
-                        <td className="py-3 text-slate-600 dark:text-slate-400">{item.exitTime}</td>
-                        <td className="py-3 text-slate-600 dark:text-slate-400">{item.duration}</td>
-                        <td className="py-3">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold ${
-                            item.status === "Complete" 
-                              ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800"
-                              : "bg-blue-50 text-[#0053CC] border border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800"
-                          }`}>
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="py-3 font-medium text-slate-700 dark:text-slate-300">{item.registeredBy}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs italic">
-                        No parking history records found for this vehicle.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      )}
+                    </div>
 
-            {/* Pagination */}
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
-              <span>Showing {historyTotalRecords > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to {Math.min(currentPage * itemsPerPage, historyTotalRecords)} of {historyTotalRecords} records</span>
-              <div className="flex items-center gap-1">
-                <button 
-                  type="button" 
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-lg font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                {Array.from({ length: historyTotalPages }, (_, i) => i + 1).map((number) => (
-                  <button
-                    key={number}
-                    type="button"
-                    onClick={() => setCurrentPage(number)}
-                    className={`px-3 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                      currentPage === number
-                        ? "bg-[#0053CC] text-white"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                    }`}
-                  >
-                    {number}
-                  </button>
-                ))}
-                <button 
-                  type="button" 
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, historyTotalPages))}
-                  disabled={currentPage === historyTotalPages || historyTotalPages === 0}
-                  className="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
+                        className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 min-w-35 cursor-pointer"
+                      >
+                        <span>{selectedTimeFilter}</span>
+                        <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                      </button>
+
+                      {isTimeDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1 z-20 text-xs">
+                          {timeOptions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTimeFilter(option);
+                                setIsTimeDropdownOpen(false);
+                                setCurrentPage(1);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer ${
+                                selectedTimeFilter === option ? "font-bold text-[#0053CC] dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <button 
+                      type="button" 
+                      onClick={handleResetFilters}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-[#0053CC] px-2 py-1 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>Reset</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* History Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-162.5">
+                    <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">
+                      <tr>
+                        <th className="pb-3">Date</th>
+                        <th className="pb-3">Entry Time</th>
+                        <th className="pb-3">Exit Time</th>
+                        <th className="pb-3">Duration</th>
+                        <th className="pb-3">Status</th>
+                        <th className="pb-3">Registered By</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      {isHistoryLoading ? (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <Loader2 className="h-6 w-6 animate-spin text-[#0053CC]" />
+                              <span>Loading parking history logs...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : historyList.length > 0 ? (
+                        historyList.map((item) => (
+                          <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td className="py-3 font-semibold text-slate-900 dark:text-white">{item.date}</td>
+                            <td className="py-3 text-slate-600 dark:text-slate-400">{item.entryTime}</td>
+                            <td className="py-3 text-slate-600 dark:text-slate-400">{item.exitTime}</td>
+                            <td className="py-3 text-slate-600 dark:text-slate-400">{item.duration}</td>
+                            <td className="py-3">
+                              <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold ${
+                                item.status === "Complete" 
+                                  ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800" 
+                                  : "bg-blue-50 text-[#0053CC] border border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800"
+                              }`}>
+                                {item.status}
+                              </span>
+                            </td>
+                            <td className="py-3 font-medium text-slate-700 dark:text-slate-300">{item.registeredBy}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="py-8 text-center text-slate-400 text-xs italic">
+                            No parking history records found for this vehicle.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
+                  <span>Showing {historyTotalRecords > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to {Math.min(currentPage * itemsPerPage, historyTotalRecords)} of {historyTotalRecords} records</span>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      type="button" 
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 rounded-lg font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    {Array.from({ length: historyTotalPages }, (_, i) => i + 1).map((number) => (
+                      <button
+                        key={number}
+                        type="button"
+                        onClick={() => setCurrentPage(number)}
+                        className={`px-3 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
+                          currentPage === number
+                            ? "bg-[#0053CC] text-white"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                        }`}
+                      >
+                        {number}
+                      </button>
+                    ))}
+                    <button 
+                      type="button" 
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, historyTotalPages))}
+                      disabled={currentPage === historyTotalPages || historyTotalPages === 0}
+                      className="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </>
       )}
