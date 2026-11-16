@@ -20,7 +20,8 @@ import {
   getAdminVehicleById, 
   updateAdminVehicleStatus, 
   approveVehicle, 
-  rejectVehicle 
+  rejectVehicle,
+  getVehicleParkingHistory
 } from "@/api/vehicleApi";
 
 export default function VehicleDetails() {
@@ -71,7 +72,7 @@ export default function VehicleDetails() {
     };
   }, [showDeactivateModal, showApproveModal, showRejectModal]);
   
-  // History Table Functionality
+  // History Table Functionality (Live Backend Integration)
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTimeFilter, setSelectedTimeFilter] = useState("All");
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
@@ -80,37 +81,45 @@ export default function VehicleDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Placeholder history data for when parking logs are connected in Parking Module
-  const historyData = [
-    { id: 1, date: "Sep 30, 2026", entryTime: "05:30 PM", exitTime: "12:00 PM", duration: "6h 15m", status: "Complete", registeredBy: "Guard Santos" },
-    { id: 2, date: "Sep 30, 2026", entryTime: "08:02 AM", exitTime: "--", duration: "--", status: "Currently Parked", registeredBy: "Guard Santos" },
-    { id: 3, date: "Sep 30, 2026", entryTime: "05:30 PM", exitTime: "12:00 PM", duration: "6h 18m", status: "Complete", registeredBy: "Guard Santos" },
-    { id: 4, date: "Sep 29, 2026", entryTime: "01:15 PM", exitTime: "04:30 PM", duration: "3h 15m", status: "Complete", registeredBy: "Guard Reyes" },
-    { id: 5, date: "Sep 28, 2026", entryTime: "09:00 AM", exitTime: "05:00 PM", duration: "8h 00m", status: "Complete", registeredBy: "Guard Santos" },
-  ];
+  const [historyList, setHistoryList] = useState<any[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
+  const [historyTotalRecords, setHistoryTotalRecords] = useState(0);
+  const [dateOptions, setDateOptions] = useState<string[]>(["All Dates"]);
 
   const timeOptions = ["All", "Morning (AM)", "Afternoon / Evening (PM)"];
-  const dateOptions = ["All Dates", "Sep 30, 2026", "Sep 29, 2026", "Sep 28, 2026"];
 
-  const filteredHistory = historyData.filter((item) => {
-    const matchesSearch = 
-      item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.registeredBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.entryTime.toLowerCase().includes(searchQuery.toLowerCase());
+  const fetchParkingHistory = async () => {
+    if (!id) return;
+    try {
+      setIsHistoryLoading(true);
+      const res = await getVehicleParkingHistory(id, {
+        search: searchQuery,
+        date: selectedDate,
+        timeFilter: selectedTimeFilter,
+        page: currentPage,
+        limit: itemsPerPage,
+      });
+      if (res.success) {
+        setHistoryList(res.history || []);
+        if (res.availableDates && res.availableDates.length > 0) {
+          setDateOptions(res.availableDates);
+        }
+        if (res.pagination) {
+          setHistoryTotalPages(res.pagination.totalPages || 1);
+          setHistoryTotalRecords(res.pagination.total || 0);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to load vehicle parking history:", err);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
 
-    if (!matchesSearch) return false;
-    if (selectedDate !== "All Dates" && item.date !== selectedDate) return false;
-    if (selectedTimeFilter === "Morning (AM)" && !item.entryTime.includes("AM")) return false;
-    if (selectedTimeFilter === "Afternoon / Evening (PM)" && !item.entryTime.includes("PM")) return false;
-
-    return true;
-  });
-
-  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentHistoryItems = filteredHistory.slice(indexOfFirstItem, indexOfLastItem);
+  useEffect(() => {
+    fetchParkingHistory();
+  }, [id, searchQuery, selectedDate, selectedTimeFilter, currentPage]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
@@ -118,6 +127,7 @@ export default function VehicleDetails() {
     setSelectedDate("All Dates");
     setCurrentPage(1);
   };
+
 
   const handleSaveStatus = async () => {
     if (!vehicle) return;
@@ -591,8 +601,17 @@ export default function VehicleDetails() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                  {currentHistoryItems.length > 0 ? (
-                    currentHistoryItems.map((item) => (
+                  {isHistoryLoading ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Loader2 className="h-6 w-6 animate-spin text-[#0053CC]" />
+                          <span>Loading parking history logs...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : historyList.length > 0 ? (
+                    historyList.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="py-3 font-semibold text-slate-900 dark:text-white">{item.date}</td>
                         <td className="py-3 text-slate-600 dark:text-slate-400">{item.entryTime}</td>
@@ -613,7 +632,7 @@ export default function VehicleDetails() {
                   ) : (
                     <tr>
                       <td colSpan={6} className="py-8 text-center text-slate-400 text-xs italic">
-                        No history records found matching your filter.
+                        No parking history records found for this vehicle.
                       </td>
                     </tr>
                   )}
@@ -623,7 +642,7 @@ export default function VehicleDetails() {
 
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 gap-4">
-              <span>Showing {filteredHistory.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredHistory.length)} of {filteredHistory.length} records</span>
+              <span>Showing {historyTotalRecords > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to {Math.min(currentPage * itemsPerPage, historyTotalRecords)} of {historyTotalRecords} records</span>
               <div className="flex items-center gap-1">
                 <button 
                   type="button" 
@@ -633,7 +652,7 @@ export default function VehicleDetails() {
                 >
                   Previous
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                {Array.from({ length: historyTotalPages }, (_, i) => i + 1).map((number) => (
                   <button
                     key={number}
                     type="button"
@@ -649,8 +668,8 @@ export default function VehicleDetails() {
                 ))}
                 <button 
                   type="button" 
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, historyTotalPages))}
+                  disabled={currentPage === historyTotalPages || historyTotalPages === 0}
                   className="px-3 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Next

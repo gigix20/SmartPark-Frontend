@@ -149,3 +149,36 @@ export async function updateAdminVehicleStatus(
   const response = await api.patch(`/admin/vehicles/${id}/status`, { status });
   return response.data;
 }
+
+export async function getVehicleParkingHistory(
+  id: string | number,
+  params?: {
+    search?: string;
+    date?: string;
+    timeFilter?: string;
+    page?: number;
+    limit?: number;
+  }
+): Promise<{
+  success: boolean;
+  history: Array<{
+    id: number;
+    date: string;
+    entryTime: string;
+    exitTime: string;
+    duration: string;
+    status: string;
+    registeredBy: string;
+  }>;
+  availableDates: string[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}> {
+  const response = await api.get(`/admin/vehicles/${id}/history`, { params });
+  return response.data;
+}
+
