@@ -1,80 +1,103 @@
-import { useState } from "react";
-import { Search, AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import {
+  Search,
+  AlertTriangle,
+  CheckCircle2,
+  ShieldAlert,
+  Loader2,
+  CheckCheck,
+  ExternalLink,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-  type: "alert" | "update" | "warning";
-  read: boolean;
-}
+import {
+  getAdminNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  type NotificationItem,
+} from "@/api/notificationApi";
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState<"all" | "unread" | "alerts" | "updates">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Mock Notifications Data
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: "1",
-      title: "Access denied: vehicle mismatch",
-      description: "The scanned QR for plate ABD 9034 did not match the registered vehicle.",
-      time: "Sept 30, 8:42 AM",
-      type: "alert",
-      read: false,
-    },
-    {
-      id: "2",
-      title: "Parking lot is full",
-      description: "Capacity reached 160 of 160. Entries are paused until a vehicle exits.",
-      time: "Sept 30, 9:15 AM",
-      type: "warning",
-      read: false,
-    },
-    {
-      id: "3",
-      title: "Vehicle registration approved",
-      description: "The registration of MNO 2210 was approved by Admin Cruz. Its QR is now valid.",
-      time: "Sept 29, 4:10 PM",
-      type: "update",
-      read: true,
-    },
-    {
-      id: "4",
-      title: "Inactive vehicle attempt",
-      description: "Plate TRX 117 tried to enter, but the vehicle status is Inactive.",
-      time: "Sept 29, 4:10 PM",
-      type: "alert",
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
-  // Filtering Logic
-  const filteredNotifications = notifications.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-    if (!matchesSearch) return false;
+  const fetchNotifications = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await getAdminNotifications({
+        search: debouncedSearch,
+        tab: activeTab,
+      });
 
-    if (activeTab === "unread") return !item.read;
-    if (activeTab === "alerts") return item.type === "alert" || item.type === "warning";
-    if (activeTab === "updates") return item.type === "update";
+      if (res.success) {
+        setNotifications(res.notifications);
+        setUnreadCount(res.unreadCount);
+        setTotalCount(res.totalCount);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admin notifications:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearch, activeTab]);
 
-    return true;
-  });
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      const res = await markNotificationAsRead(id);
+      if (res.success) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        );
+        setUnreadCount(res.unreadCount);
+        // Trigger event so header badge can update
+        window.dispatchEvent(new Event("adminNotificationsUpdated"));
+      }
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (unreadCount === 0 || isMarkingAll) return;
+    setIsMarkingAll(true);
+    try {
+      const res = await markAllNotificationsAsRead();
+      if (res.success) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        setUnreadCount(0);
+        window.dispatchEvent(new Event("adminNotificationsUpdated"));
+      }
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    } finally {
+      setIsMarkingAll(false);
+    }
+  };
 
   return (
     <AdminLayout>
       <div className="space-y-6 max-w-5xl mx-auto pb-16 font-sans">
-   
         {/* Main Notifications Card Container */}
         <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
-          
           {/* Header Title & Count */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
             <div>
@@ -87,9 +110,21 @@ export default function Notifications() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {unreadCount} unread • {notifications.length} total
+                {unreadCount} unread • {totalCount} total
               </p>
             </div>
+
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={handleMarkAllAsRead}
+                disabled={isMarkingAll}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer w-fit"
+              >
+                <CheckCheck className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />
+                <span>{isMarkingAll ? "Marking..." : "Mark all as read"}</span>
+              </button>
+            )}
           </div>
 
           {/* Search & Tabs Toolbar */}
@@ -157,8 +192,13 @@ export default function Notifications() {
 
           {/* Notification Items List */}
           <div className="space-y-3 pt-2">
-            {filteredNotifications.length > 0 ? (
-              filteredNotifications.map((item) => (
+            {isLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-2 text-slate-400">
+                <Loader2 className="h-6 w-6 animate-spin text-[#0053CC]" />
+                <span className="text-xs">Loading notifications...</span>
+              </div>
+            ) : notifications.length > 0 ? (
+              notifications.map((item) => (
                 <div
                   key={item.id}
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border transition-all ${
@@ -169,13 +209,15 @@ export default function Notifications() {
                 >
                   <div className="flex items-start gap-4">
                     {/* Icon Batay sa Uri ng Notif */}
-                    <div className={`p-2.5 rounded-xl border shrink-0 mt-0.5 ${
-                      item.type === "alert" 
-                        ? "bg-rose-50 dark:bg-rose-950/50 text-rose-600 border-rose-200 dark:border-rose-900" 
-                        : item.type === "warning"
-                        ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 border-amber-200 dark:border-amber-900"
-                        : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border-emerald-200 dark:border-emerald-900"
-                    }`}>
+                    <div
+                      className={`p-2.5 rounded-xl border shrink-0 mt-0.5 ${
+                        item.type === "alert"
+                          ? "bg-rose-50 dark:bg-rose-950/50 text-rose-600 border-rose-200 dark:border-rose-900"
+                          : item.type === "warning"
+                          ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 border-amber-200 dark:border-amber-900"
+                          : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border-emerald-200 dark:border-emerald-900"
+                      }`}
+                    >
                       {item.type === "alert" ? (
                         <ShieldAlert className="h-5 w-5" />
                       ) : item.type === "warning" ? (
@@ -186,12 +228,26 @@ export default function Notifications() {
                     </div>
 
                     <div className="space-y-1">
-                      <h2 className="font-poppins text-sm font-bold text-slate-900 dark:text-white">
-                        {item.title}
-                      </h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="font-poppins text-sm font-bold text-slate-900 dark:text-white">
+                          {item.title}
+                        </h2>
+                        {!item.read && (
+                          <span className="h-2 w-2 rounded-full bg-[#0053CC] inline-block"></span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         {item.description}
                       </p>
+                      {item.link && (
+                        <Link
+                          to={item.link}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0053CC] dark:text-blue-400 hover:underline pt-1"
+                        >
+                          <span>View Details</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      )}
                     </div>
                   </div>
 
@@ -202,11 +258,7 @@ export default function Notifications() {
                     {!item.read && (
                       <button
                         type="button"
-                        onClick={() => {
-                          setNotifications((prev) =>
-                            prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
-                          );
-                        }}
+                        onClick={() => handleMarkAsRead(item.id)}
                         className="px-3 py-1 rounded-lg text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-200 dark:border-blue-900 hover:bg-blue-100 transition-colors cursor-pointer"
                       >
                         Mark as read
@@ -221,9 +273,7 @@ export default function Notifications() {
               </div>
             )}
           </div>
-
         </div>
-
       </div>
     </AdminLayout>
   );

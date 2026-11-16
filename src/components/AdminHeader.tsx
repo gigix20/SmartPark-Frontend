@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
 import { useState, useEffect } from "react";
+import { getAdminNotifications } from "@/api/notificationApi";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -23,6 +24,25 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     avatar: string | null;
     role: string;
   } | null>(null);
+
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await getAdminNotifications({ limit: 1 });
+        if (res.success) {
+          setUnreadNotifs(res.unreadCount);
+        }
+      } catch {
+        // silent fail on header counter
+      }
+    };
+
+    fetchUnread();
+    window.addEventListener("adminNotificationsUpdated", fetchUnread);
+    return () => window.removeEventListener("adminNotificationsUpdated", fetchUnread);
+  }, []);
 
   const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
 
@@ -175,10 +195,12 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
+            {unreadNotifs > 0 && (
+              <span className="absolute top-2 right-2 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            )}
           </Link>
 
           {/* Theme Toggle Button sa Header */}
