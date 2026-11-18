@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw, ArrowUpRight } from "lucide-react";
+import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw, ArrowUpRight, Search, Keyboard } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 
 export default function ScanQR() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Manual code input state
+  const [manualCode, setManualCode] = useState("");
 
   // Modal states para sa buong simulation flow kasama na ang exitRecorded
   const [activeModal, setActiveModal] = useState<
@@ -24,6 +27,17 @@ export default function ScanQR() {
       document.body.style.overflow = "unset";
     };
   }, [activeModal]);
+
+  // Handler para sa manual code submission
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualCode.trim()) return;
+    
+    // Dito maaari kang maglagay ng logic kung valid o hindi ang na-type, 
+    // sa ngayon i-trigger natin ang verifyInfo modal bilang halimbawa:
+    setActiveModal("verifyInfo");
+    setManualCode("");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
@@ -43,13 +57,13 @@ export default function ScanQR() {
             {/* Page Header */}
             <div>
               <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Scan QR</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Scan the QR code with the barcode scanner.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Scan the QR code with the barcode scanner or enter the code manually.</p>
             </div>
 
             {/* Main Scanner Layout Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Left Column: Scanner Viewport Box */}
+              {/* Left Column: Scanner Viewport Box & Manual Input */}
               <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 lg:col-span-2 flex flex-col items-center justify-center transition-colors">
                 
                 <div className="w-full max-w-md h-72 rounded-2xl border-2 border-dashed border-[#0053CC]/40 dark:border-blue-500/40 bg-blue-50/20 dark:bg-blue-950/10 flex flex-col items-center justify-center relative p-6 space-y-4">
@@ -66,6 +80,29 @@ export default function ScanQR() {
                 <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
                   <RefreshCw className="h-4 w-4 animate-spin text-[#0053CC]" />
                   <span>Waiting for QR Code....</span>
+                </div>
+
+                {/* --- MANUAL CODE ENTRY ABANG --- */}
+                <div className="w-full max-w-md pt-2">
+                  <form onSubmit={handleManualSubmit} className="flex flex-col sm:flex-row items-center gap-2">
+                    <div className="relative w-full">
+                      <Keyboard className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Or manually type QR code / plate number..."
+                        value={manualCode}
+                        onChange={(e) => setManualCode(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:border-[#0053CC] font-semibold"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-5 py-2.5 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Search className="h-4 w-4" />
+                      <span>Verify</span>
+                    </button>
+                  </form>
                 </div>
 
                 {/* Simulator Test Buttons para sa iba't ibang QR states */}
@@ -122,7 +159,7 @@ export default function ScanQR() {
                 <ol className="space-y-3 text-xs text-slate-500 dark:text-slate-400 list-decimal list-inside leading-relaxed">
                   <li>Make sure the QR code is clear and not damaged.</li>
                   <li>Ensure the vehicle is properly registered.</li>
-                  <li>If the QR is invalid or expired, proceed with manual verification.</li>
+                  <li>If the QR scanner fails, you can manually type the code or plate number in the input box provided.</li>
                 </ol>
               </div>
 
@@ -260,7 +297,7 @@ export default function ScanQR() {
         </div>
       )}
 
-      {/* 3. EXIT RECORDED SUCCESS MODAL (Idinagdag na rin) */}
+      {/* 3. EXIT RECORDED SUCCESS MODAL */}
       {activeModal === "exitRecorded" && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
