@@ -3,6 +3,7 @@ import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
 import { useState, useEffect } from "react";
 import { getAdminNotifications } from "@/api/notificationApi";
+import AdminNotificationsDropdown from "@/pages/admin/AdminNotificationsDropdown";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -10,12 +11,14 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   const location = useLocation();
-  const isNotificationActive = location.pathname === "/admin/notifications";
   const isProfileActive = location.pathname === "/admin/profile" || location.pathname === "/profile";
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
+
+  // State para sa Pop-up Notifications Dropdown
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   // User state for dynamic profile
   const [user, setUser] = useState<{
@@ -184,24 +187,33 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             </div>
           </div>
 
-          {/* Notification Bell na may Active State */}
-          <Link 
-            to="/admin/notifications"
-            className={`relative p-2.5 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center ${
-              isNotificationActive
-                ? "bg-[#0053CC] text-white shadow-md shadow-blue-600/30"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-            }`}
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadNotifs > 0 && (
-              <span className="absolute top-2 right-2 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-            )}
-          </Link>
+          {/* Notification Bell Button & Pop-up Dropdown Wrapper */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className={`relative p-2.5 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center ${
+                isNotificationsOpen
+                  ? "bg-[#0053CC] text-white shadow-md shadow-blue-600/30"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+              }`}
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadNotifs > 0 && (
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+              )}
+            </button>
+
+            {/* Pop-up Notifications Dropdown */}
+            <AdminNotificationsDropdown
+              isOpen={isNotificationsOpen}
+              onClose={() => setIsNotificationsOpen(false)}
+            />
+          </div>
 
           {/* Theme Toggle Button sa Header */}
           <button

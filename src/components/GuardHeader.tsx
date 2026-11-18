@@ -3,6 +3,7 @@ import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
 import { useState, useEffect } from "react";
 import type { User } from "@/pages/auth/api/authApi";
+import NotificationsDropdown from "@/pages/guard/NotificationsDropdown"; // I-adjust ang path depende kung saan nakalagay ang component
 
 const DEFAULT_AVATAR =
   "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150";
@@ -13,12 +14,14 @@ interface GuardHeaderProps {
 
 export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
   const location = useLocation();
-  const isNotificationActive = location.pathname === "/guard/notifications";
   const isProfileActive = location.pathname === "/guard/profile" || location.pathname === "/profile";
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
+
+  // State para sa Notifications Pop-up Dropdown
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   // Dynamic user state from localStorage
   const [user, setUser] = useState<User | null>(() => {
@@ -95,7 +98,7 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+            className="lg:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:text-white transition-all cursor-pointer"
             aria-label="Toggle Sidebar"
           >
             <Menu className="h-5 w-5" />
@@ -117,7 +120,7 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center gap-3 sm:gap-5">
+        <div className="flex items-center gap-3 sm:gap-5 relative">
           
           {/* Petsa at Oras */}
           <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-xs">
@@ -132,22 +135,31 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
             </div>
           </div>
 
-          {/* Notification Bell */}
-          <Link 
-            to="/guard/notifications"
-            className={`relative p-2.5 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center ${
-              isNotificationActive
-                ? "bg-[#0053CC] text-white shadow-md shadow-blue-600/30"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-            }`}
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
-          </Link>
+          {/* Notification Bell Button & Pop-up Dropdown Wrapper */}
+          <div className="relative">
+            <button 
+              type="button"
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className={`relative p-2.5 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center ${
+                isNotificationsOpen
+                  ? "bg-[#0053CC] text-white shadow-md shadow-blue-600/30"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+              }`}
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-2 right-2 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            </button>
+
+            {/* Pop-up Notifications Dropdown */}
+            <NotificationsDropdown 
+              isOpen={isNotificationsOpen} 
+              onClose={() => setIsNotificationsOpen(false)} 
+            />
+          </div>
 
           {/* Theme Toggle Button */}
           <button

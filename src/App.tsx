@@ -20,7 +20,6 @@ import ScanQR from "./pages/guard/ScanQR";
 import GateRegistered from "./pages/guard/GateRegistered";
 import GateRegistrationForm from "./pages/guard/GateRegistrationForm";
 import GateMonitoring from "./pages/guard/GateMonitoring";
-import Notifications from "./pages/guard/Notifications";
 import GuardProfile from "./pages/guard/Profile"; 
 import GuardChangePassword from "./pages/guard/GuardChangePassword";
 
@@ -28,13 +27,12 @@ import GuardChangePassword from "./pages/guard/GuardChangePassword";
 import GuardDetails from "./pages/admin/account/GuardDetails"; 
 import GuardEdit from "./pages/admin/account/GuardEdit";  
 
-// --- BAGONG IMPORT PARA SA USER DETAILS AT EDIT ---
+// --- USER DETAILS AT EDIT ---
 import UserDetails from "./pages/admin/account/UserDetails";
 import UserEdit from "./pages/admin/account/UserEdit";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminChangePassword from "./pages/admin/AdminChangePassword";
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
@@ -60,7 +58,6 @@ import GuardCreate from "./pages/admin/account/GuardCreate";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { IdleTimer } from "./components/IdleTimer";
 import { ProfileDispatcher } from "./components/ProfileDispatcher";
-
 
 function App() {
   return (
@@ -172,15 +169,6 @@ function App() {
         />
 
         <Route
-          path="/guard/notifications"
-          element={
-            <ProtectedRoute allowedRoles={["GUARD"]}>
-              <Notifications />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/guard/profile"
           element={
             <ProtectedRoute allowedRoles={["GUARD"]}>
@@ -202,12 +190,6 @@ function App() {
         <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminDashboard />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/admin/notifications" element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
-            <AdminNotifications />
           </ProtectedRoute>
         } />
 
@@ -273,7 +255,7 @@ function App() {
           </ProtectedRoute>
         } />
 
-        {/* --- USER DETAILS AT EDIT ROUTES --- */}
+        {/* USER DETAILS AT EDIT ROUTES */}
         <Route path="/admin/users/details/:id" element={
           <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <UserDetails />
