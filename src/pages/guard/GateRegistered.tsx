@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ChevronDown, X, Check, ArrowRight } from "lucide-react";
+import { Search, Filter, ChevronDown, X, Check, ArrowRight, Loader2 } from "lucide-react";
+import { getGuardVehicles } from "@/api/guardApi";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 
@@ -62,75 +63,36 @@ export default function GateRegistered() {
     };
   }, [showDetailsModal, showDeactivatedSuccessModal]);
 
-  const [vehicles, setVehicles] = useState<RegisteredVehicle[]>([
-    {
-      id: "1",
-      owner: "Maria Santos",
-      plate: "ABC 4901",
-      vehicleType: "Car",
-      model: "Toyota Corolla",
-      idType: "Driver's License",
-      idNumber: "DL-07-482190",
-      entryTime: "10:42 AM",
-      guard: "James Miller",
-      registrationDate: "September 14, 2026",
-      status: "Active",
-    },
-    {
-      id: "2",
-      owner: "Daniel Reyes",
-      plate: "NQX 772",
-      vehicleType: "Motorcycle",
-      model: "Yamaha NMAX",
-      idType: "Driver's License",
-      idNumber: "DL-09-112344",
-      entryTime: "10:30 AM",
-      guard: "Sofia Chen",
-      registrationDate: "September 14, 2026",
-      status: "Active",
-    },
-    {
-      id: "3",
-      owner: "Ford Ranger - Aisha Khan",
-      plate: "KJM 9031",
-      vehicleType: "Car",
-      model: "Ford Ranger",
-      idType: "Company ID",
-      idNumber: "EMP-2026-99",
-      entryTime: "10:24 AM",
-      guard: "James Miller",
-      registrationDate: "September 14, 2026",
-      status: "Active",
-    },
-    {
-      id: "4",
-      owner: "Nissan Navara - Noah Williams",
-      plate: "TFV 1150",
-      vehicleType: "Motorcycle",
-      model: "Honda Click",
-      idType: "Student ID",
-      idNumber: "24-1474",
-      entryTime: "10:20 AM",
-      guard: "David Lee",
-      registrationDate: "September 14, 2026",
-      status: "Active",
-    },
-    {
-      id: "5",
-      owner: "Maria Santos (Past Exit)",
-      plate: "ABC 4901",
-      vehicleType: "Car",
-      model: "Toyota Corolla",
-      idType: "Driver's License",
-      idNumber: "DL-07-482190",
-      entryTime: "06:10 AM",
-      exitTime: "10:42 AM",
-      duration: "4h 32m",
-      guard: "James Miller",
-      registrationDate: "September 10, 2026",
-      status: "Deactivated",
-    },
-  ]);
+  const [vehicles, setVehicles] = useState<RegisteredVehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchVehicles() {
+      try {
+        setIsLoading(true);
+        const res = await getGuardVehicles({
+          search: searchQuery,
+          status: activeTab === "active" ? "Active" : "Deactivated",
+          vehicleType: selectedFilter,
+        });
+        if (isMounted && res.success) {
+          setVehicles(res.vehicles || []);
+        }
+      } catch (err) {
+        console.error("Failed to load registered vehicles:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    const timer = setTimeout(() => {
+      fetchVehicles();
+    }, 250);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [activeTab, searchQuery, selectedFilter]);
 
   const filteredVehicles = vehicles.filter((v) => {
     const matchesTab = activeTab === "active" ? v.status === "Active" : v.status === "Deactivated";
@@ -310,7 +272,11 @@ export default function GateRegistered() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                    {currentVehicles.length > 0 ? (
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin mx-auto text-[#0053CC]" /></td>
+                      </tr>
+                    ) : currentVehicles.length > 0 ? (
                       currentVehicles.map((v) => (
                         <tr
                           key={v.id}

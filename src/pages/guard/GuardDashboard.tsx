@@ -1,32 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, UserPlus, Users, ArrowUpRight, ArrowDownRight, Bell } from "lucide-react";
+import { QrCode, UserPlus, Users, ArrowUpRight, ArrowDownRight, Bell, Loader2 } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
+import { getGuardDashboard, type GuardDashboardMetrics, type GuardActivityItem } from "@/api/guardApi";
 
 export default function GuardDashboard() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3; // Pwede mong baguhin kung ilang rows ang gusto bawat page
+  const itemsPerPage = 5;
 
-  const recentActivities = [
-    { id: 1, plateNo: "ABD 3654", type: "Car", action: "EXIT", time: "Sept 30, 9:40 AM" },
-    { id: 2, plateNo: "ABC 4901", type: "Car", action: "ENTRY", time: "Sept 29, 1:40 AM" },
-    { id: 3, plateNo: "TRS 1117", type: "Motorcycle", action: "ENTRY", time: "Sept 28, 7:48 AM" },
-    { id: 4, plateNo: "XYZ 3478", type: "Motorcycle", action: "ENTRY", time: "Sept 26, 9:00 AM" },
-    { id: 5, plateNo: "QIU-5209", type: "Car", action: "ENTRY", time: "Sept 27, 10:30 AM" },
-    { id: 6, plateNo: "MNO 1122", type: "Car", action: "EXIT", time: "Sept 30, 11:15 AM" },
-    { id: 7, plateNo: "ZZZ 9999", type: "Motorcycle", action: "ENTRY", time: "Sept 30, 01:20 PM" },
-  ];
+  const [metrics, setMetrics] = useState<GuardDashboardMetrics>({
+    vehiclesInside: 0,
+    totalCapacity: 100,
+    entriesToday: 0,
+    exitsToday: 0,
+    unreadNotifications: 0,
+  });
 
-  const totalPages = Math.ceil(recentActivities.length / itemsPerPage);
+  const [recentActivities, setRecentActivities] = useState<GuardActivityItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDashboard() {
+      try {
+        setIsLoading(true);
+        const res = await getGuardDashboard();
+        if (isMounted && res.success) {
+          setMetrics(res.metrics);
+          setRecentActivities(res.recentActivities || []);
+        }
+      } catch (err) {
+        console.error("Failed to load guard dashboard data:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadDashboard();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const totalPages = Math.ceil(recentActivities.length / itemsPerPage) || 1;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentActivities = recentActivities.slice(indexOfFirstItem, indexOfLastItem);
 
+  const occupancyPercent = metrics.totalCapacity > 0
+    ? Math.min(100, Math.round((metrics.vehiclesInside / metrics.totalCapacity) * 100))
+    : 0;
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors font-sans">
       
       {/* Header */}
       <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -56,10 +84,16 @@ export default function GuardDashboard() {
                   <Users className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">45<span className="text-xs text-slate-400 font-normal">/160</span></h3>
+                  <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">
+                    {metrics.vehiclesInside}
+                    <span className="text-xs text-slate-400 font-normal">/{metrics.totalCapacity}</span>
+                  </h3>
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-[#0053CC] h-full rounded-full w-[30%]"></div>
+                  <div
+                    className="bg-[#0053CC] h-full rounded-full transition-all"
+                    style={{ width: `${occupancyPercent}%` }}
+                  ></div>
                 </div>
               </div>
 
@@ -71,7 +105,9 @@ export default function GuardDashboard() {
                     <ArrowDownRight className="h-4 w-4" />
                   </div>
                 </div>
-                <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">160</h3>
+                <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {metrics.entriesToday}
+                </h3>
                 <p className="text-[10px] text-slate-400">Total recorded campus entries</p>
               </div>
 
@@ -83,7 +119,9 @@ export default function GuardDashboard() {
                     <ArrowUpRight className="h-4 w-4" />
                   </div>
                 </div>
-                <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">150</h3>
+                <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {metrics.exitsToday}
+                </h3>
                 <p className="text-[10px] text-slate-400">Total recorded campus exits</p>
               </div>
 
@@ -93,7 +131,9 @@ export default function GuardDashboard() {
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Unread notifications</span>
                   <Bell className="h-4 w-4 text-amber-500" />
                 </div>
-                <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">3</h3>
+                <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {metrics.unreadNotifications}
+                </h3>
                 <p className="text-[10px] text-slate-400">Requires guard attention</p>
               </div>
 
@@ -144,7 +184,7 @@ export default function GuardDashboard() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs min-w-112.5">
+                  <table className="w-full text-left text-xs min-w-[450px]">
                     <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
                       <tr>
                         <th className="pb-3">Plate No.</th>
@@ -154,7 +194,13 @@ export default function GuardDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                      {currentActivities.length > 0 ? (
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={4} className="py-8 text-center text-slate-400">
+                            <Loader2 className="h-5 w-5 animate-spin mx-auto text-[#0053CC]" />
+                          </td>
+                        </tr>
+                      ) : currentActivities.length > 0 ? (
                         currentActivities.map((act) => (
                           <tr key={act.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                             <td className="py-3 font-bold text-slate-900 dark:text-white">{act.plateNo}</td>
@@ -178,7 +224,7 @@ export default function GuardDashboard() {
                       ) : (
                         <tr>
                           <td colSpan={4} className="py-6 text-center text-slate-400 text-xs italic">
-                            No recent activities found.
+                            No recent activities found in database.
                           </td>
                         </tr>
                       )}
@@ -188,7 +234,9 @@ export default function GuardDashboard() {
 
                 {/* Dynamic Pagination Controls */}
                 <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
-                  <span>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, recentActivities.length)} of {recentActivities.length} activities</span>
+                  <span>
+                    Showing {recentActivities.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, recentActivities.length)} of {recentActivities.length} activities
+                  </span>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
                       <button 

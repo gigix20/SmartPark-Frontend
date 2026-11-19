@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw, ArrowUpRight, Search, Keyboard } from "lucide-react";
+import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw, ArrowUpRight, Search, Keyboard, Loader2 } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
+import { scanGuardCode, recordGuardEntry, recordGuardExit, type GuardScanResponse } from "@/api/guardApi";
 
 export default function ScanQR() {
   const navigate = useNavigate();
@@ -10,8 +11,16 @@ export default function ScanQR() {
 
   // Manual code input state
   const [manualCode, setManualCode] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Modal states para sa buong simulation flow kasama na ang exitRecorded
+  // Scanned vehicle state from backend
+  const [scannedData, setScannedData] = useState<GuardScanResponse | null>(null);
+  const [lastEntryResult, setLastEntryResult] = useState<any>(null);
+  const [lastExitResult, setLastExitResult] = useState<any>(null);
+
+  // Modal states
   const [activeModal, setActiveModal] = useState<
     "none" | "verifyInfo" | "entryRecorded" | "exitRecorded" | "vehicleMismatch" | "parkingFull" | "invalidQR"
   >("none");
@@ -28,19 +37,72 @@ export default function ScanQR() {
     };
   }, [activeModal]);
 
-  // Handler para sa manual code submission
+  // Handler para sa manual / QR verification gamit ang live backend API
+  const handleVerifyCode = async (codeToVerify: string) => {
+    if (!codeToVerify.trim()) return;
+    try {
+      setIsSearching(true);
+      setErrorMessage("");
+      const res = await scanGuardCode(codeToVerify.trim());
+
+      if (res.success && res.vehicle) {
+        setScannedData(res);
+        setActiveModal("verifyInfo");
+      }
+    } catch (err: any) {
+      const resp = err.response?.data;
+      if (resp?.reason === "NOT_APPROVED") {
+        setErrorMessage(resp.message || "Vehicle registration is not approved.");
+        setActiveModal("vehicleMismatch");
+      } else if (resp?.reason === "INVALID_QR" || err.response?.status === 404) {
+        setErrorMessage(resp?.message || "Invalid or unregistered QR code / plate number.");
+        setActiveModal("invalidQR");
+      } else {
+        setErrorMessage(resp?.message || "Verification failed. Please try again.");
+        setActiveModal("invalidQR");
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualCode.trim()) return;
-    
-    // Dito maaari kang maglagay ng logic kung valid o hindi ang na-type, 
-    // sa ngayon i-trigger natin ang verifyInfo modal bilang halimbawa:
-    setActiveModal("verifyInfo");
-    setManualCode("");
+    handleVerifyCode(manualCode);
+  };
+
+  // Confirm Entry or Exit based on vehicle parked state
+  const handleConfirmAction = async () => {
+    if (!scannedData?.vehicle) return;
+    const vehicleId = scannedData.vehicle.id;
+
+    try {
+      setIsSubmitting(true);
+      if (scannedData.isCurrentlyParked) {
+        // Vehicle is inside -> Confirm Exit
+        const res = await recordGuardExit(vehicleId);
+        if (res.success) {
+          setLastExitResult(res.log);
+          setActiveModal("exitRecorded");
+        }
+      } else {
+        // Vehicle is outside -> Confirm Entry
+        const res = await recordGuardEntry(vehicleId);
+        if (res.success) {
+          setLastEntryResult(res.log);
+          setActiveModal("entryRecorded");
+        }
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to record access. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors font-sans">
       
       {/* Guard Header */}
       <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -57,7 +119,7 @@ export default function ScanQR() {
             {/* Page Header */}
             <div>
               <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Scan QR</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Scan the QR code with the barcode scanner or enter the code manually.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Scan the QR code with the barcode scanner or enter the plate number manually.</p>
             </div>
 
             {/* Main Scanner Layout Grid */}
@@ -79,17 +141,17 @@ export default function ScanQR() {
 
                 <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
                   <RefreshCw className="h-4 w-4 animate-spin text-[#0053CC]" />
-                  <span>Waiting for QR Code....</span>
+                  <span>Waiting for scanner or manual plate search...</span>
                 </div>
 
-                {/* --- MANUAL CODE ENTRY ABANG --- */}
+                {/* --- MANUAL CODE ENTRY --- */}
                 <div className="w-full max-w-md pt-2">
                   <form onSubmit={handleManualSubmit} className="flex flex-col sm:flex-row items-center gap-2">
                     <div className="relative w-full">
                       <Keyboard className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                       <input
                         type="text"
-                        placeholder="Or manually type QR code / plate number..."
+                        placeholder="Type plate number (e.g. NDP 4419) or QR code..."
                         value={manualCode}
                         onChange={(e) => setManualCode(e.target.value)}
                         className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:border-[#0053CC] font-semibold"
@@ -97,30 +159,24 @@ export default function ScanQR() {
                     </div>
                     <button
                       type="submit"
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-5 py-2.5 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer shrink-0"
+                      disabled={isSearching || !manualCode.trim()}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-5 py-2.5 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer shrink-0 disabled:opacity-50"
                     >
-                      <Search className="h-4 w-4" />
+                      {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                       <span>Verify</span>
                     </button>
                   </form>
                 </div>
 
-                {/* Simulator Test Buttons para sa iba't ibang QR states */}
+                {/* Simulator Test Buttons */}
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 w-full flex flex-wrap items-center justify-center gap-2.5">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider w-full text-center">Simulator Scans:</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider w-full text-center">Quick Test Scans:</span>
                   <button
                     type="button"
-                    onClick={() => setActiveModal("verifyInfo")}
+                    onClick={() => handleVerifyCode("NDP 4419")}
                     className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors cursor-pointer"
                   >
-                    Valid QR (Verify Info)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal("exitRecorded")}
-                    className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-colors cursor-pointer"
-                  >
-                    Exit QR Scan
+                    Test Plate: NDP 4419 (Live DB)
                   </button>
                   <button
                     type="button"
@@ -159,7 +215,8 @@ export default function ScanQR() {
                 <ol className="space-y-3 text-xs text-slate-500 dark:text-slate-400 list-decimal list-inside leading-relaxed">
                   <li>Make sure the QR code is clear and not damaged.</li>
                   <li>Ensure the vehicle is properly registered.</li>
-                  <li>If the QR scanner fails, you can manually type the code or plate number in the input box provided.</li>
+                  <li>If the QR scanner fails, you can manually type the plate number in the input box provided.</li>
+                  <li>Entries and exits are recorded in real-time to the database and sync directly with Admin Access Records.</li>
                 </ol>
               </div>
 
@@ -172,16 +229,22 @@ export default function ScanQR() {
 
       {/* ================= MODALS SECTION ================= */}
 
-      {/* 1. VERIFY VEHICLE INFORMATION MODAL (Main QR Valid Modal) */}
+      {/* 1. VERIFY VEHICLE INFORMATION MODAL */}
       {activeModal === "verifyInfo" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
           <div className="w-full max-w-2xl rounded-[32px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 relative transition-colors my-auto">
             
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
-                <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Verify Vehicle Information</h2>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                  QR Valid
+                <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
+                  {scannedData?.isCurrentlyParked ? "Verify Vehicle Exit" : "Verify Vehicle Entry"}
+                </h2>
+                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold border ${
+                  scannedData?.isCurrentlyParked
+                    ? "bg-purple-50 text-purple-600 border-purple-200"
+                    : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                }`}>
+                  {scannedData?.isCurrentlyParked ? "Exit Recorded Checkpoint" : "QR Valid - Entry Approved"}
                 </span>
               </div>
               <button 
@@ -198,11 +261,15 @@ export default function ScanQR() {
                 <Car className="h-20 w-20 text-[#0053CC] dark:text-blue-400" />
               </div>
               <div className="space-y-1 text-center sm:text-left">
-                <h3 className="font-poppins text-2xl font-black text-[#0053CC] dark:text-blue-400 tracking-wide">NDP 4419</h3>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Mitsubishi Xpander 2020</p>
+                <h3 className="font-poppins text-2xl font-black text-[#0053CC] dark:text-blue-400 tracking-wide">
+                  {scannedData?.vehicle?.plateNumber || "NDP 4419"}
+                </h3>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  {scannedData?.vehicle?.brand} {scannedData?.vehicle?.model} {scannedData?.vehicle?.year}
+                </p>
                 <div>
                   <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900">
-                    Car
+                    {scannedData?.vehicle?.type || "Car"}
                   </span>
                 </div>
               </div>
@@ -212,20 +279,35 @@ export default function ScanQR() {
             <div className="space-y-3 text-xs pt-2">
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <span className="text-slate-400 font-medium">Owner / Driver Name:</span>
-                <span className="font-bold text-slate-900 dark:text-white">Bryan Emmanuel B. Marcelo</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {scannedData?.vehicle?.ownerName || "Bryan Emmanuel Marcelo"}
+                </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <span className="text-slate-400 font-medium">ID Number:</span>
-                <span className="font-bold text-slate-900 dark:text-white">24-1474</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {scannedData?.vehicle?.schoolId || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <span className="text-slate-400 font-medium">Role:</span>
-                <span className="font-bold text-slate-900 dark:text-white">Student</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {scannedData?.vehicle?.role || "Student"}
+                </span>
               </div>
               <div className="flex justify-between items-center pb-1">
                 <span className="text-slate-400 font-medium">Vehicle Color:</span>
-                <span className="font-bold text-slate-900 dark:text-white">White</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {scannedData?.vehicle?.color || "White"}
+                </span>
               </div>
+
+              {scannedData?.isCurrentlyParked && scannedData.activeLog && (
+                <div className="flex justify-between items-center pt-2 border-t border-purple-100 dark:border-purple-900/50 text-purple-700 dark:text-purple-300">
+                  <span className="font-medium">Entered At:</span>
+                  <span className="font-bold">{scannedData.activeLog.formattedEntryTime} ({scannedData.activeLog.duration})</span>
+                </div>
+              )}
             </div>
 
             {/* Guard Verification Notice Box */}
@@ -235,7 +317,11 @@ export default function ScanQR() {
               </div>
               <div>
                 <h4 className="font-bold text-xs text-slate-900 dark:text-white">Guard Verification</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Please check the driver's ID manually</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {scannedData?.isCurrentlyParked
+                    ? "Verify vehicle exit and driver identity before departure"
+                    : "Please check the driver's ID manually before granting entrance"}
+                </p>
               </div>
             </div>
 
@@ -250,10 +336,24 @@ export default function ScanQR() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveModal("entryRecorded")}
-                className="w-1/2 h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                onClick={handleConfirmAction}
+                disabled={isSubmitting}
+                className={`w-1/2 h-11 rounded-xl text-xs font-bold text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  scannedData?.isCurrentlyParked
+                    ? "bg-purple-600 hover:bg-purple-700 shadow-purple-500/20"
+                    : "bg-[#0053CC] hover:bg-[#0042A5] shadow-blue-500/20"
+                }`}
               >
-                Confirm Vehicle
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving to DB...</span>
+                  </>
+                ) : scannedData?.isCurrentlyParked ? (
+                  <span>Confirm Exit</span>
+                ) : (
+                  <span>Confirm Entry</span>
+                )}
               </button>
             </div>
 
@@ -273,20 +373,37 @@ export default function ScanQR() {
             <div>
               <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Entry Recorded</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                Vehicle entry was recorded successfully and facility occupancy has been updated.
+                Vehicle entry was saved to database and campus occupancy has been synchronized.
               </p>
             </div>
 
             {/* Receipt Summary Card */}
             <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 text-[11px] text-left space-y-1">
-              <div className="flex justify-between"><span className="text-slate-400">Vehicle:</span> <span className="font-bold text-slate-800 dark:text-slate-200">NDP 4419 - Mitsubishi Xpander</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Entry Time:</span> <span className="font-bold text-slate-800 dark:text-slate-200">October 2, 2026 - 10:42 AM</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Status:</span> <span className="font-bold text-emerald-600 dark:text-emerald-400">Inside</span></div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Vehicle:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {lastEntryResult?.plateNumber || scannedData?.vehicle?.plateNumber} - {lastEntryResult?.model || scannedData?.vehicle?.model}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Entry Time:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {lastEntryResult?.entryTime || new Date().toLocaleTimeString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Status:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">Currently Inside</span>
+              </div>
             </div>
             
             <div className="pt-2">
               <button 
-                onClick={() => setActiveModal("none")}
+                onClick={() => {
+                  setActiveModal("none");
+                  setManualCode("");
+                  setScannedData(null);
+                }}
                 className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
               >
                 Done
@@ -309,20 +426,43 @@ export default function ScanQR() {
             <div>
               <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Exit Recorded</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                Vehicle exit was recorded successfully and facility occupancy has been updated.
+                Vehicle exit was saved to database and campus occupancy has been updated.
               </p>
             </div>
 
             {/* Receipt Summary Card */}
             <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 text-[11px] text-left space-y-1">
-              <div className="flex justify-between"><span className="text-slate-400">Vehicle:</span> <span className="font-bold text-slate-800 dark:text-slate-200">ABD 3654 - Toyota Vios</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Exit Time:</span> <span className="font-bold text-slate-800 dark:text-slate-200">October 2, 2026 - 04:15 PM</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Status:</span> <span className="font-bold text-purple-600 dark:text-purple-400">Exited</span></div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Vehicle:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {lastExitResult?.plateNumber || scannedData?.vehicle?.plateNumber} - {lastExitResult?.model || scannedData?.vehicle?.model}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Exit Time:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {lastExitResult?.exitTime || new Date().toLocaleTimeString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Duration:</span>
+                <span className="font-bold text-purple-600 dark:text-purple-400">
+                  {lastExitResult?.duration || "--"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Status:</span>
+                <span className="font-bold text-purple-600 dark:text-purple-400">Exited</span>
+              </div>
             </div>
             
             <div className="pt-2">
               <button 
-                onClick={() => setActiveModal("none")}
+                onClick={() => {
+                  setActiveModal("none");
+                  setManualCode("");
+                  setScannedData(null);
+                }}
                 className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
               >
                 Done
@@ -333,7 +473,7 @@ export default function ScanQR() {
         </div>
       )}
 
-      {/* 4. VEHICLE MISMATCH MODAL */}
+      {/* 4. VEHICLE MISMATCH / UNAPPROVED MODAL */}
       {activeModal === "vehicleMismatch" && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
@@ -343,9 +483,9 @@ export default function ScanQR() {
             </div>
 
             <div>
-              <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Vehicle Mismatch</h3>
+              <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Vehicle Access Denied</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                Vehicle information does not match the QR record. The vehicle is not allowed to enter.
+                {errorMessage || "Vehicle information does not match active approved records. Entry is denied."}
               </p>
             </div>
             
@@ -374,13 +514,13 @@ export default function ScanQR() {
             <div>
               <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Parking Lot Is Full</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                The facility has reached its maximum capacity of 320 vehicles.
+                The facility has reached its parking capacity.
               </p>
             </div>
 
             <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 text-[11px] flex justify-between items-center">
-              <span className="text-slate-500 font-medium">Current occupancy:</span>
-              <span className="font-extrabold text-amber-600 dark:text-amber-400">320 / 320 - FULL</span>
+              <span className="text-slate-500 font-medium">Facility status:</span>
+              <span className="font-extrabold text-amber-600 dark:text-amber-400">FULL CAPACITY</span>
             </div>
             
             <div className="space-y-2.5 pt-2">
@@ -388,13 +528,13 @@ export default function ScanQR() {
                 onClick={() => setActiveModal("verifyInfo")}
                 className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
               >
-                Confirm Vehicle
+                Override & Confirm
               </button>
               <button 
                 onClick={() => setActiveModal("none")}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                Back to Entry & Exit
+                Cancel
               </button>
             </div>
 
@@ -412,9 +552,9 @@ export default function ScanQR() {
             </div>
 
             <div>
-              <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Invalid or expired QR</h3>
+              <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Invalid or Expired QR</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                This QR code could not be verified or is no longer active. Register the vehicle at the gate to continue the access request.
+                {errorMessage || "This vehicle could not be found or verified in the database. You may register the vehicle at the gate."}
               </p>
             </div>
 

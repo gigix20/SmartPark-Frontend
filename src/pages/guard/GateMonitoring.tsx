@@ -1,21 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Filter, ChevronDown, Download } from "lucide-react";
+import { Search, Filter, ChevronDown, Download, Loader2, AlertCircle } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
-
-interface MonitoringRecord {
-  id: string;
-  owner: string;
-  plate: string;
-  vehicleType?: "Car" | "Motorcycle";
-  timeOrDate: string;
-  rawDate?: string; 
-  registrationSource?: string;
-  guard?: string;
-  duration?: string;
-  action?: "ENTRY" | "EXIT";
-  result?: "GRANTED" | "DENIED";
-}
+import { getGuardMonitoring, type MonitoringRecord } from "@/api/guardApi";
 
 export default function GateMonitoring() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,7 +10,9 @@ export default function GateMonitoring() {
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 8;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   
   // Dynamic Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +20,12 @@ export default function GateMonitoring() {
   const [selectedDate, setSelectedDate] = useState(""); 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
+
+  // Live Data State
+  const [records, setRecords] = useState<MonitoringRecord[]>([]);
+  const [allExportRecords, setAllExportRecords] = useState<MonitoringRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -42,72 +37,49 @@ export default function GateMonitoring() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const dataEntries: MonitoringRecord[] = [
-    { id: "1", owner: "Maria Santos", plate: "ABC 4901", vehicleType: "Car", timeOrDate: "10:42 AM", rawDate: "2026-09-29", registrationSource: "User registration", guard: "James Miller" },
-    { id: "2", owner: "Daniel Reyes", plate: "NQX 772", vehicleType: "Motorcycle", timeOrDate: "10:30 AM", rawDate: "2026-09-29", registrationSource: "Gate registration", guard: "Sofia Chen" },
-    { id: "3", owner: "Ford Ranger - Aisha Khan", plate: "KJM 9031", vehicleType: "Car", timeOrDate: "10:24 AM", rawDate: "2026-09-29", registrationSource: "User registration", guard: "James Miller" },
-    { id: "4", owner: "Nissan Navara - Noah Williams", plate: "TFV 1150", vehicleType: "Motorcycle", timeOrDate: "10:20 AM", rawDate: "2026-09-29", registrationSource: "Gate registration", guard: "David Lee" },
-    { id: "5", owner: "Hyundai Tucson - Elena Cruz", plate: "JDP 4457", vehicleType: "Motorcycle", timeOrDate: "10:01 AM", rawDate: "2026-09-28", registrationSource: "User registration", guard: "James Miller" },
-    { id: "6", owner: "Mazda CX-5 - Liam Garcia", plate: "RSM 6204", vehicleType: "Car", timeOrDate: "09:54 AM", rawDate: "2026-09-28", registrationSource: "User registration", guard: "Sofia Chen" },
-  ];
+  // Fetch live database records
+  useEffect(() => {
+    let isMounted = true;
 
-  const dataExits: MonitoringRecord[] = [
-    { id: "1", owner: "Maria Santos", plate: "ABC 4901", vehicleType: "Car", timeOrDate: "10:40 AM", rawDate: "2026-09-29", duration: "4h 13m", guard: "James Miller" },
-    { id: "2", owner: "Daniel Reyes", plate: "NQX 772", vehicleType: "Motorcycle", timeOrDate: "10:39 AM", rawDate: "2026-09-29", duration: "4h 13m", guard: "Sofia Chen" },
-    { id: "3", owner: "Ford Ranger - Aisha Khan", plate: "KJM 9031", vehicleType: "Car", timeOrDate: "10:24 AM", rawDate: "2026-09-29", duration: "4h 13m", guard: "James Miller" },
-    { id: "4", owner: "Nissan Navara - Noah Williams", plate: "TFV 1150", vehicleType: "Motorcycle", timeOrDate: "10:20 AM", rawDate: "2026-09-29", duration: "4h 13m", guard: "David Lee" },
-    { id: "5", owner: "Hyundai Tucson - Elena Cruz", plate: "JDP 4457", vehicleType: "Motorcycle", timeOrDate: "10:01 AM", rawDate: "2026-09-28", duration: "4h 13m", guard: "James Miller" },
-  ];
+    async function fetchMonitoringData() {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-  const dataInside: MonitoringRecord[] = [
-    { id: "1", owner: "Maria Santos", plate: "ABC 4901", vehicleType: "Car", timeOrDate: "10:42 AM", rawDate: "2026-09-29" },
-    { id: "2", owner: "Daniel Reyes", plate: "NQX 772", vehicleType: "Motorcycle", timeOrDate: "10:30 AM", rawDate: "2026-09-29" },
-    { id: "3", owner: "Ford Ranger - Aisha Khan", plate: "KJM 9031", vehicleType: "Car", timeOrDate: "10:24 AM", rawDate: "2026-09-29" },
-    { id: "4", owner: "Nissan Navara - Noah Williams", plate: "TFV 1150", vehicleType: "Motorcycle", timeOrDate: "10:20 AM", rawDate: "2026-09-29" },
-  ];
+        const res = await getGuardMonitoring({
+          tab: activeTab,
+          search: searchQuery,
+          vehicleType: selectedFilter,
+          date: selectedDate,
+          page: currentPage,
+          limit: itemsPerPage,
+        });
 
-  const dataHistory: MonitoringRecord[] = [
-    { id: "1", owner: "Maria Santos", plate: "ABC 4901", vehicleType: "Car", action: "EXIT", timeOrDate: "Oct 4, 6:42 PM", rawDate: "2026-10-04", result: "DENIED" },
-    { id: "2", owner: "Daniel Reyes", plate: "NQX 772", vehicleType: "Motorcycle", action: "ENTRY", timeOrDate: "Oct 4, 6:42 PM", rawDate: "2026-10-04", result: "GRANTED" },
-    { id: "3", owner: "Ford Ranger - Aisha Khan", plate: "KJM 9031", vehicleType: "Car", action: "ENTRY", timeOrDate: "Oct 4, 6:42 PM", rawDate: "2026-10-04", result: "DENIED" },
-    { id: "4", owner: "Nissan Navara - Noah Williams", plate: "TFV 1150", vehicleType: "Motorcycle", action: "ENTRY", timeOrDate: "Oct 4, 6:42 PM", rawDate: "2026-10-04", result: "GRANTED" },
-    { id: "5", owner: "Hyundai Tucson - Elena Cruz", plate: "JDP 4457", vehicleType: "Motorcycle", action: "EXIT", timeOrDate: "Oct 4, 6:35 PM", rawDate: "2026-10-04", result: "GRANTED" },
-  ];
-
-  const getActiveData = () => {
-    switch (activeTab) {
-      case "entries": return dataEntries;
-      case "exits": return dataExits;
-      case "inside": return dataInside;
-      case "history": return dataHistory;
-    }
-  };
-
-  // COMPLETE FILTERING LOGIC
-  const filteredData = getActiveData().filter((item) => {
-    const matchesSearch = 
-      item.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.guard && item.guard.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    if (!matchesSearch) return false;
-
-    if (selectedFilter !== "All Vehicle" && item.vehicleType) {
-      if (item.vehicleType !== selectedFilter) return false;
+        if (isMounted && res.success) {
+          setRecords(res.records || []);
+          setAllExportRecords(res.allFilteredRecords || res.records || []);
+          setTotalPages(res.pagination?.totalPages || 1);
+          setTotalCount(res.pagination?.total || 0);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          console.error("Failed to load gate monitoring records:", err);
+          setError("Unable to load access logs from database. Please check your connection.");
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     }
 
-    if (selectedDate && item.rawDate) {
-      if (item.rawDate !== selectedDate) return false;
-    }
+    const timer = setTimeout(() => {
+      fetchMonitoringData();
+    }, 250);
 
-    return true;
-  });
-
-  // Pagination Calculations
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [activeTab, searchQuery, selectedFilter, selectedDate, currentPage]);
 
   const handleClearAllFilters = () => {
     setSelectedFilter("All Vehicle");
@@ -115,6 +87,50 @@ export default function GateMonitoring() {
     setSelectedDate("");
     setCurrentPage(1);
   };
+
+  // Export CSV Report of current data
+  const handleExportReport = () => {
+    const dataToExport = allExportRecords.length > 0 ? allExportRecords : records;
+    if (dataToExport.length === 0) {
+      alert("No records to export.");
+      return;
+    }
+
+    let csvContent = "";
+    if (activeTab === "history") {
+      csvContent = "Owner,Plate Number,Vehicle Type,Action,Date & Time,Result\n" +
+        dataToExport
+          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.action || ""}","${r.timeOrDate}","${r.result || ""}"`)
+          .join("\n");
+    } else if (activeTab === "exits") {
+      csvContent = "Owner,Plate Number,Vehicle Type,Exit Time,Duration,Guard\n" +
+        dataToExport
+          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.timeOrDate}","${r.duration || ""}","${r.guard || ""}"`)
+          .join("\n");
+    } else if (activeTab === "entries") {
+      csvContent = "Owner,Plate Number,Vehicle Type,Entry Time,Registration Source,Guard\n" +
+        dataToExport
+          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.timeOrDate}","${r.registrationSource || ""}","${r.guard || ""}"`)
+          .join("\n");
+    } else {
+      csvContent = "Owner,Plate Number,Vehicle Type,Entry Time,Guard\n" +
+        dataToExport
+          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.timeOrDate}","${r.guard || ""}"`)
+          .join("\n");
+    }
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `GateMonitoring_${activeTab}_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const indexOfFirstItem = totalCount > 0 ? (currentPage - 1) * itemsPerPage : 0;
+  const indexOfLastItem = Math.min(currentPage * itemsPerPage, totalCount);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors font-sans">
@@ -139,12 +155,20 @@ export default function GateMonitoring() {
 
               <button
                 type="button"
+                onClick={handleExportReport}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-xs self-start sm:self-auto"
               >
                 <Download className="h-4 w-4 text-slate-400" />
                 <span>Export Report</span>
               </button>
             </div>
+
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 text-xs rounded-xl flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
             {/* Main Table Container na may uniform shadow at border */}
             <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-colors">
@@ -248,7 +272,7 @@ export default function GateMonitoring() {
 
               {/* Data Table */}
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs min-w-162.5">
+                <table className="w-full text-left text-xs min-w-[700px]">
                   <thead className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
                     <tr>
                       <th className="py-3.5 px-6">Owner</th>
@@ -278,8 +302,17 @@ export default function GateMonitoring() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                    {currentItems.length > 0 ? (
-                      currentItems.map((item) => (
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Loader2 className="h-6 w-6 animate-spin text-[#0053CC]" />
+                            <span className="text-xs">Loading monitoring records from database...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : records.length > 0 ? (
+                      records.map((item) => (
                         <tr
                           key={item.id}
                           className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors"
@@ -323,25 +356,25 @@ export default function GateMonitoring() {
                                       : "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900"
                                   }`}
                                 >
-                                  {item.vehicleType}
+                                  {item.vehicleType || "Car"}
                                 </span>
                               </td>
                               
                               <td className="py-3.5 px-4 text-slate-500 font-medium">{item.timeOrDate}</td>
 
                               {activeTab === "exits" && (
-                                <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300">{item.duration}</td>
+                                <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300">{item.duration || "--"}</td>
                               )}
 
                               {activeTab === "entries" && (
                                 <td className="py-3.5 px-4">
                                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50/60 dark:bg-blue-950/40 text-[#0053CC] dark:text-blue-300 font-semibold text-[10px] border border-blue-100 dark:border-blue-900">
-                                    {item.registrationSource}
+                                    {item.registrationSource || "User registration"}
                                   </span>
                                 </td>
                               )}
 
-                              <td className="py-3.5 px-6 text-slate-500">{item.guard || "James Miller"}</td>
+                              <td className="py-3.5 px-6 text-slate-500">{item.guard || "Guard Santos"}</td>
                             </>
                           )}
                         </tr>
@@ -349,7 +382,7 @@ export default function GateMonitoring() {
                     ) : (
                       <tr>
                         <td colSpan={7} className="py-8 text-center text-slate-400 italic">
-                          No matching records found.
+                          No matching records found in database.
                         </td>
                       </tr>
                     )}
@@ -359,12 +392,14 @@ export default function GateMonitoring() {
 
               {/* Functional Pagination Footer */}
               <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
-                <span>Showing {filteredData.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredData.length)} of {filteredData.length} records</span>
+                <span>
+                  Showing {totalCount > 0 ? indexOfFirstItem + 1 : 0} to {indexOfLastItem} of {totalCount} records
+                </span>
                 <div className="flex items-center gap-1.5">
                   <button 
                     type="button" 
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
+                    disabled={currentPage === 1 || totalPages <= 1}
                     className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium disabled:opacity-50"
                   >
                     Previous
@@ -384,7 +419,7 @@ export default function GateMonitoring() {
                   <button 
                     type="button" 
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages || totalPages === 0}
+                    disabled={currentPage === totalPages || totalPages <= 1}
                     className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-600 dark:text-slate-300 font-medium disabled:opacity-50"
                   >
                     Next
