@@ -600,7 +600,7 @@ export default function Reports() {
                         className="h-16 w-20 rounded-xl object-cover border border-slate-300 shadow-xs" 
                       />
                       <div className="text-left">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[220px]">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-55">
                           {formData.photo?.name || "Uploaded Image"}
                         </p>
                         <p className="text-[10px] text-slate-400 mt-0.5">Click to change photo</p>
@@ -719,7 +719,7 @@ export default function Reports() {
             {/* Title & Report ID */}
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-base text-slate-900 dark:text-white">
+                <h3 className="font-bold text-slate-900 dark:text-base dark:text-white">
                   {selectedIncident.type}
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">

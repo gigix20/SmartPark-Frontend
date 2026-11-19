@@ -230,7 +230,7 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
       </div>
 
       {/* Notification Items List (Scrollable) */}
-      <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 max-h-85 overflow-y-auto pr-1">
         {isLoading ? (
           <div className="py-10 flex flex-col items-center justify-center text-center space-y-2 text-slate-400">
             <Loader2 className="h-5 w-5 animate-spin text-[#0053CC]" />
