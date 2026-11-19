@@ -1,17 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { Search, AlertTriangle, CheckCircle2, ShieldAlert, X, CheckCheck, Loader2, ExternalLink } from "lucide-react";
-
-// Palitan o i-import ito mula sa iyong API file kapag mayroon na
-interface NotificationItem {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-  type: "alert" | "update" | "warning";
-  read: boolean;
-  link?: string;
-}
+import { useNavigate } from "react-router-dom";
+import { Search, AlertTriangle, CheckCircle2, ShieldAlert, X, CheckCheck, ExternalLink } from "lucide-react";
+import {
+  getGuardNotifications,
+  markGuardNotificationAsRead,
+  markAllGuardNotificationsAsRead,
+  type NotificationItem,
+} from "@/api/notificationApi";
 
 interface NotificationsDropdownProps {
   isOpen: boolean;
@@ -19,6 +14,7 @@ interface NotificationsDropdownProps {
 }
 
 export default function NotificationsDropdown({ isOpen, onClose }: NotificationsDropdownProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"all" | "unread" | "alerts" | "updates">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -39,63 +35,20 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Function para kunin ang notifications mula sa backend
+  // Function para kunin ang live notifications mula sa database
   const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
     try {
-      /* 
-        TODO: Palitan ito ng totoong API call kapag naka-ready na ang backend route mo, halimbawa:
-        const res = await getGuardNotifications({ search: debouncedSearch, tab: activeTab });
-        if (res.success) {
-          setNotifications(res.notifications);
-          setUnreadCount(res.unreadCount);
-          setTotalCount(res.totalCount);
-        }
-      */
-
-      // -- MOCK DATA MUNA HABANG WALA PA ANG BACKEND --
-      const mockData: NotificationItem[] = [
-        {
-          id: "1",
-          title: "Access denied: vehicle mismatch",
-          description: "The scanned QR for plate ABD 9034 did not match the registered vehicle.",
-          time: "Sept 30, 8:42 AM",
-          type: "alert",
-          read: false,
-        },
-        {
-          id: "2",
-          title: "Parking lot is full",
-          description: "Capacity reached 160 of 160. Entries are paused until a vehicle exits.",
-          time: "Sept 30, 9:15 AM",
-          type: "warning",
-          read: false,
-        },
-        {
-          id: "3",
-          title: "Vehicle registration approved",
-          description: "The registration of MNO 2210 was approved by Admin Cruz. Its QR is now valid.",
-          time: "Sept 29, 4:10 PM",
-          type: "update",
-          read: true,
-        },
-      ];
-
-      // Filtering simulation para sa backend readiness
-      let filtered = mockData.filter((item) => {
-        const matchesSearch =
-          item.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          item.description.toLowerCase().includes(debouncedSearch.toLowerCase());
-        if (!matchesSearch) return false;
-        if (activeTab === "unread") return !item.read;
-        if (activeTab === "alerts") return item.type === "alert" || item.type === "warning";
-        if (activeTab === "updates") return item.type === "update";
-        return true;
+      const res = await getGuardNotifications({
+        search: debouncedSearch,
+        tab: activeTab,
       });
 
-      setNotifications(filtered);
-      setUnreadCount(mockData.filter((n) => !n.read).length);
-      setTotalCount(mockData.length);
+      if (res.success) {
+        setNotifications(res.notifications || []);
+        setUnreadCount(res.unreadCount || 0);
+        setTotalCount(res.totalCount || 0);
+      }
     } catch (err) {
       console.error("Failed to fetch guard notifications:", err);
     } finally {
@@ -127,9 +80,7 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
   // Handler para sa Mark as Read ng isang item
   const handleMarkAsRead = async (id: string) => {
     try {
-      /* 
-        TODO: await markNotificationAsRead(id); 
-      */
+      await markGuardNotificationAsRead(id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       );
@@ -145,9 +96,7 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
     if (unreadCount === 0 || isMarkingAll) return;
     setIsMarkingAll(true);
     try {
-      /* 
-        TODO: await markAllNotificationsAsRead(); 
-      */
+      await markAllGuardNotificationsAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
       window.dispatchEvent(new Event("guardNotificationsUpdated"));
@@ -158,6 +107,22 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
     }
   };
 
+  // Handler kapag pinindot ang "View Details" o ang notification
+  const handleViewDetails = (item: NotificationItem) => {
+    if (!item.read) {
+      handleMarkAsRead(item.id);
+    }
+    onClose();
+
+    // Laging idirekta sa valid Guard pages upang maiwasan ang "No permission" error
+    if (item.link?.includes("/registration") || item.link?.includes("/vehicle")) {
+      navigate("/guard/registration");
+    } else {
+      // Directs to Gate Monitoring bilang primary guard monitoring workspace
+      navigate("/guard/monitoring");
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -165,7 +130,6 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
       ref={dropdownRef}
       className="absolute right-0 top-14 z-50 w-80 sm:w-96 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xl space-y-3 transition-colors font-sans animate-in fade-in zoom-in-95"
     >
-      
       {/* Header Title & Count */}
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2">
@@ -199,29 +163,29 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
         </div>
       </div>
 
-      {/* Search Box */}
-      <div className="relative w-full">
+      {/* Search Input */}
+      <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
         <input
           type="text"
+          placeholder="Search notifications..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search notifications..."
-          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
+          className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#0053CC] transition-all"
         />
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 p-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 overflow-x-auto text-[11px]">
+      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100 dark:border-slate-800">
         {(["all", "unread", "alerts", "updates"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap capitalize ${
+            className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === tab
-                ? "bg-[#0053CC] text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                ? "bg-[#0053CC] text-white"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             {tab}
@@ -229,63 +193,66 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
         ))}
       </div>
 
-      {/* Notification Items List (Scrollable) */}
-      <div className="space-y-2.5 max-h-85 overflow-y-auto pr-1">
+      {/* Notifications List */}
+      <div className="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100 dark:divide-slate-800/50">
         {isLoading ? (
-          <div className="py-10 flex flex-col items-center justify-center text-center space-y-2 text-slate-400">
-            <Loader2 className="h-5 w-5 animate-spin text-[#0053CC]" />
-            <span className="text-[11px]">Loading notifications...</span>
+          <div className="py-8 text-center text-slate-400 text-xs">
+            Loading notifications...
           </div>
         ) : notifications.length > 0 ? (
           notifications.map((item) => (
             <div
               key={item.id}
-              className={`flex flex-col gap-2 p-3 rounded-2xl border transition-all ${
-                item.read
-                  ? "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 opacity-80"
-                  : "border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40 shadow-xs"
+              className={`pt-2 first:pt-0 pb-2 flex flex-col gap-1.5 transition-colors rounded-xl p-2 ${
+                !item.read
+                  ? "bg-blue-50/40 dark:bg-blue-950/20"
+                  : "hover:bg-slate-50 dark:hover:bg-slate-800/40"
               }`}
             >
-              <div className="flex items-start gap-3">
-                {/* Icon Batay sa Uri */}
-                <div className={`p-2 rounded-xl border shrink-0 mt-0.5 ${
-                  item.type === "alert" 
-                    ? "bg-rose-50 dark:bg-rose-950/50 text-rose-600 border-rose-200 dark:border-rose-900" 
-                    : item.type === "warning"
-                    ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 border-amber-200 dark:border-amber-900"
-                    : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border-emerald-200 dark:border-emerald-900"
-                }`}>
-                  {item.type === "alert" ? (
-                    <ShieldAlert className="h-4 w-4" />
-                  ) : item.type === "warning" ? (
-                    <AlertTriangle className="h-4 w-4" />
-                  ) : (
-                    <CheckCircle2 className="h-4 w-4" />
+              <div className="flex items-start gap-2.5">
+                <div className="mt-0.5">
+                  {item.type === "alert" && (
+                    <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500">
+                      <ShieldAlert className="h-3.5 w-3.5" />
+                    </div>
+                  )}
+                  {item.type === "warning" && (
+                    <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-500">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                    </div>
+                  )}
+                  {item.type === "update" && (
+                    <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </div>
                   )}
                 </div>
 
-                <div className="space-y-0.5 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-poppins text-xs font-bold text-slate-900 dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className={`text-xs font-semibold leading-tight truncate ${
+                      !item.read ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"
+                    }`}>
                       {item.title}
-                    </h3>
+                    </p>
                     {!item.read && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0053CC] inline-block"></span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#0053CC] shrink-0" />
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-snug">
                     {item.description}
                   </p>
-                  {item.link && (
-                    <Link
-                      to={item.link}
-                      onClick={onClose}
-                      className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0053CC] dark:text-blue-400 hover:underline pt-0.5"
-                    >
-                      <span>View Details</span>
-                      <ExternalLink className="h-2.5 w-2.5" />
-                    </Link>
-                  )}
+                  
+                  {/* View Details Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleViewDetails(item)}
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0053CC] dark:text-blue-400 hover:underline pt-0.5 cursor-pointer"
+                  >
+                    <span>View Details</span>
+                    <ExternalLink className="h-2.5 w-2.5" />
+                  </button>
                 </div>
               </div>
 
@@ -305,11 +272,10 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
           ))
         ) : (
           <div className="py-10 text-center text-slate-400 italic text-xs">
-            No notifications found.
+            No notifications found in database.
           </div>
         )}
       </div>
-
     </div>
   );
 }

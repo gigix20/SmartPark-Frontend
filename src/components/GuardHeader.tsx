@@ -3,7 +3,8 @@ import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
 import { useState, useEffect } from "react";
 import type { User } from "@/pages/auth/api/authApi";
-import NotificationsDropdown from "@/pages/guard/NotificationsDropdown"; // I-adjust ang path depende kung saan nakalagay ang component
+import NotificationsDropdown from "@/pages/guard/NotificationsDropdown";
+import { getGuardNotifications } from "@/api/notificationApi";
 
 const DEFAULT_AVATAR =
   "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150";
@@ -22,6 +23,7 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
 
   // State para sa Notifications Pop-up Dropdown
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Dynamic user state from localStorage
   const [user, setUser] = useState<User | null>(() => {
@@ -72,6 +74,29 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch live unread count and listen for updates
+  useEffect(() => {
+    let isMounted = true;
+    async function loadUnreadCount() {
+      try {
+        const res = await getGuardNotifications({ limit: 1 });
+        if (isMounted && res.success) {
+          setUnreadCount(res.unreadCount || 0);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadUnreadCount();
+
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener("guardNotificationsUpdated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("guardNotificationsUpdated", handleUpdate);
+    };
   }, []);
 
   const dateString = new Intl.DateTimeFormat("en-US", {
@@ -148,10 +173,12 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 flex h-2 w-2">
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
+                </span>
+              )}
             </button>
 
             {/* Pop-up Notifications Dropdown */}

@@ -66,3 +66,31 @@ export async function deleteNotification(
   const res = await api.delete(`/admin/notifications/${id}`);
   return res.data;
 }
+
+/**
+ * Fetch live notifications for guard
+ */
+export async function getGuardNotifications(
+  params?: NotificationsParams
+): Promise<NotificationsResponse> {
+  const res = await api.get("/guard/notifications", { params });
+  return res.data;
+}
+
+/**
+ * Mark a guard notification as read
+ */
+export async function markGuardNotificationAsRead(
+  id: string | number
+): Promise<{ success: boolean; unreadCount: number }> {
+  const res = await api.patch(`/guard/notifications/${id}/read`);
+  return res.data;
+}
+
+/**
+ * Mark all guard notifications as read
+ */
+export async function markAllGuardNotificationsAsRead(): Promise<{ success: boolean; unreadCount: number }> {
+  const res = await api.patch("/guard/notifications/mark-all-read");
+  return res.data;
+}
