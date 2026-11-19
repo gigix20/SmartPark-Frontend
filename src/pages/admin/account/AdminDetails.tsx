@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2, Clock } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
@@ -14,6 +14,9 @@ export default function AdminDetails() {
   const [adminData, setAdminData] = useState<any>(null);
   const status = adminData?.accountStatus || adminData?.status || "Active";
   const isDeactivated = status?.toUpperCase() === "DEACTIVATED" || status?.toUpperCase() === "INACTIVE";
+  const isSuspended = status?.toUpperCase() === "SUSPENDED";
+  const isActive = !isDeactivated && !isSuspended;
+  const [isActivating, setIsActivating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -59,6 +62,19 @@ export default function AdminDetails() {
     }
   };
 
+  const handleActivate = async () => {
+    try {
+      if (!id) return;
+      setIsActivating(true);
+      await updateAccountStatus(id, "Active");
+      setAdminData((prev: any) => ({ ...prev, accountStatus: "Active" }));
+    } catch (err) {
+      console.error("Failed to activate account:", err);
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -98,15 +114,39 @@ export default function AdminDetails() {
               </h1>
             </div>
 
-            {isSuperAdmin && !isDeactivated && (
-              <button
-                type="button"
-                onClick={() => setShowDeactivateModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
-              >
-                <Ban className="h-3.5 w-3.5" />
-                <span>Deactivate</span>
-              </button>
+            {isSuperAdmin && (
+              <div className="flex items-center gap-2">
+                {isActive ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/admin/accounts/suspend/${adminData.id}`)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Suspend</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeactivateModal(true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <Ban className="h-3.5 w-3.5" />
+                      <span>Deactivate</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleActivate}
+                    disabled={isActivating}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isActivating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                    <span>Activate Account</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -123,8 +163,14 @@ export default function AdminDetails() {
                   <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
                     {adminData.firstName} {adminData.lastName}
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                    {adminData.accountStatus}
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                    status.toUpperCase() === "ACTIVE"
+                      ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                      : status.toUpperCase() === "SUSPENDED"
+                      ? "bg-amber-50 text-amber-600 border-amber-200"
+                      : "bg-rose-50 text-rose-600 border-rose-200"
+                  }`}>
+                    {status}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">ID: {adminData.schoolId}</p>
@@ -177,8 +223,14 @@ export default function AdminDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">Account Status</p>
-                <span className="inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                  {adminData.accountStatus}
+                <span className={`inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold border ${
+                  status.toUpperCase() === "ACTIVE"
+                    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                    : status.toUpperCase() === "SUSPENDED"
+                    ? "bg-amber-100 text-amber-700 border-amber-200"
+                    : "bg-rose-100 text-rose-700 border-rose-200"
+                }`}>
+                  {status}
                 </span>
               </div>
               <div>

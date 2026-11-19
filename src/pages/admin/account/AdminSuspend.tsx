@@ -1,18 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Check, Clock, Info, AlertCircle } from "lucide-react";
+import { ArrowLeft, ChevronDown, Check, Clock, Info, AlertCircle, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { getAccountById, suspendAccount } from "./api/accountApi";
 
 export default function AdminSuspend() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState("");
+
   // Form states
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("7 Days");
-  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState("");
 
@@ -24,6 +30,25 @@ export default function AdminSuspend() {
 
   // Modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Fetch admin account details on mount
+  useEffect(() => {
+    async function fetchAdminDetails() {
+      if (!id) return;
+      try {
+        setIsLoading(true);
+        const res = await getAccountById(id);
+        if (res.success && res.account) {
+          setAdminUser(res.account);
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin details:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchAdminDetails();
+  }, [id]);
 
   // Prevent background scrolling kapag bukas ang modal
   useEffect(() => {
@@ -58,16 +83,47 @@ export default function AdminSuspend() {
     }
   }, [startDate, duration]);
 
-  const handleSuspendSubmit = (e: React.FormEvent) => {
+  const handleSuspendSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
+    setApiError("");
 
     if (!reason.trim() || !startDate || !endDate) {
       return;
     }
 
-    setShowSuccessModal(true);
+    try {
+      setIsSubmitting(true);
+      const fullReason = notes.trim() ? `${reason.trim()} - Notes: ${notes.trim()}` : reason.trim();
+      const res = await suspendAccount(id!, {
+        reason: fullReason,
+        suspendedUntil: endDate.toISOString(),
+      });
+
+      if (res.success) {
+        setShowSuccessModal(true);
+      }
+    } catch (err: any) {
+      console.error("Failed to suspend account:", err);
+      setApiError(err.response?.data?.message || "Failed to suspend account. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const adminName = adminUser ? `${adminUser.firstName} ${adminUser.lastName}` : "Admin";
+  const adminIdText = adminUser?.schoolId ? `ID: ${adminUser.schoolId}` : "N/A";
+  const avatarUrl = adminUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=0053CC&color=fff`;
 
   return (
     <AdminLayout>
@@ -76,7 +132,7 @@ export default function AdminSuspend() {
         <div>
           <button
             type="button"
-            onClick={() => navigate(`/admin/accounts/details/${id || "1"}`)}
+            onClick={() => navigate(`/admin/accounts/details/${id || ""}`)}
             className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#0053CC] dark:hover:text-blue-400 transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -93,27 +149,38 @@ export default function AdminSuspend() {
             <p className="text-xs text-slate-500 mt-1">Temporarily restrict the admin's account access.</p>
           </div>
 
+          {apiError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 text-xs rounded-xl flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{apiError}</span>
+            </div>
+          )}
+
           {/* Profile Overview Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/30 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-4">
               <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=60" 
-                alt="John Doe" 
+                src={avatarUrl} 
+                alt={adminName} 
                 className="h-14 w-14 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm"
               />
               <div>
                 <h2 className="font-poppins text-base font-extrabold text-slate-900 dark:text-white">
-                  John Doe
+                  {adminName}
                 </h2>
-                <p className="text-xs text-slate-400 font-medium">QCU-IT-2024-08</p>
+                <p className="text-xs text-slate-400 font-medium">{adminIdText}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
               <span className="text-xs font-semibold text-slate-500">Current Status</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                Active
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                adminUser?.accountStatus === "Active"
+                  ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                  : "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
+              }`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${adminUser?.accountStatus === "Active" ? "bg-emerald-500" : "bg-amber-500"}`}></span>
+                {adminUser?.accountStatus || "Active"}
               </span>
             </div>
           </div>
@@ -169,7 +236,7 @@ export default function AdminSuspend() {
                         setIsDurationOpen(false);
                       }}
                       className={`w-full text-left px-3 py-2 text-xs transition-colors cursor-pointer ${
-                        duration === d ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                        duration === d ? "bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] font-bold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       {d}
@@ -194,7 +261,7 @@ export default function AdminSuspend() {
                     selected={startDate}
                     onChange={(date: Date | null) => setStartDate(date)}
                     dateFormat="yyyy-MM-dd"
-                    placeholderText="DD/MM/YYYY"
+                    placeholderText="YYYY-MM-DD"
                     className="w-full bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none rounded-xl border-none"
                     wrapperClassName="w-full"
                   />
@@ -218,7 +285,7 @@ export default function AdminSuspend() {
                     selected={endDate}
                     onChange={(date: Date | null) => setEndDate(date)}
                     dateFormat="yyyy-MM-dd"
-                    placeholderText="DD/MM/YYYY"
+                    placeholderText="YYYY-MM-DD"
                     className="w-full bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none rounded-xl border-none"
                     wrapperClassName="w-full"
                   />
@@ -249,7 +316,7 @@ export default function AdminSuspend() {
             {/* Notification Notice */}
             <div className="flex items-center gap-2 text-slate-500 pt-2">
               <Info className="h-4 w-4 text-blue-500 shrink-0" />
-              <span>The admin will be notified after the suspension is confirmed through email.</span>
+              <span>The account status will be updated immediately upon confirmation.</span>
             </div>
 
           </div>
@@ -258,16 +325,25 @@ export default function AdminSuspend() {
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={() => navigate(`/admin/accounts/details/${id || "1"}`)}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              onClick={() => navigate(`/admin/accounts/details/${id || ""}`)}
+              disabled={isSubmitting}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-60"
             >
-              <span>Confirm</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Suspending...</span>
+                </>
+              ) : (
+                <span>Confirm</span>
+              )}
             </button>
           </div>
 
@@ -285,7 +361,7 @@ export default function AdminSuspend() {
               <div>
                 <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Account Suspended Successfully</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                  John Santo's account has been suspended successfully.
+                  {adminName}'s account has been suspended successfully.
                 </p>
               </div>
 
@@ -302,7 +378,7 @@ export default function AdminSuspend() {
                   onClick={() => navigate("/admin/accounts")}
                   className="w-full h-11 rounded-xl border border-blue-200 dark:border-slate-700 text-xs font-bold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
                 >
-                  Back to Admin Management
+                  Back to Account Management
                 </button>
               </div>
             </div>

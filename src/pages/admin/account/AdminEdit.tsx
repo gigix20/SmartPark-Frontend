@@ -23,6 +23,7 @@ export default function AdminEdit() {
   const [role, setRole] = useState("ADMIN");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [status, setStatus] = useState("Active");
+  const [avatar, setAvatar] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -51,6 +52,7 @@ export default function AdminEdit() {
           setEmployeeId(acc.schoolId || "");
           setRole(acc.role || "ADMIN");
           setPhoneNumber(acc.phone || "");
+          setAvatar(acc.avatar || "");
           
           // I-format ang status para maging Proper Case (Active, Suspended, etc.)
           const rawStatus = acc.accountStatus || "Active";
@@ -160,8 +162,8 @@ export default function AdminEdit() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
-                alt="John Doe"
+                src={avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((firstName || "") + " " + (lastName || ""))}&background=0053CC&color=fff`}
+                alt={`${firstName} ${lastName}`}
                 className="h-16 w-16 rounded-full object-cover border border-slate-200 dark:border-slate-700"
               />
               <div>
@@ -169,7 +171,13 @@ export default function AdminEdit() {
                   <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
                     {firstName} {lastName}
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                    status.toLowerCase() === "active" 
+                      ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
+                      : status.toLowerCase() === "suspended"
+                      ? "bg-amber-50 text-amber-600 border-amber-200"
+                      : "bg-rose-50 text-rose-600 border-rose-200"
+                  }`}>
                     {status}
                   </span>
                 </div>
