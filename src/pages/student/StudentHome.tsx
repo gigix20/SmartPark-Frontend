@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, ShieldCheck, Gauge } from "lucide-react";
+import { Clock, ShieldCheck, Gauge, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { logoutUser, getCurrentUser, type User as UserType } from "@/pages/auth/api/authApi";
+import { getStudentDashboard, type StudentDashboardData } from "@/api/studentApi";
 
 // Import ang mga icon mula sa src/assets/
 import carIcon from "@/assets/car-icon.svg";
@@ -15,19 +16,50 @@ export default function Dashboard() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [dashboardData, setDashboardData] = useState<StudentDashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    // Verify session with backend /me endpoint (WALANG GALAW SA BACKEND LOGIC)
+    // Verify session with backend /me endpoint
     getCurrentUser()
       .then((res) => {
         setCurrentUser(res.user);
         localStorage.setItem("user", JSON.stringify(res.user));
       })
       .catch(() => {
-        // If token is invalid or expired, redirect to login
         logoutUser();
         navigate("/login");
       });
+
+    // Fetch live dashboard metrics from database
+    getStudentDashboard()
+      .then((data) => {
+        if (data.success) {
+          setDashboardData(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load student dashboard metrics:", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [navigate]);
+
+  const overview = dashboardData?.parkingOverview;
+  const occupied = overview?.occupied ?? 0;
+  const totalCapacity = overview?.totalCapacity ?? 0;
+  const available = overview?.available ?? 0;
+  const occupancyRate = overview?.occupancyRate ?? (totalCapacity > 0 ? Math.round((occupied / totalCapacity) * 100) : 0);
+  const availabilityLevel = overview?.availabilityLevel ?? "High";
+  const remainingSlots = overview?.remainingSlots ?? available;
+  const vehiclesCount = dashboardData?.vehiclesCount ?? 0;
+  const recentHistory = dashboardData?.recentHistory ?? [];
+
+  // SVG Circular Gauge calculation
+  const radius = 64;
+  const circumference = 2 * Math.PI * radius;
+  const dashoffset = circumference * (1 - Math.min(1, Math.max(0, occupied / (totalCapacity || 1))));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-28 transition-colors duration-300">
@@ -65,12 +97,39 @@ export default function Dashboard() {
             
             {/* Circular Progress Graphic Simulation */}
             <div className="relative flex items-center justify-center">
-              <div className="relative h-44 w-44 sm:h-48 sm:w-48 rounded-full border-16 border-slate-100 dark:border-slate-800 flex items-center justify-center">
-                <div className="absolute -inset-4 rounded-full border-16 border-[#0053CC] border-t-transparent border-r-transparent -rotate-45" />
-                <div className="text-center">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">65 / 100</span>
-                  <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">Currently Inside</p>
-                </div>
+              <svg className="h-44 w-44 sm:h-48 sm:w-48 -rotate-90" viewBox="0 0 160 160">
+                {/* Background Ring */}
+                <circle
+                  cx="80"
+                  cy="80"
+                  r={radius}
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="14"
+                  className="text-slate-100 dark:text-slate-800"
+                />
+                {/* Dynamic Occupancy Ring */}
+                <circle
+                  cx="80"
+                  cy="80"
+                  r={radius}
+                  fill="transparent"
+                  stroke="#0053CC"
+                  strokeWidth="14"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={dashoffset}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+
+              <div className="absolute text-center">
+                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {occupied} / {totalCapacity}
+                </span>
+                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
+                  Currently Inside ({occupancyRate}%)
+                </p>
               </div>
             </div>
 
@@ -91,19 +150,19 @@ export default function Dashboard() {
                 <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC]" /> Occupied
                 </span>
-                <span className="font-bold text-slate-900 dark:text-white">65</span>
+                <span className="font-bold text-slate-900 dark:text-white">{occupied}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
                   <span className="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-600" /> Available
                 </span>
-                <span className="font-bold text-slate-900 dark:text-white">35</span>
+                <span className="font-bold text-slate-900 dark:text-white">{available}</span>
               </div>
               <div className="flex items-center justify-between text-xs border-t border-slate-200/60 dark:border-slate-700 pt-2.5">
                 <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
                   <span className="h-2.5 w-2.5 rounded-full bg-slate-400" /> Total Capacity
                 </span>
-                <span className="font-bold text-slate-900 dark:text-white">100</span>
+                <span className="font-bold text-slate-900 dark:text-white">{totalCapacity}</span>
               </div>
             </div>
 
@@ -118,19 +177,37 @@ export default function Dashboard() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className={`h-2 w-2 rounded-full animate-pulse ${
+                    availabilityLevel === "High"
+                      ? "bg-emerald-500"
+                      : availabilityLevel === "Moderate"
+                      ? "bg-amber-500"
+                      : "bg-rose-500"
+                  }`} />
                   Parking Availability
                 </h3>
               </div>
-              <div className="my-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 py-4 text-center">
-                <span className="font-poppins text-2xl font-extrabold text-amber-600 dark:text-amber-400 tracking-wide">
-                  Moderate
+              <div className={`my-3 rounded-2xl py-4 text-center border ${
+                availabilityLevel === "High"
+                  ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-900/50"
+                  : availabilityLevel === "Moderate"
+                  ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-900/50"
+                  : "bg-rose-50/70 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-900/50"
+              }`}>
+                <span className={`font-poppins text-2xl font-extrabold tracking-wide ${
+                  availabilityLevel === "High"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : availabilityLevel === "Moderate"
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}>
+                  {availabilityLevel === "High" ? "Available" : availabilityLevel}
                 </span>
               </div>
             </div>
             <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Remaining Slots</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">28 slots</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{remainingSlots} slots</span>
             </div>
           </div>
 
@@ -144,15 +221,19 @@ export default function Dashboard() {
               </div>
 
               <div className="py-6 flex items-center justify-center">
-                <span className="font-poppins text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
-                  4
-                </span>
+                {isLoading ? (
+                  <Loader2 className="h-8 w-8 animate-spin text-[#0053CC] dark:text-blue-400" />
+                ) : (
+                  <span className="font-poppins text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
+                    {vehiclesCount}
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Registered Vehicles</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">4 total</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{vehiclesCount} total</span>
             </div>
           </div>
 
@@ -166,21 +247,34 @@ export default function Dashboard() {
               </div>
               
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800">
-                  <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">Toyota Vios (ABC-6521)</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Oct 22, 2026 • 10:12 PM</p>
+                {isLoading ? (
+                  <div className="py-6 text-center text-xs text-slate-400">Loading history...</div>
+                ) : recentHistory.length > 0 ? (
+                  recentHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                          {item.vehicleTitle}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{item.dateTime}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] shrink-0 ${
+                        item.action === "EXIT"
+                          ? "bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400"
+                          : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400"
+                      }`}>
+                        {item.action}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-6 text-center text-[11px] text-slate-400 italic">
+                    No recent parking activities recorded yet.
                   </div>
-                  <span className="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 font-bold text-[10px]">EXIT</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800">
-                  <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">Toyota Fortuner (XYZ-4521)</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Oct 24, 2026 • 10:45 AM</p>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">ENTRANCE</span>
-                </div>
+                )}
               </div>
             </div>
 

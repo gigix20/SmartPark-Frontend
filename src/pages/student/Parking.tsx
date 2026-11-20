@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
+import { getStudentParkingOverview } from "@/api/studentApi";
 import carIcon from "@/assets/car-icon.svg";
 import motorIcon from "@/assets/motor-icon.svg";
 
@@ -76,16 +77,38 @@ function addMonths(date: Date, months: number): Date {
 export default function Parking() {
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
-  // Current Occupancy Data
-  const occupied = 65;
-  const totalCapacity = 100;
-  const available = totalCapacity - occupied;
+  // Live Current Occupancy Data from Database
+  const [parkingData, setParkingData] = useState({
+    occupied: 0,
+    totalCapacity: 0,
+    available: 0,
+    carsCount: 0,
+    carsPercentage: "0%",
+    motorcycleCount: 0,
+    motorcyclePercentage: "0%",
+  });
 
-  const carsCount = 55;
-  const carsPercentage = "59.32%";
+  useEffect(() => {
+    getStudentParkingOverview()
+      .then((res) => {
+        if (res.success && res.overview) {
+          setParkingData(res.overview);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch parking overview:", err);
+      });
+  }, []);
 
-  const motorcycleCount = 10;
-  const motorcyclePercentage = "22%";
+  const occupied = parkingData.occupied;
+  const totalCapacity = parkingData.totalCapacity;
+  const available = parkingData.available;
+
+  const carsCount = parkingData.carsCount;
+  const carsPercentage = parkingData.carsPercentage;
+
+  const motorcycleCount = parkingData.motorcycleCount;
+  const motorcyclePercentage = parkingData.motorcyclePercentage;
 
   // Date bounds: Today up to 2 months from now
   const minDate = useMemo(() => startOfDay(new Date()), []);

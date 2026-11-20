@@ -21,6 +21,7 @@ import {
   registerVehicle, 
   updateVehicle, 
   deactivateVehicle, 
+  generateVehicleQr,
   type Vehicle 
 } from "@/api/vehicleApi";
 
@@ -148,7 +149,7 @@ export default function Vehicles() {
       setIsRegisterOpen(false);
       resetForm();
       await fetchVehicles();
-      setSuccessMessage("Vehicle registration submitted successfully! Awaiting administrator approval.");
+      setSuccessMessage("Vehicle registered successfully! Your SmartPark Digital QR Pass has been generated.");
       setIsSuccessModalOpen(true);
     } catch (err: any) {
       const msg = err.response?.data?.message || "Failed to register vehicle.";
@@ -205,12 +206,28 @@ export default function Vehicles() {
     }
   };
 
-  // Handle View QR Code
-  const handleViewQr = (vehicle: Vehicle) => {
-    if (vehicle.status !== "Approved") {
+  // Handle View / Generate QR Code
+  const handleViewQr = async (vehicle: Vehicle) => {
+    if (vehicle.status === "Rejected") {
       setNotApprovedModalVehicle(vehicle);
       setIsNotApprovedModalOpen(true);
       return;
+    }
+
+    // If vehicle has no QR code or is pending, auto-generate QR pass from database
+    if (!vehicle.qrCode || vehicle.status !== "Approved") {
+      try {
+        const res = await generateVehicleQr(vehicle.id);
+        if (res.success && res.qrCode) {
+          const updated = { ...vehicle, qrCode: res.qrCode, status: "Approved" };
+          setSelectedQrVehicle(updated);
+          setIsQrModalOpen(true);
+          fetchVehicles();
+          return;
+        }
+      } catch (err) {
+        console.error("Auto QR generation:", err);
+      }
     }
     setSelectedQrVehicle(vehicle);
     setIsQrModalOpen(true);

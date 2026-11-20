@@ -78,6 +78,13 @@ export async function getVehicleQr(
   return response.data;
 }
 
+export async function generateVehicleQr(
+  id: string | number
+): Promise<{ success: boolean; message: string; qrCode: string; vehicle: Vehicle }> {
+  const response = await api.post(`/vehicles/${id}/generate-qr`);
+  return response.data;
+}
+
 export async function getAdminVehicles(params?: {
   search?: string;
   tab?: string;
