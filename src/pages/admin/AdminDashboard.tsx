@@ -43,6 +43,7 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);

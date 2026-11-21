@@ -98,7 +98,7 @@ export default function GuardEdit() {
         email: formData.email,
         schoolId: formData.employeeId,
         phone: formData.phoneNumber,
-        accountStatus: formData.accountStatus.toUpperCase(),
+        accountStatus: formData.accountStatus,
         role: "GUARD",
       };
       const res = await updateAccount(id, payload);

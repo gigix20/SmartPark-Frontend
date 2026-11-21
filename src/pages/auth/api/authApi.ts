@@ -73,6 +73,7 @@ export interface VerifyOtpResponse {
 export interface ResetPasswordData {
   resetToken: string;
   password: string;
+  logoutOtherDevices?: boolean;
 }
 
 // 1. Log in existing user

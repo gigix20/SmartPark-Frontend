@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { forgotPassword } from "@/pages/auth/api/authApi";
+import { forgotPassword, verifyOtp } from "@/pages/auth/api/authApi";
 
 export default function AdminForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState(() => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -13,21 +14,64 @@ export default function AdminForgotPassword() {
       return "";
     }
   });
-  const [isSent, setIsSent] = useState(false);
+  const [step, setStep] = useState<"email" | "otp">("email");
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const handleReset = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
     setIsLoading(true);
 
     try {
       await forgotPassword({ email });
-      setIsSent(true);
+      setStep("otp");
     } catch (err: any) {
       setErrorMessage(
-        err.response?.data?.message || "Failed to send reset link. Please try again."
+        err.response?.data?.message || "Failed to send reset code. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (isNaN(Number(value))) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    setErrorMessage("");
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const enteredCode = otp.join("");
+    if (enteredCode.length !== 6) {
+      setErrorMessage("Please enter the complete 6-digit verification code.");
+      return;
+    }
+
+    setErrorMessage("");
+    setIsLoading(true);
+
+    try {
+      const res = await verifyOtp({ email, otp: enteredCode });
+      navigate("/reset-password", { state: { email, resetToken: res.resetToken } });
+    } catch (err: any) {
+      setErrorMessage(
+        err.response?.data?.message || "Invalid or expired verification code."
       );
     } finally {
       setIsLoading(false);
@@ -51,14 +95,16 @@ export default function AdminForgotPassword() {
             Forgot Password
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Enter the email linked to your admin account and we&apos;ll send you a link to reset your password.
+            {step === "email"
+              ? "Enter the email linked to your admin account and we'll send you a 6-digit verification code."
+              : `We sent a 6-digit code to ${email}. Enter the code below to proceed.`}
           </p>
         </div>
 
         {/* Card Container */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6">
-          {!isSent ? (
-            <form onSubmit={handleReset} className="space-y-4">
+          {step === "email" ? (
+            <form onSubmit={handleSendOtp} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
                   Email Address<span className="text-rose-500">*</span>
@@ -83,7 +129,7 @@ export default function AdminForgotPassword() {
                   disabled={isLoading}
                   className="w-full py-3 rounded-xl bg-[#0053CC] hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer transition-all"
                 >
-                  {isLoading ? "Sending..." : "Send reset link"}
+                  {isLoading ? "Sending..." : "Send verification code"}
                 </button>
               </div>
 
@@ -92,20 +138,61 @@ export default function AdminForgotPassword() {
               </p>
             </form>
           ) : (
-            <div className="text-center space-y-4 py-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-100 dark:border-emerald-900">
-                <CheckCircle2 className="h-6 w-6" />
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block text-center">
+                  Enter 6-Digit Verification Code
+                </label>
+                <div className="flex justify-center gap-2 sm:gap-3">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => {
+                        inputRefs.current[index] = el;
+                      }}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC]"
+                    />
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                A password reset link has been sent to <strong>{email}</strong>.
-              </p>
-              <Link
-                to="/admin/change-password"
-                className="inline-block px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all"
-              >
-                Back to Change Password
-              </Link>
-            </div>
+
+              {errorMessage && (
+                <p className="text-xs text-rose-500 font-medium text-center">{errorMessage}</p>
+              )}
+
+              <div className="pt-2 space-y-3">
+                <button
+                  type="submit"
+                  disabled={isLoading || otp.join("").length !== 6}
+                  className="w-full py-3 rounded-xl bg-[#0053CC] hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer transition-all"
+                >
+                  {isLoading ? "Verifying..." : "Verify Code"}
+                </button>
+
+                <div className="flex justify-between items-center text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setStep("email")}
+                    className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline cursor-pointer"
+                  >
+                    Change email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={isLoading}
+                    className="text-[#0053CC] dark:text-blue-400 font-semibold hover:underline cursor-pointer"
+                  >
+                    Resend Code
+                  </button>
+                </div>
+              </div>
+            </form>
           )}
         </div>
       </div>

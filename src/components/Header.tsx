@@ -32,6 +32,7 @@ export function Header({ currentUser }: { currentUser?: UserProfile | null }) {
     }
   });
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (currentUser) setUser(currentUser);
   }, [currentUser]);

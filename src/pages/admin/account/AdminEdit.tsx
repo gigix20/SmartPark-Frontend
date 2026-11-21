@@ -106,7 +106,7 @@ export default function AdminEdit() {
         schoolId: employeeId,
         phone: phoneNumber,
         role,
-        accountStatus: status.toUpperCase(), // Ipinapasa uppercase sa backend kung kinakailangan
+        accountStatus: status, // Ipinapasa as-is; dapat tumugma sa DB values (e.g. "Active")
       };
       const res = await updateAccount(id, payload);
       if (res.success) {

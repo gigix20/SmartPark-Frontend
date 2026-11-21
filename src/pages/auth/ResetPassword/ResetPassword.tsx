@@ -83,7 +83,7 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      await resetPassword({ resetToken, password });
+      await resetPassword({ resetToken, password, logoutOtherDevices });
       setIsSuccessOpen(true);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };

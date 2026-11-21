@@ -102,7 +102,7 @@ export default function UserEdit() {
         email: formData.email,
         schoolId: formData.studentId,
         phone: formData.phoneNumber,
-        accountStatus: formData.accountStatus.toUpperCase(),
+        accountStatus: formData.accountStatus,
         role: "USER",
       };
       const res = await updateAccount(id, payload);

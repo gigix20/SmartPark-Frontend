@@ -1,21 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, Check, X } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Check, X, Loader2 } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
+import { registerGateVehicle } from "@/api/guardApi";
 
 export default function GateRegistrationForm() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form Fields State
-  const [ownerName, setOwnerName] = useState("Maria Santos");
-  const [vehicleType, setVehicleType] = useState("Motorcycle");
-  const [plateNumber, setPlateNumber] = useState("ABC 4921");
-  const [model, setModel] = useState("Toyota Corolla");
+  const [ownerName, setOwnerName] = useState("");
+  const [vehicleType, setVehicleType] = useState("Car");
+  const [plateNumber, setPlateNumber] = useState("");
+  const [model, setModel] = useState("");
   const [idType, setIdType] = useState("Driver's License");
-  const [idNumber, setIdNumber] = useState("DL-07-482190");
-  const [color, setColor] = useState("White");
+  const [idNumber, setIdNumber] = useState("");
+  const [color, setColor] = useState("");
 
   // Modal Control States
   const [activeModal, setActiveModal] = useState<
@@ -36,11 +38,39 @@ export default function GateRegistrationForm() {
 
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (plateNumber.trim().toUpperCase() === "ABC 4021") {
-      setActiveModal("duplicate");
+    if (!ownerName.trim() || !plateNumber.trim() || !vehicleType.trim() || !model.trim()) {
+      alert("Please fill in all required fields (*).");
       return;
     }
     setActiveModal("summary");
+  };
+
+  const handleConfirmRegistration = async () => {
+    try {
+      setIsSubmitting(true);
+      const res = await registerGateVehicle({
+        ownerName,
+        vehicleType,
+        plateNumber,
+        model,
+        color,
+        idType,
+        idNumber,
+      });
+      if (res.success) {
+        setActiveModal("success");
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "";
+      if (msg.toLowerCase().includes("already registered") || err.response?.status === 400) {
+        setActiveModal("duplicate");
+      } else {
+        alert(msg || "Failed to register vehicle at gate.");
+        setActiveModal("none");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancelClick = () => {
@@ -278,10 +308,18 @@ export default function GateRegistrationForm() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveModal("success")}
-                className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                onClick={handleConfirmRegistration}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Confirm Registration
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Registering...</span>
+                  </>
+                ) : (
+                  <span>Confirm Registration</span>
+                )}
               </button>
             </div>
 

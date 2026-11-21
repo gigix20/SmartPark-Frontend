@@ -26,10 +26,21 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     lastName: string;
     avatar: string | null;
     role: string;
-  } | null>(null);
+  } | null>(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+      }
+    }
+    return null;
+  });
 
   const [unreadNotifs, setUnreadNotifs] = useState(0);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const fetchUnread = async () => {
       try {
@@ -64,19 +75,6 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       dotClass: "bg-blue-500",
     };
   };
-
-  // Load user from localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to parse user data:", error);
-      }
-    }
-  }, []);
 
   // Listen for profile updates
   useEffect(() => {

@@ -78,6 +78,7 @@ export default function AdminProfile() {
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Fetch user data on mount
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -94,6 +95,19 @@ export default function AdminProfile() {
 
         if (userData) {
           setCurrentUser(userData);
+          const newFormData = {
+            firstName: userData.firstName || "",
+            lastName: userData.lastName || "",
+            email: userData.email || "",
+            employeeId: userData.schoolId || "",
+            role: userData.role || "ADMIN",
+            phone: extractPhDigits(userData.phone),
+            avatar: userData.avatar || DEFAULT_AVATAR,
+            accountStatus: userData.accountStatus || "Active",
+            createdAt: formatCreatedAt(userData.createdAt),
+          };
+          setFormData(newFormData);
+          setCurrentInitialData(newFormData);
         }
       } catch (error) {
         console.error("Failed to parse user data:", error);
@@ -104,25 +118,6 @@ export default function AdminProfile() {
 
     fetchUserData();
   }, []);
-
-  // Update form data when currentUser changes
-  useEffect(() => {
-    if (currentUser) {
-      const newFormData = {
-        firstName: currentUser.firstName || "",
-        lastName: currentUser.lastName || "",
-        email: currentUser.email || "",
-        employeeId: currentUser.schoolId || "",
-        role: currentUser.role || "ADMIN",
-        phone: extractPhDigits(currentUser.phone),
-        avatar: currentUser.avatar || DEFAULT_AVATAR,
-        accountStatus: currentUser.accountStatus || "Active",
-        createdAt: formatCreatedAt(currentUser.createdAt),
-      };
-      setFormData(newFormData);
-      setCurrentInitialData(newFormData);
-    }
-  }, [currentUser]);
 
   // Lock scroll background when modal is open
   useEffect(() => {

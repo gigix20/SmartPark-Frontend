@@ -81,6 +81,7 @@ export default function Reports() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchMyReports();
   }, []);
@@ -107,22 +108,59 @@ export default function Reports() {
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-  // Handle File Upload Change
+  // Handle File Upload Change (Convert to base64 Data URL for persistent backend storage)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (JPG, PNG, WebP).");
+      return;
+    }
 
     if (file.size > 10 * 1024 * 1024) {
       alert("File size exceeds 10MB limit.");
       return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
-    setFormData((prev) => ({
-      ...prev,
-      photo: file,
-      photoPreview: previewUrl,
-    }));
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+          setFormData((prev) => ({
+            ...prev,
+            photo: file,
+            photoPreview: compressedBase64,
+          }));
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+
     if (formErrors.photo) {
       const updatedErrors = { ...formErrors };
       delete updatedErrors.photo;

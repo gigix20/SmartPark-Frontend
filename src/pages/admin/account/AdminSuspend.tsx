@@ -19,7 +19,34 @@ export default function AdminSuspend() {
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("7 Days");
   const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  
+  const calculateDefaultEndDate = (start: Date | null, dur: string) => {
+    if (!start) return null;
+    const resultDate = new Date(start);
+    if (dur === "3 Days") {
+      resultDate.setDate(resultDate.getDate() + 3);
+    } else if (dur === "7 Days") {
+      resultDate.setDate(resultDate.getDate() + 7);
+    } else if (dur === "14 Days") {
+      resultDate.setDate(resultDate.getDate() + 14);
+    } else if (dur === "30 Days") {
+      resultDate.setDate(resultDate.getDate() + 30);
+    } else if (dur === "Permanent") {
+      resultDate.setFullYear(resultDate.getFullYear() + 100);
+    }
+    return resultDate;
+  };
+
+  const [endDate, setEndDate] = useState<Date | null>(() => calculateDefaultEndDate(new Date(), "7 Days"));
+  const [prevStartDate, setPrevStartDate] = useState(startDate);
+  const [prevDuration, setPrevDuration] = useState(duration);
+
+  if (startDate !== prevStartDate || duration !== prevDuration) {
+    setPrevStartDate(startDate);
+    setPrevDuration(duration);
+    setEndDate(calculateDefaultEndDate(startDate, duration));
+  }
+
   const [notes, setNotes] = useState("");
 
   // Dropdown states
@@ -32,6 +59,7 @@ export default function AdminSuspend() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Fetch admin account details on mount
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     async function fetchAdminDetails() {
       if (!id) return;
@@ -61,27 +89,6 @@ export default function AdminSuspend() {
       document.body.style.overflow = "unset";
     };
   }, [showSuccessModal]);
-
-  // Awtomatikong kukuwenta ng End Date kapag nagbago ang Start Date o Duration
-  useEffect(() => {
-    if (startDate) {
-      const resultDate = new Date(startDate);
-      
-      if (duration === "3 Days") {
-        resultDate.setDate(resultDate.getDate() + 3);
-      } else if (duration === "7 Days") {
-        resultDate.setDate(resultDate.getDate() + 7);
-      } else if (duration === "14 Days") {
-        resultDate.setDate(resultDate.getDate() + 14);
-      } else if (duration === "30 Days") {
-        resultDate.setDate(resultDate.getDate() + 30);
-      } else if (duration === "Permanent") {
-        resultDate.setFullYear(resultDate.getFullYear() + 100);
-      }
-
-      setEndDate(resultDate);
-    }
-  }, [startDate, duration]);
 
   const handleSuspendSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

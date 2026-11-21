@@ -98,6 +98,21 @@ export async function getGuardMonitoring(params: GuardMonitoringParams = {}): Pr
   return res.data;
 }
 
+export interface GateRegistrationPayload {
+  ownerName: string;
+  vehicleType: string;
+  plateNumber: string;
+  model: string;
+  color?: string;
+  idType?: string;
+  idNumber?: string;
+}
+
+export async function registerGateVehicle(data: GateRegistrationPayload) {
+  const res = await api.post("/guard/register-vehicle", data);
+  return res.data;
+}
+
 /**
  * 2. Fetch live metrics & activities for Guard Dashboard
  */

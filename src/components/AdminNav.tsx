@@ -30,16 +30,14 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
     location.pathname.startsWith("/admin/guards") || 
     location.pathname.startsWith("/admin/users");
 
-  const [isVehiclesOpen, setIsVehiclesOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  const [isVehiclesOpen, setIsVehiclesOpen] = useState(() => location.pathname.startsWith("/admin/vehicles"));
 
-  useEffect(() => {
-    if (location.pathname.startsWith("/admin/vehicles")) {
-      setIsVehiclesOpen(true);
-    } else {
-      setIsVehiclesOpen(false);
-    }
-  }, [location.pathname]);
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
+    setIsVehiclesOpen(location.pathname.startsWith("/admin/vehicles"));
+  }
 
   // I-lock ang background scroll kapag bukas ang modal para hindi makapag-scroll
   useEffect(() => {

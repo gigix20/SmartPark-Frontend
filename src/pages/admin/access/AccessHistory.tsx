@@ -81,6 +81,7 @@ export default function AccessHistory() {
     }
   }, [debouncedSearch, selectedAction, selectedSource, selectedDateRange, currentPage]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);

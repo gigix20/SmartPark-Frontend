@@ -36,6 +36,7 @@ export function ProtectedRoute({
     return saved ? JSON.parse(saved) : null;
   });
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {

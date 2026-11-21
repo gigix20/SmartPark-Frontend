@@ -61,6 +61,7 @@ export default function AccessRecords() {
     }
   }, [debouncedSearch, activeTab, currentPage]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
