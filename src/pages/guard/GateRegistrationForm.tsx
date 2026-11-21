@@ -4,20 +4,53 @@ import { ArrowLeft, AlertTriangle, Check, X, Loader2 } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 import { registerGateVehicle } from "@/api/guardApi";
+import { getVehicleOptions, type VehicleOptions } from "@/api/vehicleApi";
 
 export default function GateRegistrationForm() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Vehicle Options State
+  const [vehicleOptions, setVehicleOptions] = useState<VehicleOptions | null>(null);
+
   // Form Fields State
   const [ownerName, setOwnerName] = useState("");
   const [vehicleType, setVehicleType] = useState("Car");
   const [plateNumber, setPlateNumber] = useState("");
+  const [brand, setBrand] = useState("");
+  const [isOtherBrand, setIsOtherBrand] = useState(false);
+  const [customBrand, setCustomBrand] = useState("");
   const [model, setModel] = useState("");
+  const [isOtherModel, setIsOtherModel] = useState(false);
+  const [customModel, setCustomModel] = useState("");
+  const [color, setColor] = useState("");
   const [idType, setIdType] = useState("Driver's License");
   const [idNumber, setIdNumber] = useState("");
-  const [color, setColor] = useState("");
+
+  // Fetch options on mount
+  useEffect(() => {
+    getVehicleOptions()
+      .then((res) => {
+        if (res.success && res.options) {
+          setVehicleOptions(res.options);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch vehicle options:", err));
+  }, []);
+
+  // Derived Options
+  const activeBrandOptions = vehicleType === "Motorcycle"
+    ? (vehicleOptions?.motorcycles || [])
+    : (vehicleOptions?.cars || []);
+  const activeBrandNames = activeBrandOptions.map((b) => b.brand);
+  const selectedBrandEntry = activeBrandOptions.find(
+    (b) => b.brand.toLowerCase() === brand.toLowerCase()
+  );
+  const activeModelNames = selectedBrandEntry?.models || [];
+  const activeColorNames = vehicleOptions?.colors || [
+    "White", "Black", "Silver", "Gray", "Red", "Blue", "Green", "Yellow", "Brown", "Orange"
+  ];
 
   // Modal Control States
   const [activeModal, setActiveModal] = useState<
@@ -36,9 +69,12 @@ export default function GateRegistrationForm() {
     };
   }, [activeModal]);
 
+  const finalBrand = isOtherBrand ? customBrand : brand;
+  const finalModel = isOtherModel ? customModel : model;
+
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ownerName.trim() || !plateNumber.trim() || !vehicleType.trim() || !model.trim()) {
+    if (!ownerName.trim() || !plateNumber.trim() || !vehicleType.trim() || !finalBrand.trim() || !finalModel.trim() || !color.trim()) {
       alert("Please fill in all required fields (*).");
       return;
     }
@@ -52,7 +88,8 @@ export default function GateRegistrationForm() {
         ownerName,
         vehicleType,
         plateNumber,
-        model,
+        brand: finalBrand,
+        model: finalModel,
         color,
         idType,
         idNumber,
@@ -144,13 +181,20 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Vehicle type <span className="text-rose-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={vehicleType}
-                      onChange={(e) => setVehicleType(e.target.value)}
-                      placeholder="Motorcycle / Car"
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
-                    />
+                      onChange={(e) => {
+                        setVehicleType(e.target.value);
+                        setBrand("");
+                        setModel("");
+                        setIsOtherBrand(false);
+                        setIsOtherModel(false);
+                      }}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
+                    >
+                      <option value="Car">Car</option>
+                      <option value="Motorcycle">Motorcycle</option>
+                    </select>
                   </div>
 
                   {/* Plate number */}
@@ -161,10 +205,48 @@ export default function GateRegistrationForm() {
                     <input
                       type="text"
                       value={plateNumber}
-                      onChange={(e) => setPlateNumber(e.target.value)}
+                      onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
                       placeholder="ABC 4921"
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs uppercase text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
                     />
+                  </div>
+
+                  {/* Brand */}
+                  <div className="space-y-1.5">
+                    <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
+                      Brand <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={isOtherBrand ? "Other" : (activeBrandNames.includes(brand) ? brand : (brand ? "Other" : ""))}
+                      onChange={(e) => {
+                        if (e.target.value === "Other") {
+                          setIsOtherBrand(true);
+                          setBrand("");
+                          setModel("");
+                        } else {
+                          setIsOtherBrand(false);
+                          setBrand(e.target.value);
+                          setModel("");
+                        }
+                        setIsOtherModel(false);
+                      }}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
+                    >
+                      <option value="" disabled>Select Brand</option>
+                      {activeBrandNames.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                      <option value="Other">Other (Custom Brand)</option>
+                    </select>
+                    {isOtherBrand && (
+                      <input
+                        type="text"
+                        placeholder="Type custom brand"
+                        value={customBrand}
+                        onChange={(e) => setCustomBrand(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] mt-1.5"
+                      />
+                    )}
                   </div>
 
                   {/* Model */}
@@ -172,13 +254,34 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Model <span className="text-rose-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                      placeholder="Toyota Corolla"
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
-                    />
+                    <select
+                      value={isOtherModel ? "Other" : (activeModelNames.includes(model) ? model : (model ? "Other" : ""))}
+                      onChange={(e) => {
+                        if (e.target.value === "Other") {
+                          setIsOtherModel(true);
+                          setModel("");
+                        } else {
+                          setIsOtherModel(false);
+                          setModel(e.target.value);
+                        }
+                      }}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
+                    >
+                      <option value="" disabled>Select Model</option>
+                      {activeModelNames.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                      <option value="Other">Other (Custom Model)</option>
+                    </select>
+                    {isOtherModel && (
+                      <input
+                        type="text"
+                        placeholder="Type custom model"
+                        value={customModel}
+                        onChange={(e) => setCustomModel(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] mt-1.5"
+                      />
+                    )}
                   </div>
 
                   {/* ID type */}
@@ -186,13 +289,16 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold block">
                       ID type
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={idType}
                       onChange={(e) => setIdType(e.target.value)}
-                      placeholder="Driver's License"
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
-                    />
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
+                    >
+                      <option value="Driver's License">Driver's License</option>
+                      <option value="Student ID">Student ID</option>
+                      <option value="Employee ID">Employee ID</option>
+                      <option value="Government ID">Government ID</option>
+                    </select>
                   </div>
 
                   {/* ID number */}
@@ -214,13 +320,32 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Color <span className="text-rose-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      placeholder="White"
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] transition-colors"
-                    />
+                    <select
+                      value={activeColorNames.includes(color) ? color : (color ? "Other" : "")}
+                      onChange={(e) => {
+                        if (e.target.value === "Other") {
+                          setColor("");
+                        } else {
+                          setColor(e.target.value);
+                        }
+                      }}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
+                    >
+                      <option value="" disabled>Select Color</option>
+                      {activeColorNames.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                      <option value="Other">Other (Custom Color)</option>
+                    </select>
+                    {!activeColorNames.includes(color) && (
+                      <input
+                        type="text"
+                        placeholder="Type custom color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#0053CC] mt-1.5"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -277,15 +402,19 @@ export default function GateRegistrationForm() {
                 </div>
                 <div>
                   <p className="text-slate-400 font-medium">Vehicle type</p>
-                  <p className="font-bold text-slate-900 dark:text-white mt-0.5">{vehicleType} (Sedan)</p>
+                  <p className="font-bold text-slate-900 dark:text-white mt-0.5">{vehicleType}</p>
                 </div>
                 <div>
                   <p className="text-slate-400 font-medium">Plate number</p>
                   <p className="font-bold text-[#0053CC] dark:text-blue-400 mt-0.5">{plateNumber}</p>
                 </div>
                 <div>
-                  <p className="text-slate-400 font-medium">Model</p>
-                  <p className="font-bold text-slate-900 dark:text-white mt-0.5">{model}</p>
+                  <p className="text-slate-400 font-medium">Brand & Model</p>
+                  <p className="font-bold text-slate-900 dark:text-white mt-0.5">{finalBrand} {finalModel}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400 font-medium">Color</p>
+                  <p className="font-bold text-slate-900 dark:text-white mt-0.5">{color}</p>
                 </div>
                 <div>
                   <p className="text-slate-400 font-medium">ID type</p>

@@ -80,6 +80,7 @@ export interface GuardScanResponse {
     ownerName: string;
     schoolId: string;
     role: string;
+    photo?: string | null;
   };
   isCurrentlyParked?: boolean;
   activeLog?: {
@@ -102,6 +103,7 @@ export interface GateRegistrationPayload {
   ownerName: string;
   vehicleType: string;
   plateNumber: string;
+  brand?: string;
   model: string;
   color?: string;
   idType?: string;

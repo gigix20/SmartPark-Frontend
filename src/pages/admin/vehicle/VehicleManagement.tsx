@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ChevronDown, Loader2, X, Check, AlertCircle } from "lucide-react";
+import { Search, Filter, ChevronDown, Loader2, X, Check, AlertCircle, Settings } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";
 import { getAdminVehicles, approveVehicle, rejectVehicle, type Vehicle } from "@/api/vehicleApi";
+import { ManageVehicleOptionsModal } from "./ManageVehicleOptionsModal";
 
 export default function VehicleManagement() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function VehicleManagement() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
 
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const statusOptions = ["Approved", "Pending", "Rejected", "Inactive"];
   const typeOptions = ["Car", "Motorcycle"];
 
@@ -114,9 +116,19 @@ export default function VehicleManagement() {
 
   return (
     <AdminLayout>
-      <div>
-        <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Vehicle Management</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Manage registered vehicles of campus users.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">Vehicle Management</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Manage registered vehicles of campus users.</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsOptionsModalOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white text-xs font-bold transition-all shadow-sm cursor-pointer self-start sm:self-auto"
+        >
+          <Settings className="h-4 w-4" /> Manage Vehicle Options
+        </button>
       </div>
 
       {/* METRIC CARDS */}
@@ -621,6 +633,15 @@ export default function VehicleManagement() {
           </div>
         </div>
       )}
+
+      {/* MANAGE OPTIONS MODAL */}
+      <ManageVehicleOptionsModal
+        isOpen={isOptionsModalOpen}
+        onClose={() => {
+          setIsOptionsModalOpen(false);
+          fetchAdminVehicles();
+        }}
+      />
     </AdminLayout>
   );
 }

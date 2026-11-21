@@ -1,5 +1,17 @@
 import api from "@/api/axios";
 
+export interface BrandModelOption {
+  brand: string;
+  models: string[];
+}
+
+export interface VehicleOptions {
+  cars: BrandModelOption[];
+  motorcycles: BrandModelOption[];
+  colors: string[];
+  years: string[];
+}
+
 export interface Vehicle {
   id: number | string;
   userId?: number;
@@ -11,6 +23,7 @@ export interface Vehicle {
   brandModel?: string;
   color: string;
   year: string;
+  photo?: string | null;
   status: "Approved" | "Pending" | "Rejected" | "Inactive" | string;
   rejectionReason?: string | null;
   qrCode?: string | null;
@@ -37,6 +50,26 @@ export async function getMyVehicles(): Promise<{ success: boolean; vehicles: Veh
   return response.data;
 }
 
+export async function getVehicleOptions(): Promise<{ success: boolean; options: VehicleOptions }> {
+  const response = await api.get("/vehicles/options");
+  return response.data;
+}
+
+export async function getAdminVehicleOptions(): Promise<{ success: boolean; options: VehicleOptions }> {
+  const response = await api.get("/admin/vehicles/options");
+  return response.data;
+}
+
+export async function updateAdminVehicleOptions(options: VehicleOptions): Promise<{ success: boolean; message: string; options: VehicleOptions }> {
+  const response = await api.put("/admin/vehicles/options", { options });
+  return response.data;
+}
+
+export async function resetAdminVehicleOptions(): Promise<{ success: boolean; message: string; options: VehicleOptions }> {
+  const response = await api.post("/admin/vehicles/options/reset");
+  return response.data;
+}
+
 export async function registerVehicle(data: {
   type: string;
   plateNumber: string;
@@ -44,6 +77,7 @@ export async function registerVehicle(data: {
   model: string;
   color: string;
   year: string;
+  photo?: string | null;
 }): Promise<{ success: boolean; message: string; vehicle: Vehicle }> {
   const response = await api.post("/vehicles", data);
   return response.data;
@@ -58,6 +92,7 @@ export async function updateVehicle(
     model: string;
     color: string;
     year: string;
+    photo?: string | null;
   }>
 ): Promise<{ success: boolean; message: string; vehicle: Vehicle }> {
   const response = await api.patch(`/vehicles/${id}`, data);

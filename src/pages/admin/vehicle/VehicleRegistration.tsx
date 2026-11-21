@@ -225,7 +225,18 @@ export default function VehicleRegistration() {
                 ) : currentItems.length > 0 ? (
                   currentItems.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="py-3 font-medium text-slate-900 dark:text-white">{item.owner}</td>
+                      <td className="py-3 font-medium text-slate-900 dark:text-white">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-9 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                            {item.photo ? (
+                              <img src={item.photo} alt={item.plateNo} className="h-full w-full object-cover" />
+                            ) : (
+                              <img src={item.type === "Motorcycle" || item.vehicleType?.includes("Motorcycle") ? MotorIcon : CarIcon} alt="" className="h-5 w-5 object-contain" />
+                            )}
+                          </div>
+                          <span>{item.owner}</span>
+                        </div>
+                      </td>
                       <td className="py-3 text-slate-500 dark:text-slate-400">{item.vehicleType}</td>
                       <td className="py-3 font-semibold text-slate-800 dark:text-slate-200">{item.plateNo}</td>
                       <td className="py-3">
@@ -309,13 +320,23 @@ export default function VehicleRegistration() {
               </button>
             </div>
 
-            <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <img 
-                src={selectedVehicle.type === "Motorcycle" ? MotorIcon : CarIcon} 
-                alt="Vehicle Icon" 
-                className="h-12 w-12 object-contain" 
-              />
-              <div>
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div className="h-28 w-40 sm:h-24 sm:w-36 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center shadow-xs">
+                {selectedVehicle.photo ? (
+                  <img 
+                    src={selectedVehicle.photo} 
+                    alt={selectedVehicle.plateNo} 
+                    className="h-full w-full object-cover" 
+                  />
+                ) : (
+                  <img 
+                    src={selectedVehicle.type === "Motorcycle" || selectedVehicle.vehicleType?.includes("Motorcycle") ? MotorIcon : CarIcon} 
+                    alt="Vehicle Icon" 
+                    className="h-10 w-10 object-contain p-2" 
+                  />
+                )}
+              </div>
+              <div className="text-center sm:text-left">
                 <h3 className="font-poppins text-xl font-extrabold text-slate-900 dark:text-white">{selectedVehicle.plateNo}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{selectedVehicle.vehicleType} • {selectedVehicle.color}</p>
                 <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-[#0053CC] dark:text-blue-300 text-[10px] font-bold">

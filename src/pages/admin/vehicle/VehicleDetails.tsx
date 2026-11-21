@@ -289,12 +289,20 @@ export default function VehicleDetails() {
             {/* Vehicle Banner & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-20 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 shrink-0">
-                  <img 
-                    src={vehicle.type === "Motorcycle" ? MotorIcon : CarIcon} 
-                    alt="Vehicle Icon" 
-                    className="h-8 w-8 object-contain" 
-                  />
+                <div className="flex h-20 w-28 sm:h-24 sm:w-36 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-[#0053CC] dark:text-blue-400 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden shadow-xs">
+                  {vehicle.photo ? (
+                    <img 
+                      src={vehicle.photo} 
+                      alt={vehicle.plateNo || vehicle.plateNumber} 
+                      className="h-full w-full object-cover" 
+                    />
+                  ) : (
+                    <img 
+                      src={vehicle.type === "Motorcycle" ? MotorIcon : CarIcon} 
+                      alt="Vehicle Icon" 
+                      className="h-10 w-10 object-contain p-2" 
+                    />
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
