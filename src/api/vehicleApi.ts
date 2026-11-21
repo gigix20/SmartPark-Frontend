@@ -71,6 +71,13 @@ export async function deactivateVehicle(
   return response.data;
 }
 
+export async function deleteVehicle(
+  id: string | number
+): Promise<{ success: boolean; message: string }> {
+  const response = await api.delete(`/vehicles/${id}`);
+  return response.data;
+}
+
 export async function getVehicleQr(
   id: string | number
 ): Promise<{ success: boolean; qrCode: string; plateNumber: string; status: string }> {

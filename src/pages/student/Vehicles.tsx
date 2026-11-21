@@ -21,6 +21,7 @@ import {
   registerVehicle, 
   updateVehicle, 
   deactivateVehicle,
+  deleteVehicle,
   type Vehicle 
 } from "@/api/vehicleApi";
 
@@ -185,6 +186,112 @@ export default function Vehicles() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle Delete / Remove Vehicle
+  const handleDeleteVehicle = async (vehicle: Vehicle) => {
+    if (!window.confirm(`Are you sure you want to remove vehicle ${vehicle.plateNumber}?`)) return;
+
+    try {
+      setIsSubmitting(true);
+      const res = await deleteVehicle(vehicle.id);
+      if (res.success) {
+        setSuccessMessage("Vehicle removed successfully. You may now re-register this plate number if desired.");
+        setIsSuccessModalOpen(true);
+        await fetchVehicles();
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to remove vehicle.";
+      alert(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Render Action Buttons based on Vehicle Status
+  const renderActionButtons = (vehicle: Vehicle) => {
+    return (
+      <div className="flex items-center gap-2 pt-5 border-t border-slate-100 dark:border-slate-800 mt-5">
+        {vehicle.status === "Approved" && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleViewQr(vehicle)}
+              className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <QrCode className="h-3.5 w-3.5" /> View QR Code
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSelectedVehicle(vehicle);
+                setIsDeactivateOpen(true);
+              }}
+              className="h-9 px-3 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1 cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Deactivate
+            </Button>
+          </>
+        )}
+
+        {vehicle.status === "Inactive" && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleDeleteVehicle(vehicle)}
+            className="w-full h-9 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Remove
+          </Button>
+        )}
+
+        {vehicle.status === "Pending" && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSelectedVehicle(vehicle);
+                setFormData({
+                  type: vehicle.type,
+                  plateNumber: vehicle.plateNumber,
+                  brand: vehicle.brand,
+                  model: vehicle.model,
+                  color: vehicle.color,
+                  year: vehicle.year,
+                  declaration: true,
+                });
+                setIsEditOpen(true);
+              }}
+              className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Edit3 className="h-3.5 w-3.5" /> Edit
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleDeleteVehicle(vehicle)}
+              className="flex-1 h-9 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </Button>
+          </>
+        )}
+
+        {vehicle.status === "Rejected" && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleDeleteVehicle(vehicle)}
+            className="w-full h-9 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Remove
+          </Button>
+        )}
+      </div>
+    );
   };
 
   // Handle Deactivate
@@ -386,53 +493,7 @@ export default function Vehicles() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-2 pt-5 border-t border-slate-100 dark:border-slate-800 mt-5">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => handleViewQr(vehicle)}
-                          className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <QrCode className="h-3.5 w-3.5" /> View QR Code
-                        </Button>
-
-                        {vehicle.status !== "Inactive" && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedVehicle(vehicle);
-                              setFormData({
-                                type: vehicle.type,
-                                plateNumber: vehicle.plateNumber,
-                                brand: vehicle.brand,
-                                model: vehicle.model,
-                                color: vehicle.color,
-                                year: vehicle.year,
-                                declaration: true,
-                              });
-                              setIsEditOpen(true);
-                            }}
-                            className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
-                          >
-                            <Edit3 className="h-3.5 w-3.5" /> Edit
-                          </Button>
-                        )}
-
-                        {vehicle.status !== "Inactive" && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedVehicle(vehicle);
-                              setIsDeactivateOpen(true);
-                            }}
-                            className="h-9 px-3 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1 cursor-pointer"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" /> Deactivate
-                          </Button>
-                        )}
-                      </div>
+                      {renderActionButtons(vehicle)}
                     </div>
                   ))}
                 </div>
@@ -510,53 +571,7 @@ export default function Vehicles() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-2 pt-5 border-t border-slate-100 dark:border-slate-800 mt-5">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => handleViewQr(vehicle)}
-                          className="flex-1 h-9 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <QrCode className="h-3.5 w-3.5" /> View QR Code
-                        </Button>
-
-                        {vehicle.status !== "Inactive" && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedVehicle(vehicle);
-                              setFormData({
-                                type: vehicle.type,
-                                plateNumber: vehicle.plateNumber,
-                                brand: vehicle.brand,
-                                model: vehicle.model,
-                                color: vehicle.color,
-                                year: vehicle.year,
-                                declaration: true,
-                              });
-                              setIsEditOpen(true);
-                            }}
-                            className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
-                          >
-                            <Edit3 className="h-3.5 w-3.5" /> Edit
-                          </Button>
-                        )}
-
-                        {vehicle.status !== "Inactive" && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedVehicle(vehicle);
-                              setIsDeactivateOpen(true);
-                            }}
-                            className="h-9 px-3 rounded-xl border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1 cursor-pointer"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" /> Deactivate
-                          </Button>
-                        )}
-                      </div>
+                      {renderActionButtons(vehicle)}
                     </div>
                   ))}
                 </div>
