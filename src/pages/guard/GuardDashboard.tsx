@@ -59,7 +59,7 @@ export default function GuardDashboard() {
       {/* Header */}
       <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex-1 flex relative">
+      <div className="flex-1 flex relative pt-16">
         
         {/* Navigation Sidebar */}
         <GuardNav isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />

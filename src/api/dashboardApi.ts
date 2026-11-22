@@ -66,3 +66,17 @@ export async function getAdminDashboard(): Promise<DashboardResponse> {
   const res = await api.get("/admin/dashboard");
   return res.data;
 }
+
+export interface SidebarCountsResponse {
+  success: boolean;
+  counts: {
+    pendingVehicles: number;
+    pendingIncidents: number;
+    unreadNotifications: number;
+  };
+}
+
+export async function getSidebarCounts(): Promise<SidebarCountsResponse> {
+  const res = await api.get("/admin/dashboard/sidebar-counts");
+  return res.data;
+}

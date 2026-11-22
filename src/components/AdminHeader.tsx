@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Bell, Menu, Clock, Calendar, Sun, Moon } from "lucide-react";
+import { Bell, Menu, Clock, Calendar, Sun, Moon, User as UserIcon } from "lucide-react";
 import logo from "@/assets/smartpark - favicon.svg";
 import { useState, useEffect } from "react";
 import { getAdminNotifications } from "@/api/notificationApi";
@@ -141,7 +141,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   }).format(currentDateTime);
 
   return (
-    <header className="sticky top-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#0B0F19]/90 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
       <div className="flex h-full items-center justify-between">
         
         {/* Left Side: Logo */}
@@ -240,14 +240,17 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             }`}
           >
             <div className="relative">
-              <img
-                src={user?.avatar || DEFAULT_AVATAR}
-                alt="Admin Profile"
-                className="h-9 w-9 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-[#0053CC] transition-colors"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
-                }}
-              />
+              {user?.avatar && !user.avatar.includes("unsplash.com") ? (
+                <img
+                  src={user.avatar}
+                  alt="Admin Profile"
+                  className="h-9 w-9 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-[#0053CC] transition-colors"
+                />
+              ) : (
+                <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-950/70 border-2 border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center text-[#0053CC] dark:text-blue-400 group-hover:border-[#0053CC] transition-colors">
+                  <UserIcon className="h-4 w-4" />
+                </div>
+              )}
               <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${roleDisplay.dotClass} border-2 border-white dark:border-slate-900`}></span>
             </div>
 

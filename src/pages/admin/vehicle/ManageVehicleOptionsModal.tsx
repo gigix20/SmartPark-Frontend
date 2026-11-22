@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
-import { X, Plus, Trash2, RotateCcw, Check, Car, Bike, Palette, Loader2, AlertCircle } from "lucide-react";
+import {
+  X,
+  Plus,
+  Trash2,
+  RotateCcw,
+  Check,
+  Car,
+  Bike,
+  Palette,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import {
   getAdminVehicleOptions,
   updateAdminVehicleOptions,
@@ -13,16 +24,25 @@ interface ManageVehicleOptionsModalProps {
   onClose: () => void;
 }
 
-export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOptionsModalProps) {
-  const [activeTab, setActiveTab] = useState<"cars" | "motorcycles" | "colors">("cars");
+export function ManageVehicleOptionsModal({
+  isOpen,
+  onClose,
+}: ManageVehicleOptionsModalProps) {
+  const [activeTab, setActiveTab] = useState<"cars" | "motorcycles" | "colors">(
+    "cars",
+  );
   const [options, setOptions] = useState<VehicleOptions | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Form states for adding items
   const [newBrand, setNewBrand] = useState("");
-  const [selectedBrandForModel, setSelectedBrandForModel] = useState<string>("");
+  const [selectedBrandForModel, setSelectedBrandForModel] =
+    useState<string>("");
   const [newModel, setNewModel] = useState("");
   const [newColor, setNewColor] = useState("");
 
@@ -38,7 +58,10 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
         }
       }
     } catch (err: any) {
-      setStatusMessage({ type: "error", text: "Failed to load vehicle options from database." });
+      setStatusMessage({
+        type: "error",
+        text: "Failed to load vehicle options from database.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +76,11 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
   useEffect(() => {
     if (!options) return;
     const list = activeTab === "cars" ? options.cars : options.motorcycles;
-    if (list.length > 0 && (!selectedBrandForModel || !list.some((b) => b.brand === selectedBrandForModel))) {
+    if (
+      list.length > 0 &&
+      (!selectedBrandForModel ||
+        !list.some((b) => b.brand === selectedBrandForModel))
+    ) {
       setSelectedBrandForModel(list[0].brand);
     }
   }, [activeTab, options]);
@@ -67,13 +94,18 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
     const trimmed = newBrand.trim();
     const targetKey = activeTab === "cars" ? "cars" : "motorcycles";
 
-    const exists = options[targetKey].some((b) => b.brand.toLowerCase() === trimmed.toLowerCase());
+    const exists = options[targetKey].some(
+      (b) => b.brand.toLowerCase() === trimmed.toLowerCase(),
+    );
     if (exists) {
       alert(`Brand "${trimmed}" already exists.`);
       return;
     }
 
-    const updatedList: BrandModelOption[] = [...options[targetKey], { brand: trimmed, models: [] }];
+    const updatedList: BrandModelOption[] = [
+      ...options[targetKey],
+      { brand: trimmed, models: [] },
+    ];
     setOptions({ ...options, [targetKey]: updatedList });
     setSelectedBrandForModel(trimmed);
     setNewBrand("");
@@ -82,9 +114,16 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
   // Remove Brand
   const handleRemoveBrand = (brandToRemove: string) => {
     if (!options) return;
-    if (!confirm(`Are you sure you want to remove ${brandToRemove} and all its models?`)) return;
+    if (
+      !confirm(
+        `Are you sure you want to remove ${brandToRemove} and all its models?`,
+      )
+    )
+      return;
     const targetKey = activeTab === "cars" ? "cars" : "motorcycles";
-    const updatedList = options[targetKey].filter((b) => b.brand !== brandToRemove);
+    const updatedList = options[targetKey].filter(
+      (b) => b.brand !== brandToRemove,
+    );
     setOptions({ ...options, [targetKey]: updatedList });
     if (selectedBrandForModel === brandToRemove) {
       setSelectedBrandForModel(updatedList[0]?.brand || "");
@@ -142,7 +181,10 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
   // Remove Color
   const handleRemoveColor = (colorToRemove: string) => {
     if (!options) return;
-    setOptions({ ...options, colors: options.colors.filter((c) => c !== colorToRemove) });
+    setOptions({
+      ...options,
+      colors: options.colors.filter((c) => c !== colorToRemove),
+    });
   };
 
   // Save changes to database
@@ -153,13 +195,19 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
       setStatusMessage(null);
       const res = await updateAdminVehicleOptions(options);
       if (res.success) {
-        setStatusMessage({ type: "success", text: "Vehicle options saved successfully to database!" });
+        setStatusMessage({
+          type: "success",
+          text: "Vehicle options saved successfully to database!",
+        });
         setTimeout(() => {
           onClose();
         }, 1200);
       }
     } catch (err: any) {
-      setStatusMessage({ type: "error", text: err.response?.data?.message || "Failed to save options." });
+      setStatusMessage({
+        type: "error",
+        text: err.response?.data?.message || "Failed to save options.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -167,13 +215,21 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
 
   // Reset to default PH vehicle list
   const handleResetToDefault = async () => {
-    if (!confirm("Are you sure you want to reset all vehicle options to the standard Philippine vehicle catalogue?")) return;
+    if (
+      !confirm(
+        "Are you sure you want to reset all vehicle options to the standard Philippine vehicle catalogue?",
+      )
+    )
+      return;
     try {
       setIsSaving(true);
       const res = await resetAdminVehicleOptions();
       if (res.success && res.options) {
         setOptions(res.options);
-        setStatusMessage({ type: "success", text: "Reset to standard Philippine vehicle list successfully!" });
+        setStatusMessage({
+          type: "success",
+          text: "Reset to standard Philippine vehicle list successfully!",
+        });
       }
     } catch (err: any) {
       setStatusMessage({ type: "error", text: "Failed to reset options." });
@@ -182,8 +238,14 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
     }
   };
 
-  const currentBrandsList = options ? (activeTab === "cars" ? options.cars : options.motorcycles) : [];
-  const activeBrandObj = currentBrandsList.find((b) => b.brand === selectedBrandForModel);
+  const currentBrandsList = options
+    ? activeTab === "cars"
+      ? options.cars
+      : options.motorcycles
+    : [];
+  const activeBrandObj = currentBrandsList.find(
+    (b) => b.brand === selectedBrandForModel,
+  );
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
@@ -192,10 +254,11 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
           <div>
             <h2 className="font-poppins text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>⚙️ Manage Vehicle Dropdown Options</span>
+              <span>Manage Vehicle Dropdown Options</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Configure standardized brands, models, and colors for student registration and gate forms.
+              Configure standardized brands, models, and colors for student
+              registration and gate forms.
             </p>
           </div>
           <button
@@ -216,7 +279,11 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                 : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
             }`}
           >
-            {statusMessage.type === "success" ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+            {statusMessage.type === "success" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
             <span>{statusMessage.text}</span>
           </div>
         )}
@@ -233,7 +300,8 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
               }`}
             >
-              <Car className="h-4 w-4" /> Cars & SUVs ({options?.cars.length || 0})
+              <Car className="h-4 w-4" /> Cars & SUVs (
+              {options?.cars.length || 0})
             </button>
             <button
               type="button"
@@ -244,7 +312,8 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
               }`}
             >
-              <Bike className="h-4 w-4" /> Motorcycles ({options?.motorcycles.length || 0})
+              <Bike className="h-4 w-4" /> Motorcycles (
+              {options?.motorcycles.length || 0})
             </button>
             <button
               type="button"
@@ -255,7 +324,8 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
               }`}
             >
-              <Palette className="h-4 w-4" /> Colors ({options?.colors.length || 0})
+              <Palette className="h-4 w-4" /> Colors (
+              {options?.colors.length || 0})
             </button>
           </div>
 
@@ -274,7 +344,9 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-[#0053CC]" />
-            <p className="text-xs text-slate-400 mt-2">Loading vehicle catalogue...</p>
+            <p className="text-xs text-slate-400 mt-2">
+              Loading vehicle catalogue...
+            </p>
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto pr-1 space-y-6">
@@ -286,7 +358,9 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Brands
                     </span>
-                    <span className="text-[11px] text-slate-400">{currentBrandsList.length} items</span>
+                    <span className="text-[11px] text-slate-400">
+                      {currentBrandsList.length} items
+                    </span>
                   </div>
 
                   <form onSubmit={handleAddBrand} className="flex gap-2">
@@ -369,7 +443,8 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                       </form>
 
                       <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 min-h-60 max-h-72 overflow-y-auto">
-                        {activeBrandObj?.models && activeBrandObj.models.length > 0 ? (
+                        {activeBrandObj?.models &&
+                        activeBrandObj.models.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
                             {activeBrandObj.models.map((model) => (
                               <div
@@ -379,7 +454,12 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                                 <span>{model}</span>
                                 <button
                                   type="button"
-                                  onClick={() => handleRemoveModel(selectedBrandForModel, model)}
+                                  onClick={() =>
+                                    handleRemoveModel(
+                                      selectedBrandForModel,
+                                      model,
+                                    )
+                                  }
                                   className="text-slate-400 hover:text-red-500 rounded p-0.5 transition-colors cursor-pointer"
                                 >
                                   <X className="h-3 w-3" />
@@ -389,8 +469,13 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                           </div>
                         ) : (
                           <div className="h-40 flex flex-col items-center justify-center text-center text-slate-400">
-                            <p className="text-xs">No models registered yet for {selectedBrandForModel}.</p>
-                            <p className="text-[11px] mt-1">Use the field above to add models.</p>
+                            <p className="text-xs">
+                              No models registered yet for{" "}
+                              {selectedBrandForModel}.
+                            </p>
+                            <p className="text-[11px] mt-1">
+                              Use the field above to add models.
+                            </p>
                           </div>
                         )}
                       </div>
@@ -409,7 +494,9 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Available Vehicle Colors
                   </span>
-                  <span className="text-[11px] text-slate-400">{options?.colors.length || 0} colors</span>
+                  <span className="text-[11px] text-slate-400">
+                    {options?.colors.length || 0} colors
+                  </span>
                 </div>
 
                 <form onSubmit={handleAddColor} className="flex gap-2 max-w-md">
@@ -469,7 +556,11 @@ export function ManageVehicleOptionsModal({ isOpen, onClose }: ManageVehicleOpti
             disabled={isSaving || isLoading}
             className="px-6 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="h-4 w-4" />
+            )}
             <span>Save Options to Database</span>
           </button>
         </div>

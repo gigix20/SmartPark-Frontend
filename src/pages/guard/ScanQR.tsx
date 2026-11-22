@@ -107,7 +107,7 @@ export default function ScanQR() {
       {/* Guard Header */}
       <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex-1 flex relative">
+      <div className="flex-1 flex relative pt-16">
         
         {/* Guard Nav Sidebar */}
         <GuardNav isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />

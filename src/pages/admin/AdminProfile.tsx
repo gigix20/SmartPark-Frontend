@@ -1,16 +1,18 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Edit2, AlertCircle, Shield, ShieldCheck } from "lucide-react";
+import { Camera, Edit2, AlertCircle, Shield, ShieldCheck, User as UserIcon } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { getCurrentUser, updateUserProfile, type User } from "@/pages/auth/api/authApi";
 
-// Helper to format createdAt date
+// Helper to format createdAt date as exact date (e.g., "November 23, 2026")
 const formatCreatedAt = (date: string | Date | undefined): string => {
   if (!date) return "N/A";
   try {
     const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "N/A";
     return new Intl.DateTimeFormat("en-US", {
-      month: "short",
+      month: "long",
+      day: "numeric",
       year: "numeric",
     }).format(d);
   } catch {
@@ -51,7 +53,8 @@ const extractPhDigits = (phoneStr?: string | null): string => {
   return clean.slice(0, 10);
 };
 
-const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+export const isCustomAvatar = (avatar?: string | null) =>
+  Boolean(avatar && !avatar.includes("unsplash.com") && avatar.trim() !== "");
 
 export default function AdminProfile() {
   const navigate = useNavigate();
@@ -65,7 +68,7 @@ export default function AdminProfile() {
     employeeId: "",
     role: "",
     phone: "",
-    avatar: DEFAULT_AVATAR,
+    avatar: "",
     accountStatus: "Active",
     createdAt: "",
   });
@@ -102,7 +105,7 @@ export default function AdminProfile() {
             employeeId: userData.schoolId || "",
             role: userData.role || "ADMIN",
             phone: extractPhDigits(userData.phone),
-            avatar: userData.avatar || DEFAULT_AVATAR,
+            avatar: isCustomAvatar(userData.avatar) ? userData.avatar! : "",
             accountStatus: userData.accountStatus || "Active",
             createdAt: formatCreatedAt(userData.createdAt),
           };
@@ -133,6 +136,17 @@ export default function AdminProfile() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Name input handler preventing numbers and special characters in real-time
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Allow only letters, spaces, hyphens, and apostrophes
+    const filtered = value.replace(/[^a-zA-ZñÑÀ-ÿ\s'-]/g, "");
+    setFormData((prev) => ({ ...prev, [name]: filtered }));
+    if (errorMessage) {
+      setErrorMessage(null);
+    }
   };
 
   // Phone input handler with filtering and validation
@@ -224,12 +238,36 @@ export default function AdminProfile() {
   // Open confirmation modal
   const handleOpenModal = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const nameRegex = /^[a-zA-ZñÑÀ-ÿ\s'-]+$/;
+    const cleanFirst = formData.firstName.trim();
+    const cleanLast = formData.lastName.trim();
+
+    if (!cleanFirst) {
+      setErrorMessage("First name is required.");
+      return;
+    }
+    if (!nameRegex.test(cleanFirst)) {
+      setErrorMessage("First name must only contain letters, spaces, and hyphens (numbers and special characters are not allowed).");
+      return;
+    }
+
+    if (!cleanLast) {
+      setErrorMessage("Last name is required.");
+      return;
+    }
+    if (!nameRegex.test(cleanLast)) {
+      setErrorMessage("Last name must only contain letters, spaces, and hyphens (numbers and special characters are not allowed).");
+      return;
+    }
+
     if (!validatePhoneBeforeSubmit()) {
       return;
     }
+
     if (isFormChanged) {
-      setErrorMessage(null);
-      setSuccessMessage(null);
       setShowConfirmModal(true);
     }
   };
@@ -245,7 +283,7 @@ export default function AdminProfile() {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim() ? `0${formData.phone.trim()}` : null,
-        avatar: formData.avatar === DEFAULT_AVATAR ? null : formData.avatar,
+        avatar: isCustomAvatar(formData.avatar) ? formData.avatar : null,
       });
 
       if (response.token) {
@@ -344,16 +382,23 @@ export default function AdminProfile() {
               />
 
               <div className="relative group">
-                <img
-                  src={formData.avatar}
-                  alt={`${formData.firstName} ${formData.lastName}`}
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Click to change profile picture"
-                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
-                  }}
-                />
+                {isCustomAvatar(formData.avatar) ? (
+                  <img
+                    src={formData.avatar}
+                    alt={`${formData.firstName} ${formData.lastName}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Click to change profile picture"
+                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
+                  />
+                ) : (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Click to upload profile picture"
+                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-950/60 text-[#0053CC] dark:text-blue-400 border-2 border-white dark:border-slate-700 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-[#0053CC] dark:text-blue-400" />
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -393,10 +438,10 @@ export default function AdminProfile() {
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                   {roleDisplay.privileges}
                 </p>
-                {formData.avatar && formData.avatar !== DEFAULT_AVATAR && (
+                {isCustomAvatar(formData.avatar) && (
                   <button
                     type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, avatar: DEFAULT_AVATAR }))}
+                    onClick={() => setFormData((prev) => ({ ...prev, avatar: "" }))}
                     className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 underline cursor-pointer mt-1 block"
                   >
                     Remove Custom Photo
@@ -440,7 +485,7 @@ export default function AdminProfile() {
                       type="text"
                       name="firstName"
                       value={formData.firstName}
-                      onChange={handleChange}
+                      onChange={handleNameChange}
                       placeholder="Enter first name"
                       className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-medium text-slate-800 dark:text-white focus:border-[#0053CC] focus:outline-none pr-9"
                     />
@@ -457,7 +502,7 @@ export default function AdminProfile() {
                       type="text"
                       name="lastName"
                       value={formData.lastName}
-                      onChange={handleChange}
+                      onChange={handleNameChange}
                       placeholder="Enter last name"
                       className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-medium text-slate-800 dark:text-white focus:border-[#0053CC] focus:outline-none pr-9"
                     />

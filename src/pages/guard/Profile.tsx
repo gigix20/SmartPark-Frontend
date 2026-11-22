@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, Edit3, CheckCircle2, AlertCircle } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
@@ -201,7 +201,7 @@ export default function GuardProfile() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors font-sans">
       <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex-1 flex relative">
+      <div className="flex-1 flex relative pt-16">
         <GuardNav isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         <main className="flex-1 p-6 sm:p-8 overflow-y-auto lg:pl-72 transition-all">

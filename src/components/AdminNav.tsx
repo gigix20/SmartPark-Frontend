@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { logoutUserServer } from "@/pages/auth/api/authApi";
+import { getSidebarCounts } from "@/api/dashboardApi";
 
 interface AdminNavProps {
   isOpen?: boolean;
@@ -33,6 +34,36 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [prevPathname, setPrevPathname] = useState(location.pathname);
   const [isVehiclesOpen, setIsVehiclesOpen] = useState(() => location.pathname.startsWith("/admin/vehicles"));
+
+  const [counts, setCounts] = useState({
+    pendingVehicles: 0,
+    pendingIncidents: 0,
+    unreadNotifications: 0,
+  });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await getSidebarCounts();
+        if (res.success && res.counts) {
+          setCounts(res.counts);
+        }
+      } catch {
+        // silent fail
+      }
+    };
+
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000);
+    window.addEventListener("adminNotificationsUpdated", fetchCounts);
+    window.addEventListener("focus", fetchCounts);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("adminNotificationsUpdated", fetchCounts);
+      window.removeEventListener("focus", fetchCounts);
+    };
+  }, []);
 
   if (prevPathname !== location.pathname) {
     setPrevPathname(location.pathname);
@@ -128,6 +159,15 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                   >
                     <Car className="h-4 w-4 shrink-0" />
                     <span>Vehicles</span>
+                    {counts.pendingVehicles > 0 && (
+                      <span className={`ml-auto mr-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                        location.pathname.startsWith("/admin/vehicles")
+                          ? "bg-white text-red-600"
+                          : "bg-red-500 text-white"
+                      }`}>
+                        {counts.pendingVehicles}
+                      </span>
+                    )}
                   </Link>
 
                   <button
@@ -145,13 +185,18 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                     <Link
                       to="/admin/vehicles/registration"
                       onClick={onClose}
-                      className={`block py-2 px-3 rounded-xl transition-colors ${
+                      className={`flex items-center justify-between py-2 px-3 rounded-xl transition-colors ${
                         isActive("/admin/vehicles/registration") 
                           ? "bg-blue-50 dark:bg-blue-950/40 text-[#0053CC] dark:text-blue-400 font-bold" 
                           : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 font-medium"
                       }`}
                     >
-                      Vehicle Registration
+                      <span>Vehicle Registration</span>
+                      {counts.pendingVehicles > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full text-[11px] font-medium bg-red-500 text-white">
+                          {counts.pendingVehicles}
+                        </span>
+                      )}
                     </Link>
                   </div>
                 )}
@@ -175,14 +220,25 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
               <Link
                 to="/admin/incidents"
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium transition-all duration-200 ${
                   location.pathname.startsWith("/admin/incidents")
                     ? "bg-[#0053CC] text-white font-bold shadow-md shadow-blue-600/30"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
-                <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>Incidents</span>
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>Incidents</span>
+                </div>
+                {counts.pendingIncidents > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                    location.pathname.startsWith("/admin/incidents")
+                      ? "bg-white text-red-600"
+                      : "bg-red-500 text-white"
+                  }`}>
+                    {counts.pendingIncidents}
+                  </span>
+                )}
               </Link>
             </div>
 

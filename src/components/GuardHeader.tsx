@@ -115,7 +115,7 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
   }).format(currentDateTime);
 
   return (
-    <header className="sticky top-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#0B0F19]/90 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
       <div className="flex h-full items-center justify-between">
         
         {/* Left Side: Logo */}
