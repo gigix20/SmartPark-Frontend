@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
 export default function GuardDetails() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
+
+  const returnTab = (location.state as any)?.activeTab || "Guards";
+  const handleBack = () => {
+    navigate("/admin/accounts", { state: { activeTab: returnTab } });
+  };
 
   const [guardData, setGuardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [avatarError, setAvatarError] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -91,7 +98,7 @@ export default function GuardDetails() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/accounts")}
+                onClick={handleBack}
                 className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -116,11 +123,18 @@ export default function GuardDetails() {
           {/* Profile Basic Info Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img
-                src={guardData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((guardData.firstName || '') + ' ' + (guardData.lastName || ''))}&background=0053CC&color=fff`}
-                alt={guardData.firstName}
-                className="h-16 w-16 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-              />
+              {guardData.avatar && !avatarError && !guardData.avatar.includes("unsplash.com") ? (
+                <img
+                  src={guardData.avatar}
+                  alt={guardData.firstName}
+                  onError={() => setAvatarError(true)}
+                  className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-[#0053CC] dark:bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl shadow-md border-2 border-white dark:border-slate-800 uppercase select-none shrink-0">
+                  {((guardData.firstName?.[0] || "") + (guardData.lastName?.[0] || "")) || "G"}
+                </div>
+              )}
               <div>
                 <div className="flex items-center gap-2.5">
                   <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
@@ -267,7 +281,7 @@ export default function GuardDetails() {
               type="button"
               onClick={() => {
                 setShowSuccessModal(false);
-                navigate("/admin/accounts");
+                handleBack();
               }}
               className="w-full rounded-xl bg-[#0053CC] py-2.5 text-xs font-semibold text-white hover:bg-blue-700 cursor-pointer shadow-xs"
             >

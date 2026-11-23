@@ -213,7 +213,16 @@ function Login() {
       const isLockedResponse = status === "Locked" || err.response?.status === 423;
 
       if (status === "Suspended") {
+        const suspEmail = err.response?.data?.email || (email.includes("@") ? email.trim() : "");
+        if (suspEmail) {
+          sessionStorage.setItem("suspended_email", suspEmail);
+        }
         setIsSuspended(true);
+      } else if (status === "PendingActivation") {
+        setErrorMessage(
+          backendMessage ||
+            "This account is pending activation. An invitation email was sent with a link valid for 3 days. Please check your inbox."
+        );
       } else if (status === "PendingVerification") {
         const pEmail = err.response?.data?.email || email;
         setPendingVerificationEmail(pEmail);
@@ -286,7 +295,8 @@ function Login() {
   };
 
   const handleAppeal = () => {
-    navigate("/appeal");
+    const suspEmail = sessionStorage.getItem("suspended_email") || (email.includes("@") ? email.trim() : "");
+    navigate("/appeal", { state: { email: suspEmail } });
   };
 
   return (

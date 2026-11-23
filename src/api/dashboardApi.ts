@@ -21,21 +21,21 @@ export interface DashboardTrends {
 }
 
 export interface DashboardAwaitingAction {
-  latestIncident: {
+  pendingIncidents: Array<{
     id: number;
     referenceId: string;
     reportType: string;
     model: string;
     plate: string;
-  } | null;
+  }>;
   pendingIncidentCount: number;
-  latestVehicle: {
+  pendingVehicles: Array<{
     id: number;
     plateNumber: string;
     brand: string;
     model: string;
     ownerName: string;
-  } | null;
+  }>;
   pendingVehicleCount: number;
 }
 

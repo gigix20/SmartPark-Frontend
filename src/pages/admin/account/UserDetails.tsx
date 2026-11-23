@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { 
   ArrowLeft, 
   UserX, 
@@ -24,11 +24,18 @@ import {
 
 export default function UserDetails() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
+
+  const returnTab = (location.state as any)?.activeTab || "Users";
+  const handleBack = () => {
+    navigate("/admin/accounts", { state: { activeTab: returnTab } });
+  };
 
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Dropdown menu state
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
@@ -240,7 +247,7 @@ export default function UserDetails() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/accounts")}
+                onClick={handleBack}
                 className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -354,11 +361,18 @@ export default function UserDetails() {
           {/* Profile Basic Info Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <div className="flex items-center gap-4">
-              <img 
-                src={userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((userData.firstName || '') + ' ' + (userData.lastName || ''))}&background=0053CC&color=fff`} 
-                alt={userData.firstName} 
-                className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
-              />
+              {userData.avatar && !avatarError && !userData.avatar.includes("unsplash.com") ? (
+                <img 
+                  src={userData.avatar} 
+                  alt={userData.firstName} 
+                  onError={() => setAvatarError(true)}
+                  className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-[#0053CC] dark:bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl shadow-md border-2 border-white dark:border-slate-800 uppercase select-none shrink-0">
+                  {((userData.firstName?.[0] || "") + (userData.lastName?.[0] || "")) || "U"}
+                </div>
+              )}
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">

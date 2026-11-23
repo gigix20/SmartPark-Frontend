@@ -58,8 +58,6 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     return () => window.removeEventListener("adminNotificationsUpdated", fetchUnread);
   }, []);
 
-  const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
-
   // Helper to get role display info
   const getRoleDisplay = (role: string) => {
     if (role === "SUPER_ADMIN") {

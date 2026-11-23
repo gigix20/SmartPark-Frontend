@@ -282,27 +282,27 @@ export default function AdminDashboard() {
                   )}
                 </div>
 
-                {dashboard.awaitingAction.latestVehicle ? (
-                  <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 space-y-2">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                        {dashboard.awaitingAction.latestVehicle.ownerName}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {dashboard.awaitingAction.latestVehicle.brand}{" "}
-                        {dashboard.awaitingAction.latestVehicle.model} • Plate:{" "}
-                        {dashboard.awaitingAction.latestVehicle.plateNumber}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        type="button"
-                        onClick={() => navigate("/admin/vehicles/registration")}
-                        className="rounded-lg bg-[#0053CC] px-3 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
-                      >
-                        Review
-                      </button>
-                    </div>
+                {dashboard.awaitingAction.pendingVehicles.length > 0 ? (
+                  <div className="space-y-2">
+                    {dashboard.awaitingAction.pendingVehicles.map((veh) => (
+                      <div key={veh.id} className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 flex items-center justify-between">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            {veh.ownerName}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {veh.brand} {veh.model} • Plate: {veh.plateNumber}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/admin/vehicles/registration")}
+                          className="rounded-lg bg-[#0053CC] px-3 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                        >
+                          Review
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3 text-xs text-slate-400 text-center">
@@ -324,28 +324,27 @@ export default function AdminDashboard() {
                   )}
                 </div>
 
-                {dashboard.awaitingAction.latestIncident ? (
-                  <div className="rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 p-3 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold text-rose-700 dark:text-rose-400">
-                        {dashboard.awaitingAction.latestIncident.reportType}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {dashboard.awaitingAction.latestIncident.model} • Plate{" "}
-                        {dashboard.awaitingAction.latestIncident.plate}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(
-                          `/admin/incidents/review/${dashboard.awaitingAction.latestIncident?.id}`
-                        )
-                      }
-                      className="rounded-lg bg-rose-100 dark:bg-rose-900/60 px-3 py-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-200 hover:bg-rose-200 transition-colors cursor-pointer"
-                    >
-                      Review
-                    </button>
+                {dashboard.awaitingAction.pendingIncidents.length > 0 ? (
+                  <div className="space-y-2">
+                    {dashboard.awaitingAction.pendingIncidents.map((inc) => (
+                      <div key={inc.id} className="rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 p-3 flex items-center justify-between">
+                        <div>
+                          <h4 className="text-xs font-bold text-rose-700 dark:text-rose-400">
+                            {inc.reportType}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {inc.model} • Plate {inc.plate}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/admin/incidents/review/${inc.id}`)}
+                          className="rounded-lg bg-rose-100 dark:bg-rose-900/60 px-3 py-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-200 hover:bg-rose-200 transition-colors cursor-pointer"
+                        >
+                          Review
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3 flex items-center justify-between">

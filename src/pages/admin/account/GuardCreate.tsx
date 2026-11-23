@@ -13,10 +13,12 @@ export default function GuardCreate() {
   const [employeeId, setEmployeeId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
 
   // UI states
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -34,10 +36,108 @@ export default function GuardCreate() {
     };
   }, [showSuccessModal]);
 
+  // --- KEYBOARD LOCK & NAME FILTERING ---
+  // Strictly prevent typing numbers and forbidden characters into name fields
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Block any number (0-9)
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+    // Block any symbol except hyphen (-), apostrophe ('), space, and standard control shortcuts
+    if (
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      e.key.length === 1 &&
+      !/^[a-zA-ZñÑÀ-ÿ\s'-]$/.test(e.key)
+    ) {
+      e.preventDefault();
+    }
+  };
+
+  // Filter input on paste or change to strictly strip any numbers or invalid characters
+  const handleNameChange = (val: string, setter: (v: string) => void) => {
+    const cleaned = val.replace(/[^a-zA-ZñÑÀ-ÿ\s'-]/g, "");
+    setter(cleaned);
+  };
+
+  // --- EMPLOYEE ID FORMATTER & KEYBOARD LOCK (AA-XXXXXXX) ---
+  const formatEmployeeId = (val: string, prevVal: string = ""): string => {
+    if (prevVal.endsWith("-") && val === prevVal.slice(0, -1)) {
+      return val;
+    }
+
+    const clean = val.replace(/[^a-zA-Z0-9]/g, "");
+    if (!clean) return "";
+
+    let letters = "";
+    let digits = "";
+
+    for (let i = 0; i < clean.length; i++) {
+      const ch = clean[i];
+      if (letters.length < 2) {
+        if (/[a-zA-Z]/.test(ch)) {
+          letters += ch.toUpperCase();
+        }
+      } else {
+        if (/[0-9]/.test(ch) && digits.length < 7) {
+          digits += ch;
+        }
+      }
+    }
+
+    if (letters.length === 2) {
+      if (digits.length > 0) {
+        return `${letters}-${digits}`;
+      }
+      if (val.length >= 2) {
+        return `${letters}-`;
+      }
+      return letters;
+    }
+
+    return letters;
+  };
+
+  const handleEmployeeIdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey ||
+      e.key === "Backspace" ||
+      e.key === "Tab" ||
+      e.key === "Delete" ||
+      e.key.startsWith("Arrow") ||
+      e.key === "Enter"
+    ) {
+      return;
+    }
+
+    const input = e.currentTarget;
+    const val = input.value;
+    const selStart = input.selectionStart ?? val.length;
+
+    if (e.key.length === 1) {
+      if (selStart < 2) {
+        if (!/^[a-zA-Z]$/.test(e.key)) {
+          e.preventDefault();
+        }
+      } else {
+        if (!/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+        }
+        if (val.length >= 10 && input.selectionEnd === selStart) {
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
   // --- VALIDATION RULES ---
-  const nameRegex = /^[a-zA-ZÀ-ž\s'-]+$/;
+  const nameRegex = /^[a-zA-ZñÑÀ-ÿ\s'-]+$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const employeeIdRegex = /^([A-Z0-9]{2,4}-[A-Z0-9]{2,4}-[A-Z0-9]{2,4}|\w+-\w+-\w+|\w+)$/;
+  const employeeIdRegex = /^[A-Z]{2}-\d{7}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   const trimmedFirstName = firstName.trim();
@@ -48,12 +148,16 @@ export default function GuardCreate() {
   // Error validations para sa bawat field
   const firstNameError = !trimmedFirstName
     ? "Please fill out this field."
+    : trimmedFirstName.length < 2 || trimmedFirstName.length > 50
+    ? "Must be between 2 and 50 characters."
     : !nameRegex.test(trimmedFirstName)
     ? "Letters, spaces, hyphens, and apostrophes only."
     : "";
 
   const lastNameError = !trimmedLastName
     ? "Please fill out this field."
+    : trimmedLastName.length < 2 || trimmedLastName.length > 50
+    ? "Must be between 2 and 50 characters."
     : !nameRegex.test(trimmedLastName)
     ? "Letters, spaces, hyphens, and apostrophes only."
     : "";
@@ -61,10 +165,12 @@ export default function GuardCreate() {
   const employeeIdError = !trimmedEmployeeId
     ? "Please fill out this field."
     : !employeeIdRegex.test(trimmedEmployeeId)
-    ? "Invalid Employee ID format (e.g. QCU-G-046)."
+    ? "Invalid Employee ID format (must be AA-XXXXXXX, e.g. GD-1234567). Student IDs (XX-XXXX) are not allowed."
     : "";
 
-  const emailError = trimmedEmail && !emailRegex.test(trimmedEmail)
+  const emailError = !trimmedEmail
+    ? "Please fill out this field."
+    : !emailRegex.test(trimmedEmail)
     ? "Invalid email format (name@domain.ext)."
     : "";
 
@@ -76,11 +182,24 @@ export default function GuardCreate() {
     ? "Must include uppercase, lowercase, number, and special character."
     : "";
 
+  const confirmPasswordError = !confirmPassword
+    ? "Please fill out this field."
+    : confirmPassword !== password
+    ? "Passwords do not match."
+    : "";
+
   const handleCreateGuard = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
 
-    if (firstNameError || lastNameError || employeeIdError || emailError || passwordError) {
+    if (
+      firstNameError ||
+      lastNameError ||
+      employeeIdError ||
+      emailError ||
+      passwordError ||
+      confirmPasswordError
+    ) {
       return;
     }
 
@@ -152,14 +271,18 @@ export default function GuardCreate() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   {/* First Name */}
                   <div className="space-y-1.5">
-                    <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      First Name <span className="text-rose-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                        First Name <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium">Letters only</span>
+                    </div>
                     <input
                       type="text"
                       placeholder="e.g. Jose"
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      onKeyDown={handleNameKeyDown}
+                      onChange={(e) => handleNameChange(e.target.value, setFirstName)}
                       className={`w-full rounded-xl bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
                         isSubmitted && firstNameError 
                           ? "border-2 border-rose-500 focus:border-rose-500" 
@@ -175,14 +298,18 @@ export default function GuardCreate() {
 
                   {/* Last Name */}
                   <div className="space-y-1.5">
-                    <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      Last Name <span className="text-rose-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                        Last Name <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium">Letters only</span>
+                    </div>
                     <input
                       type="text"
                       placeholder="e.g. Santos"
                       value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      onKeyDown={handleNameKeyDown}
+                      onChange={(e) => handleNameChange(e.target.value, setLastName)}
                       className={`w-full rounded-xl bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
                         isSubmitted && lastNameError 
                           ? "border-2 border-rose-500 focus:border-rose-500" 
@@ -203,10 +330,12 @@ export default function GuardCreate() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. QCU-G-046"
+                      placeholder="GD-1234567"
                       value={employeeId}
-                      onChange={(e) => setEmployeeId(e.target.value)}
-                      className={`w-full rounded-xl bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
+                      maxLength={10}
+                      onKeyDown={handleEmployeeIdKeyDown}
+                      onChange={(e) => setEmployeeId((prev) => formatEmployeeId(e.target.value, prev))}
+                      className={`w-full rounded-xl bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors font-medium tracking-wide ${
                         isSubmitted && employeeIdError 
                           ? "border-2 border-rose-500 focus:border-rose-500" 
                           : "border border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
@@ -222,11 +351,11 @@ export default function GuardCreate() {
                   {/* Email Address */}
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      Email Address
+                      Email Address <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="email"
-                      placeholder="j.santos@qcu-guard.ph"
+                      placeholder="e.g. guard@gmail.com or name@qcu.edu.ph"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={`w-full rounded-xl bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
@@ -243,7 +372,7 @@ export default function GuardCreate() {
                   </div>
 
                   {/* Password */}
-                  <div className="space-y-1.5 sm:col-span-2">
+                  <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                       Password <span className="text-rose-500">*</span>
                     </label>
@@ -270,6 +399,38 @@ export default function GuardCreate() {
                     {isSubmitted && passwordError && (
                       <p className="text-rose-500 text-[11px] font-medium flex items-center gap-1 mt-1">
                         <AlertCircle className="h-3 w-3 shrink-0" /> {passwordError}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      Confirm Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className={`relative rounded-xl border transition-colors bg-white dark:bg-slate-800 ${
+                      isSubmitted && confirmPasswordError 
+                        ? "border-2 border-rose-500" 
+                        : "border border-slate-200 dark:border-slate-700 focus-within:border-[#0053CC]"
+                    }`}>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="QCU_Guard_9081!"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full bg-transparent p-3 pr-10 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {isSubmitted && confirmPasswordError && (
+                      <p className="text-rose-500 text-[11px] font-medium flex items-center gap-1 mt-1">
+                        <AlertCircle className="h-3 w-3 shrink-0" /> {confirmPasswordError}
                       </p>
                     )}
                   </div>
@@ -350,11 +511,14 @@ export default function GuardCreate() {
 
               <div>
                 <h3 className="font-poppins text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                  Guard Account Created Successfully
+                  Guard Account Created
                 </h3>
-                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                  The guard account has been successfully created.
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed px-2">
+                  The security guard account has been created. An official activation invitation has been sent to <strong className="text-slate-800 dark:text-slate-200">{trimmedEmail}</strong>.
                 </p>
+                <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 p-2.5 text-[11px] text-amber-800 dark:text-amber-300 text-left">
+                  ⏳ <strong>3-Day Activation Policy:</strong> The guard must click the activation link in their email within 72 hours to activate their terminal credentials.
+                </div>
               </div>
               
               <div className="pt-2">

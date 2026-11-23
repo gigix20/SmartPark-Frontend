@@ -134,10 +134,6 @@ export default function AdminProfile() {
     };
   }, [showConfirmModal]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   // Name input handler preventing numbers and special characters in real-time
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

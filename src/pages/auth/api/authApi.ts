@@ -171,3 +171,21 @@ export async function updateUserProfile(data: UpdateUserProfileData): Promise<{ 
   const response = await api.patch<{ success: boolean; message: string; user: User; token?: string }>("/users/profile", data);
   return response.data;
 }
+
+// 14. Submit suspension appeal
+export async function submitSuspensionAppeal(data: { email: string; subject: string; reason: string; additionalInfo?: string }) {
+  const response = await api.post<{ success: boolean; message: string; referenceId: string }>("/appeals", data);
+  return response.data;
+}
+
+// 15. Activate staff account (Admin / Guard) via 3-day invitation token
+export async function activateAccount(token: string) {
+  const response = await api.post<{
+    success: boolean;
+    alreadyActive?: boolean;
+    expired?: boolean;
+    message: string;
+    user?: { firstName: string; email: string; role: string };
+  }>("/activate-account", { token });
+  return response.data;
+}

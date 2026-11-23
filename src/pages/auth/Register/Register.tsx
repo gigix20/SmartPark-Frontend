@@ -120,8 +120,25 @@ function Register() {
 
   // Helper function to format names (capitalize first letter & remove numbers/symbols)
   const formatName = (value: string) => {
-    const cleaned = value.replace(/[^a-zA-Z\s-]/g, "");
+    const cleaned = value.replace(/[^a-zA-ZñÑÀ-ÿ\s'-]/g, "");
     return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  // Keyboard lock: strictly prevent typing numbers (0-9) and forbidden characters into name fields
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+    if (
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      e.key.length === 1 &&
+      !/^[a-zA-ZñÑÀ-ÿ\s'-]$/.test(e.key)
+    ) {
+      e.preventDefault();
+    }
   };
 
   const handleRegister = async (data: RegisterFormData) => {
@@ -245,6 +262,7 @@ function Register() {
                 placeholder="Enter your first name"
                 value={watchFirstName}
                 {...register("firstName")}
+                onKeyDown={handleNameKeyDown}
                 onChange={(e) =>
                   setValue("firstName", formatName(e.target.value), {
                     shouldValidate: true,
@@ -274,6 +292,7 @@ function Register() {
                 placeholder="Enter your last name"
                 value={watchLastName}
                 {...register("lastName")}
+                onKeyDown={handleNameKeyDown}
                 onChange={(e) =>
                   setValue("lastName", formatName(e.target.value), {
                     shouldValidate: true,

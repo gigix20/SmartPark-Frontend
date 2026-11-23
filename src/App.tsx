@@ -7,6 +7,7 @@ import SuspensionAppeal from "./pages/auth/SuspensionAppeal/SuspensionAppeal";
 import TermsAndCondition from "./pages/auth/TermsAndCondition/TermsAndCondition";
 import ForgotPassword from "./pages/auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword/ResetPassword";
+import AccountActivation from "./pages/auth/AccountActivation/AccountActivation";
 
 // Student / User Pages
 import StudentHome from "./pages/student/StudentHome";
@@ -73,6 +74,7 @@ function App() {
         <Route path="/admin/dashboard.tsx" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/register" element={<Register />} />
         <Route path="/appeal" element={<SuspensionAppeal />} />
+        <Route path="/activate-account" element={<AccountActivation />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/terms-and-conditions" element={<TermsAndCondition />} />

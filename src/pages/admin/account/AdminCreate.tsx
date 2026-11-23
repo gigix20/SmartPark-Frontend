@@ -59,10 +59,108 @@ export default function AdminCreate() {
     };
   }, [showSuccessModal]);
 
+  // --- KEYBOARD LOCK & NAME FILTERING ---
+  // Strictly prevent typing numbers and forbidden characters into name fields
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Block any number (0-9)
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+    // Block any symbol except hyphen (-), apostrophe ('), space, and standard control shortcuts
+    if (
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      e.key.length === 1 &&
+      !/^[a-zA-ZñÑÀ-ÿ\s'-]$/.test(e.key)
+    ) {
+      e.preventDefault();
+    }
+  };
+
+  // Filter input on paste or change to strictly strip any numbers or invalid characters
+  const handleNameChange = (val: string, setter: (v: string) => void) => {
+    const cleaned = val.replace(/[^a-zA-ZñÑÀ-ÿ\s'-]/g, "");
+    setter(cleaned);
+  };
+
+  // --- EMPLOYEE ID FORMATTER & KEYBOARD LOCK (AA-XXXXXXX) ---
+  const formatEmployeeId = (val: string, prevVal: string = ""): string => {
+    if (prevVal.endsWith("-") && val === prevVal.slice(0, -1)) {
+      return val;
+    }
+
+    const clean = val.replace(/[^a-zA-Z0-9]/g, "");
+    if (!clean) return "";
+
+    let letters = "";
+    let digits = "";
+
+    for (let i = 0; i < clean.length; i++) {
+      const ch = clean[i];
+      if (letters.length < 2) {
+        if (/[a-zA-Z]/.test(ch)) {
+          letters += ch.toUpperCase();
+        }
+      } else {
+        if (/[0-9]/.test(ch) && digits.length < 7) {
+          digits += ch;
+        }
+      }
+    }
+
+    if (letters.length === 2) {
+      if (digits.length > 0) {
+        return `${letters}-${digits}`;
+      }
+      if (val.length >= 2) {
+        return `${letters}-`;
+      }
+      return letters;
+    }
+
+    return letters;
+  };
+
+  const handleEmployeeIdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey ||
+      e.key === "Backspace" ||
+      e.key === "Tab" ||
+      e.key === "Delete" ||
+      e.key.startsWith("Arrow") ||
+      e.key === "Enter"
+    ) {
+      return;
+    }
+
+    const input = e.currentTarget;
+    const val = input.value;
+    const selStart = input.selectionStart ?? val.length;
+
+    if (e.key.length === 1) {
+      if (selStart < 2) {
+        if (!/^[a-zA-Z]$/.test(e.key)) {
+          e.preventDefault();
+        }
+      } else {
+        if (!/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+        }
+        if (val.length >= 10 && input.selectionEnd === selStart) {
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
   // --- VALIDATION FUNCTIONS ---
-  const nameRegex = /^[a-zA-ZÀ-ž\s'-]+$/;
+  const nameRegex = /^[a-zA-ZñÑÀ-ÿ\s'-]+$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const employeeIdRegex = /^(\d{2}-\d{4}|[A-Z]{2,3}-\d{4,7})$/;
+  const employeeIdRegex = /^[A-Z]{2}-\d{7}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   const trimmedFirstName = firstName.trim();
@@ -90,14 +188,12 @@ export default function AdminCreate() {
     ? "Please fill out this field."
     : !emailRegex.test(trimmedEmail)
     ? "Invalid email format (name@domain.ext)."
-    : !trimmedEmail.endsWith("@qcu.edu.ph")
-    ? "Must be an official institutional email (@qcu.edu.ph)."
     : "";
 
   const employeeIdError = !trimmedEmployeeId
     ? "Please fill out this field."
     : !employeeIdRegex.test(trimmedEmployeeId)
-    ? "Format must be XX-XXXX (e.g. 24-1474) or AA-XXXXXXX (e.g. AB-1234567)."
+    ? "Invalid Employee ID format (must be AA-XXXXXXX, e.g. AD-1234567). Student IDs (XX-XXXX) are not allowed."
     : "";
 
   const passwordError = !password
@@ -213,13 +309,17 @@ export default function AdminCreate() {
               <div className="space-y-4 text-xs">
                 {/* First Name */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
-                    First Name <span className="text-rose-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
+                      First Name <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">Letters only</span>
+                  </div>
                   <input
                     type="text"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onKeyDown={handleNameKeyDown}
+                    onChange={(e) => handleNameChange(e.target.value, setFirstName)}
                     placeholder="e.g., John"
                     className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
                       isSubmitted && firstNameError ? "border-2 border-rose-500" : "border border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
@@ -234,13 +334,17 @@ export default function AdminCreate() {
 
                 {/* Last Name */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
-                    Last Name <span className="text-rose-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
+                      Last Name <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">Letters only</span>
+                  </div>
                   <input
                     type="text"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onKeyDown={handleNameKeyDown}
+                    onChange={(e) => handleNameChange(e.target.value, setLastName)}
                     placeholder="e.g., Doe"
                     className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
                       isSubmitted && lastNameError ? "border-2 border-rose-500" : "border border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
@@ -265,7 +369,7 @@ export default function AdminCreate() {
                       setEmail(e.target.value);
                       setExistingError(false);
                     }}
-                    placeholder="j.doe@qcu.edu.ph"
+                    placeholder="e.g. admin@gmail.com or name@qcu.edu.ph"
                     className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
                       (isSubmitted && emailError) || existingError ? "border-2 border-rose-500" : "border border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
                     }`}
@@ -290,12 +394,14 @@ export default function AdminCreate() {
                   <input
                     type="text"
                     value={employeeId}
+                    onKeyDown={handleEmployeeIdKeyDown}
                     onChange={(e) => {
-                      setEmployeeId(e.target.value);
+                      setEmployeeId((prev) => formatEmployeeId(e.target.value, prev));
                       setExistingError(false);
                     }}
-                    placeholder="ADM-2026-"
-                    className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
+                    placeholder="AD-1234567"
+                    maxLength={10}
+                    className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-colors font-medium tracking-wide ${
                       (isSubmitted && employeeIdError) || existingError ? "border-2 border-rose-500" : "border border-slate-200 dark:border-slate-700 focus:border-[#0053CC]"
                     }`}
                   />
@@ -402,7 +508,7 @@ export default function AdminCreate() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="QCU_Guard_9081!"
+                    placeholder="QCU_Admin_2026!"
                     className="w-full bg-transparent p-3 pr-10 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
                   />
                   <button
@@ -434,7 +540,7 @@ export default function AdminCreate() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="QCU_Guard_9081!"
+                    placeholder="QCU_Admin_2026!"
                     className="w-full bg-transparent p-3 pr-10 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
                   />
                   <button
@@ -486,10 +592,13 @@ export default function AdminCreate() {
               </div>
 
               <div>
-                <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Admin Account Created Successfully</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                  The admin account has been successfully created.
+                <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Admin Account Created</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed px-2">
+                  The admin profile has been registered. An official activation invitation has been emailed to <strong className="text-slate-800 dark:text-slate-200">{trimmedEmail}</strong>.
                 </p>
+                <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 p-2.5 text-[11px] text-amber-800 dark:text-amber-300">
+                  ⏳ <strong>3-Day Activation Policy:</strong> The administrator must click the activation link within 72 hours to activate their credentials.
+                </div>
               </div>
               
               <div className="pt-2">

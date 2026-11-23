@@ -39,4 +39,14 @@ export async function setAccountInactive(id: string | number) {
   const response = await api.post(`/admin/accounts/${id}/set-status`, { status: "Inactive" });
   return response.data;
 }
+export async function getAppeals() {
+  const response = await api.get("/admin/appeals");
+  return response.data;
+}
+
+export async function reviewAppeal(id: string | number, action: "Approved" | "Rejected") {
+  const response = await api.patch(`/admin/appeals/${id}/review`, { action });
+  return response.data;
+}
+
 
