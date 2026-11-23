@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Settings, History, BarChart2, ArrowRight, Loader2, RefreshCw } from "lucide-react";
+import { Settings, BarChart2, ArrowRight, Loader2, RefreshCw } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";
@@ -190,7 +190,7 @@ export default function ParkingManagement() {
       <div className="space-y-4 pt-2">
         <h2 className="font-poppins text-base font-bold text-slate-900 dark:text-white">What would you like to do?</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Card 1 */}
           <div className="group rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-3">
@@ -213,27 +213,7 @@ export default function ParkingManagement() {
             </Link>
           </div>
 
-          {/* Card 2 */}
-          <div className="group rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
-                  <History className="h-5 w-5" />
-                </div>
-                <h3 className="font-poppins text-sm font-bold text-slate-900 dark:text-white">View Parking History</h3>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Inspect access transaction history, view timestamps of entries, exits, plate registers and gate locations.
-              </p>
-            </div>
-            <Link
-              to="/admin/parking/history"
-              className="inline-flex items-center justify-between rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white transition-all hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-[0.98] cursor-pointer w-full group/btn"
-            >
-              <span>Audit Logs</span>
-              <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+
 
           {/* Card 3 */}
           <div className="group rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
