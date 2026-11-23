@@ -40,6 +40,7 @@ export default function VehicleDetails() {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
 
   const fetchVehicle = async () => {
     if (!id) return;
@@ -289,7 +290,11 @@ export default function VehicleDetails() {
             {/* Vehicle Banner & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-4">
-                <div className="flex h-20 w-28 sm:h-24 sm:w-36 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-[#0053CC] dark:text-blue-400 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden shadow-xs">
+                <div 
+                  onClick={() => vehicle.photo && setSelectedPhotoPreview(vehicle.photo)}
+                  title={vehicle.photo ? "Click to zoom in" : ""}
+                  className={`flex h-20 w-28 sm:h-24 sm:w-36 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-[#0053CC] dark:text-blue-400 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden shadow-xs ${vehicle.photo ? "cursor-zoom-in hover:opacity-90 transition-opacity" : ""}`}
+                >
                   {vehicle.photo ? (
                     <img 
                       src={vehicle.photo} 
@@ -859,6 +864,28 @@ export default function VehicleDetails() {
                 {isSubmitting ? "Disapproving..." : "Disapprove"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PHOTO ZOOM PREVIEW LIGHTBOX */}
+      {selectedPhotoPreview && (
+        <div 
+          onClick={() => setSelectedPhotoPreview(null)}
+          className="fixed inset-0 z-110 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in cursor-zoom-out"
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedPhotoPreview(null)}
+              className="absolute -top-12 right-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img
+              src={selectedPhotoPreview}
+              alt="Vehicle Preview"
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/10"
+            />
           </div>
         </div>
       )}

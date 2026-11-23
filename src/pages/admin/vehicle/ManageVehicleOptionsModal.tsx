@@ -3,7 +3,6 @@ import {
   X,
   Plus,
   Trash2,
-  RotateCcw,
   Check,
   Car,
   Bike,
@@ -14,7 +13,6 @@ import {
 import {
   getAdminVehicleOptions,
   updateAdminVehicleOptions,
-  resetAdminVehicleOptions,
   type VehicleOptions,
   type BrandModelOption,
 } from "@/api/vehicleApi";
@@ -213,30 +211,7 @@ export function ManageVehicleOptionsModal({
     }
   };
 
-  // Reset to default PH vehicle list
-  const handleResetToDefault = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to reset all vehicle options to the standard Philippine vehicle catalogue?",
-      )
-    )
-      return;
-    try {
-      setIsSaving(true);
-      const res = await resetAdminVehicleOptions();
-      if (res.success && res.options) {
-        setOptions(res.options);
-        setStatusMessage({
-          type: "success",
-          text: "Reset to standard Philippine vehicle list successfully!",
-        });
-      }
-    } catch (err: any) {
-      setStatusMessage({ type: "error", text: "Failed to reset options." });
-    } finally {
-      setIsSaving(false);
-    }
-  };
+
 
   const currentBrandsList = options
     ? activeTab === "cars"
@@ -329,15 +304,7 @@ export function ManageVehicleOptionsModal({
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleResetToDefault}
-            disabled={isSaving || isLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>Load Standard PH Vehicles</span>
-          </button>
+
         </div>
 
         {/* Content Body */}

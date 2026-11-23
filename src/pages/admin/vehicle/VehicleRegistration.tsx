@@ -26,6 +26,7 @@ export default function VehicleRegistration() {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [modalType, setModalType] = useState<"review" | "confirmApprove" | "rejectReason" | "confirmReject" | "approvedSuccess" | "rejectedSuccess" | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
 
   const fetchRegistrations = async () => {
     try {
@@ -321,7 +322,11 @@ export default function VehicleRegistration() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <div className="h-28 w-40 sm:h-24 sm:w-36 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center shadow-xs">
+              <div 
+                onClick={() => selectedVehicle.photo && setSelectedPhotoPreview(selectedVehicle.photo)}
+                title={selectedVehicle.photo ? "Click to zoom in" : ""}
+                className={`h-28 w-40 sm:h-24 sm:w-36 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center shadow-xs ${selectedVehicle.photo ? "cursor-zoom-in hover:opacity-90 transition-opacity" : ""}`}
+              >
                 {selectedVehicle.photo ? (
                   <img 
                     src={selectedVehicle.photo} 
@@ -546,6 +551,28 @@ export default function VehicleRegistration() {
             <button onClick={() => setModalType(null)} className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-bold text-xs shadow-md shadow-blue-500/20 cursor-pointer">
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* PHOTO ZOOM PREVIEW LIGHTBOX */}
+      {selectedPhotoPreview && (
+        <div 
+          onClick={() => setSelectedPhotoPreview(null)}
+          className="fixed inset-0 z-110 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in cursor-zoom-out"
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedPhotoPreview(null)}
+              className="absolute -top-12 right-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img
+              src={selectedPhotoPreview}
+              alt="Vehicle Preview"
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/10"
+            />
           </div>
         </div>
       )}
