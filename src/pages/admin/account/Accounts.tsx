@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search,
   UserPlus,
@@ -18,18 +18,33 @@ import { getAccounts, getAppeals, reviewAppeal } from "./api/accountApi";
 
 export default function Accounts() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Read current user role for RBAC
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
   const isSuperAdmin = currentUser?.role?.toUpperCase() === "SUPER_ADMIN";
 
   // Unconditionally default to "All" every time Account Management is opened
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState(() => {
+    return (
+      ((location as any).state as any)?.activeTab ||
+      localStorage.getItem("accountsActiveTab") ||
+      "All"
+    );
+  });
 
   useEffect(() => {
-    localStorage.removeItem("accountsActiveTab");
-    localStorage.removeItem("admin_accounts_active_tab");
-  }, []);
+    const stateTab = ((location as any).state as any)?.activeTab;
+    if (stateTab) {
+      setActiveTab(stateTab);
+    }
+  }, [(location as any).state]);
+
+  useEffect(() => {
+    if (activeTab) {
+      localStorage.setItem("accountsActiveTab", activeTab);
+    }
+  }, [activeTab]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -605,7 +620,25 @@ export default function Accounts() {
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <td className="py-3 font-bold text-slate-900 dark:text-white">
-                      {item.name || `${item.firstName} ${item.lastName}`}
+                      <div className="flex items-center gap-3">
+                        {item.avatar ? (
+                          <img
+                            src={item.avatar}
+                            alt={item.name || `${item.firstName} ${item.lastName}`}
+                            className="h-9 w-9 rounded-full object-cover shrink-0 border-2 border-slate-200 dark:border-slate-700 shadow-xs"
+                          />
+                        ) : (
+                          <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-950/60 text-[#0053CC] dark:text-blue-400 font-bold text-xs flex items-center justify-center shrink-0 border border-blue-200 dark:border-blue-800">
+                            {(item.name || `${item.firstName} ${item.lastName}`)
+                              .split(" ")
+                              .map((p: string) => p[0])
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()}
+                          </div>
+                        )}
+                        <span>{item.name || `${item.firstName} ${item.lastName}`}</span>
+                      </div>
                     </td>
                     <td className="py-3 text-slate-600 dark:text-slate-400">
                       {item.email}
@@ -879,7 +912,7 @@ export default function Accounts() {
 
                   const userInitials = appeal.user.name
                     .split(" ")
-                    .map((part) => part[0])
+                    .map((part: string) => part[0])
                     .slice(0, 2)
                     .join("")
                     .toUpperCase();

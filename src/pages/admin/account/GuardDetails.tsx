@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit3,
+  Ban,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
@@ -74,25 +81,30 @@ export default function GuardDetails() {
   if (!guardData) {
     return (
       <AdminLayout>
-        <div className="text-center py-32 text-slate-500">Guard account not found.</div>
+        <div className="text-center py-32 text-slate-500">
+          Guard account not found.
+        </div>
       </AdminLayout>
     );
   }
   const status = guardData.accountStatus || guardData.status || "Active";
   const employeeId = guardData.schoolId || guardData.employeeId || "N/A";
   const phone = guardData.phone || guardData.phoneNumber || "N/A";
-  const dateCreated = guardData.createdAt ? new Date(guardData.createdAt).toLocaleDateString() : (guardData.dateCreated || "N/A");
-  const lastUpdated = guardData.updatedAt ? new Date(guardData.updatedAt).toLocaleString() : (guardData.lastUpdated || "N/A");
-  const isDeactivated = status?.toUpperCase() === "DEACTIVATED" || status?.toUpperCase() === "INACTIVE";
-
+  const dateCreated = guardData.createdAt
+    ? new Date(guardData.createdAt).toLocaleDateString()
+    : guardData.dateCreated || "N/A";
+  const lastUpdated = guardData.updatedAt
+    ? new Date(guardData.updatedAt).toLocaleString()
+    : guardData.lastUpdated || "N/A";
+  const isDeactivated =
+    status?.toUpperCase() === "DEACTIVATED" ||
+    status?.toUpperCase() === "INACTIVE";
 
   return (
     <AdminLayout>
       <div className="w-full max-w-5xl mx-auto space-y-6">
-        
         {/* Main Card Container */}
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative transition-colors">
-          
           {/* Header Section */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-6">
             <div className="flex items-center gap-3">
@@ -123,7 +135,9 @@ export default function GuardDetails() {
           {/* Profile Basic Info Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {guardData.avatar && !avatarError && !guardData.avatar.includes("unsplash.com") ? (
+              {guardData.avatar &&
+              !avatarError &&
+              !guardData.avatar.includes("unsplash.com") ? (
                 <img
                   src={guardData.avatar}
                   alt={guardData.firstName}
@@ -132,7 +146,8 @@ export default function GuardDetails() {
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-[#0053CC] dark:bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl shadow-md border-2 border-white dark:border-slate-800 uppercase select-none shrink-0">
-                  {((guardData.firstName?.[0] || "") + (guardData.lastName?.[0] || "")) || "G"}
+                  {(guardData.firstName?.[0] || "") +
+                    (guardData.lastName?.[0] || "") || "G"}
                 </div>
               )}
               <div>
@@ -144,7 +159,9 @@ export default function GuardDetails() {
                     {status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">Employee ID: {employeeId}</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Employee ID: {employeeId}
+                </p>
               </div>
             </div>
           </div>
@@ -158,25 +175,35 @@ export default function GuardDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">First Name</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.firstName}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {guardData.firstName}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Name</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.lastName}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {guardData.lastName}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Email Address</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.email}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {guardData.email}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Employee ID</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{employeeId}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {employeeId}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Phone Number</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{phone}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {phone}
+                </p>
               </div>
             </div>
           </div>
@@ -190,25 +217,38 @@ export default function GuardDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">Account Status</p>
-                <span className={`inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold ${
-                  status === "Active" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" :
-                  "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
-                }`}>
+                <span
+                  className={`inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold ${
+                    status === "Active"
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                      : "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+                  }`}
+                >
                   {status.toUpperCase()}
                 </span>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Date Created</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{dateCreated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {dateCreated}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Last Updated</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{lastUpdated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {lastUpdated}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{guardData.lastLogin || "N/A"}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {guardData.lastLogin
+                    ? new Date(guardData.lastLogin).toLocaleString()
+                    : guardData.updatedAt
+                      ? new Date(guardData.updatedAt).toLocaleString()
+                      : "N/A"}
+                </p>
               </div>
             </div>
           </div>
@@ -239,7 +279,8 @@ export default function GuardDetails() {
                 Deactivate Guard Account?
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Are you sure you want to deactivate {guardData.firstName} {guardData.lastName}'s account?
+                Are you sure you want to deactivate {guardData.firstName}{" "}
+                {guardData.lastName}'s account?
               </p>
             </div>
             <div className="flex items-center gap-3 pt-2">
@@ -274,7 +315,8 @@ export default function GuardDetails() {
                 Account Deactivated Successfully
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                The guard's account has been deactivated and access to SmartPark has been disabled.
+                The guard's account has been deactivated and access to SmartPark
+                has been disabled.
               </p>
             </div>
             <button

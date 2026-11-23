@@ -1,25 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  UserX, 
-  UserMinus, 
-  ShieldAlert, 
-  ShieldCheck, 
-  AlertCircle, 
-  CheckCircle2, 
-  X, 
-  Loader2, 
+import {
+  ArrowLeft,
+  UserX,
+  UserMinus,
+  ShieldAlert,
+  ShieldCheck,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  Loader2,
   ChevronDown,
-  MoreHorizontal
+  MoreHorizontal,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { 
-  getAccountById, 
-  suspendAccount, 
-  deactivateAccount, 
-  reactivateAccount, 
-  setAccountInactive 
+import {
+  getAccountById,
+  suspendAccount,
+  deactivateAccount,
+  reactivateAccount,
+  setAccountInactive,
 } from "./api/accountApi";
 
 export default function UserDetails() {
@@ -75,7 +75,10 @@ export default function UserDetails() {
   // Click outside listener para sa Actions dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target as Node)) {
+      if (
+        actionsDropdownRef.current &&
+        !actionsDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsActionsDropdownOpen(false);
       }
     };
@@ -85,7 +88,12 @@ export default function UserDetails() {
 
   // Overflow management kapag bukas ang modal
   useEffect(() => {
-    if (showSuspendModal || showDeactivateModal || showInactiveModal || showSuccessModal) {
+    if (
+      showSuspendModal ||
+      showDeactivateModal ||
+      showInactiveModal ||
+      showSuccessModal
+    ) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -93,7 +101,12 @@ export default function UserDetails() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [showSuspendModal, showDeactivateModal, showInactiveModal, showSuccessModal]);
+  }, [
+    showSuspendModal,
+    showDeactivateModal,
+    showInactiveModal,
+    showSuccessModal,
+  ]);
 
   const handleSuspendSubmit = async () => {
     if (!suspensionReason.trim()) {
@@ -197,13 +210,16 @@ export default function UserDetails() {
   if (!userData) {
     return (
       <AdminLayout>
-        <div className="text-center py-32 text-slate-500">User account not found.</div>
+        <div className="text-center py-32 text-slate-500">
+          User account not found.
+        </div>
       </AdminLayout>
     );
   }
 
   const rawStatus = userData.accountStatus || userData.status || "Active";
-  const status = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+  const status =
+    rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
   const isSuspended = status === "Suspended";
   const isDeactivated = status === "Deactivated";
   const isInactive = status === "Inactive";
@@ -211,29 +227,42 @@ export default function UserDetails() {
 
   const studentId = userData.schoolId || userData.studentId || "N/A";
   const phone = userData.phone || userData.phoneNumber || "N/A";
-  const dateCreated = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : (userData.dateCreated || "N/A");
-  const lastUpdated = userData.updatedAt ? new Date(userData.updatedAt).toLocaleString() : (userData.lastUpdated || "N/A");
-  const lastLogin = userData.lastLogin ? new Date(userData.lastLogin).toLocaleString() : "Never";
+  const dateCreated = userData.createdAt
+    ? new Date(userData.createdAt).toLocaleDateString()
+    : userData.dateCreated || "N/A";
+  const lastUpdated = userData.updatedAt
+    ? new Date(userData.updatedAt).toLocaleString()
+    : userData.lastUpdated || "N/A";
+  const lastLogin = userData.lastLogin
+    ? new Date(userData.lastLogin).toLocaleString()
+    : userData.updatedAt
+      ? new Date(userData.updatedAt).toLocaleString()
+      : "N/A";
 
   const todayStr = new Date().toISOString().split("T")[0];
 
   return (
     <AdminLayout>
       <div className="space-y-6 max-w-5xl mx-auto relative">
-
         {/* --- SUSPENSION ALERT BANNER --- */}
         {isSuspended && (
           <div className="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 p-4 sm:p-5 rounded-2xl flex items-start gap-3.5 text-xs shadow-xs animate-in fade-in">
             <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="font-bold text-sm text-amber-900 dark:text-amber-200">Account Currently Suspended</p>
+              <p className="font-bold text-sm text-amber-900 dark:text-amber-200">
+                Account Currently Suspended
+              </p>
               <p className="text-amber-700 dark:text-amber-300/90 leading-relaxed">
                 <span className="font-semibold">Suspended Until:</span>{" "}
-                {userData.suspendedUntil 
-                  ? new Date(userData.suspendedUntil).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) 
+                {userData.suspendedUntil
+                  ? new Date(userData.suspendedUntil).toLocaleDateString(
+                      "en-US",
+                      { month: "long", day: "numeric", year: "numeric" },
+                    )
                   : "N/A"}
                 <span className="mx-2 text-amber-400">|</span>
-                <span className="font-semibold">Reason:</span> {userData.suspensionReason || "No specific reason provided."}
+                <span className="font-semibold">Reason:</span>{" "}
+                {userData.suspensionReason || "No specific reason provided."}
               </p>
             </div>
           </div>
@@ -241,7 +270,6 @@ export default function UserDetails() {
 
         {/* --- MAIN CARD --- */}
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-8 transition-colors">
-          
           {/* Header Bar & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
             <div className="flex items-center gap-3">
@@ -253,8 +281,12 @@ export default function UserDetails() {
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">User Profile</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Detailed view of student credentials and account standing.</p>
+                <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
+                  User Profile
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Detailed view of student credentials and account standing.
+                </p>
               </div>
             </div>
 
@@ -268,7 +300,9 @@ export default function UserDetails() {
                 >
                   <MoreHorizontal className="h-4 w-4" />
                   <span>Account Actions</span>
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isActionsDropdownOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform duration-200 ${isActionsDropdownOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
 
                 {isActionsDropdownOpen && (
@@ -292,7 +326,9 @@ export default function UserDetails() {
                             <ShieldAlert className="h-4 w-4 shrink-0 text-amber-600" />
                             <div>
                               <p className="font-bold">Suspend Account</p>
-                              <p className="text-[10px] text-slate-400 font-normal">Temporary parking lockout</p>
+                              <p className="text-[10px] text-slate-400 font-normal">
+                                Temporary parking lockout
+                              </p>
                             </div>
                           </button>
 
@@ -307,7 +343,9 @@ export default function UserDetails() {
                             <UserMinus className="h-4 w-4 shrink-0 text-slate-500" />
                             <div>
                               <p className="font-bold">Mark as Inactive</p>
-                              <p className="text-[10px] text-slate-400 font-normal">Soft-freeze privileges</p>
+                              <p className="text-[10px] text-slate-400 font-normal">
+                                Soft-freeze privileges
+                              </p>
                             </div>
                           </button>
                         </>
@@ -324,8 +362,14 @@ export default function UserDetails() {
                         >
                           <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
                           <div>
-                            <p className="font-bold">{isSuspended ? "Lift Suspension" : "Activate Account"}</p>
-                            <p className="text-[10px] text-slate-400 font-normal">Restore full system access</p>
+                            <p className="font-bold">
+                              {isSuspended
+                                ? "Lift Suspension"
+                                : "Activate Account"}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-normal">
+                              Restore full system access
+                            </p>
                           </div>
                         </button>
                       )}
@@ -343,7 +387,9 @@ export default function UserDetails() {
                         <UserX className="h-4 w-4 shrink-0 text-rose-600" />
                         <div>
                           <p className="font-bold">Deactivate Account</p>
-                          <p className="text-[10px] text-rose-400/80 font-normal">Permanent account closure</p>
+                          <p className="text-[10px] text-rose-400/80 font-normal">
+                            Permanent account closure
+                          </p>
                         </div>
                       </button>
                     </div>
@@ -361,16 +407,19 @@ export default function UserDetails() {
           {/* Profile Basic Info Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <div className="flex items-center gap-4">
-              {userData.avatar && !avatarError && !userData.avatar.includes("unsplash.com") ? (
-                <img 
-                  src={userData.avatar} 
-                  alt={userData.firstName} 
+              {userData.avatar &&
+              !avatarError &&
+              !userData.avatar.includes("unsplash.com") ? (
+                <img
+                  src={userData.avatar}
+                  alt={userData.firstName}
                   onError={() => setAvatarError(true)}
                   className="h-16 w-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shadow-xs"
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-[#0053CC] dark:bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl shadow-md border-2 border-white dark:border-slate-800 uppercase select-none shrink-0">
-                  {((userData.firstName?.[0] || "") + (userData.lastName?.[0] || "")) || "U"}
+                  {(userData.firstName?.[0] || "") +
+                    (userData.lastName?.[0] || "") || "U"}
                 </div>
               )}
               <div className="space-y-1">
@@ -378,21 +427,34 @@ export default function UserDetails() {
                   <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
                     {userData.firstName} {userData.lastName}
                   </h2>
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold border transition-colors ${
-                    status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-400" :
-                    status === "Suspended" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800 dark:text-amber-400" :
-                    status === "Inactive" ? "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300" :
-                    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-400"
-                  }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${
-                      status === "Active" ? "bg-emerald-500" :
-                      status === "Suspended" ? "bg-amber-500" :
-                      status === "Inactive" ? "bg-slate-400" : "bg-rose-500"
-                    }`} />
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold border transition-colors ${
+                      status === "Active"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-400"
+                        : status === "Suspended"
+                          ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800 dark:text-amber-400"
+                          : status === "Inactive"
+                            ? "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                            : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-400"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        status === "Active"
+                          ? "bg-emerald-500"
+                          : status === "Suspended"
+                            ? "bg-amber-500"
+                            : status === "Inactive"
+                              ? "bg-slate-400"
+                              : "bg-rose-500"
+                      }`}
+                    />
                     <span>{status}</span>
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">Student ID: {studentId}</p>
+                <p className="text-xs text-slate-400">
+                  Student ID: {studentId}
+                </p>
               </div>
             </div>
           </div>
@@ -406,20 +468,28 @@ export default function UserDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">First Name</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{userData.firstName}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {userData.firstName}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Name</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{userData.lastName}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {userData.lastName}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Email Address</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{userData.email}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {userData.email}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Phone Number</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{phone}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {phone}
+                </p>
               </div>
             </div>
           </div>
@@ -435,35 +505,44 @@ export default function UserDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">Role</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{userData.role || "User"}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {userData.role || "User"}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Student ID</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{studentId}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {studentId}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Date Created</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{dateCreated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {dateCreated}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Updated</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{lastUpdated}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {lastUpdated}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{lastLogin}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {lastLogin}
+                </p>
               </div>
             </div>
           </div>
-
         </div>
 
         {/* --- SUSPEND MODAL --- */}
         {showSuspendModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 relative">
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowSuspendModal(false)}
                 className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
@@ -476,8 +555,12 @@ export default function UserDetails() {
                   <ShieldAlert className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Suspend User Account</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Temporarily block parking and account access.</p>
+                  <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
+                    Suspend User Account
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Temporarily block parking and account access.
+                  </p>
                 </div>
               </div>
 
@@ -565,7 +648,7 @@ export default function UserDetails() {
         {showInactiveModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 relative">
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowInactiveModal(false)}
                 className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -578,14 +661,18 @@ export default function UserDetails() {
               </div>
 
               <div>
-                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Mark Account Inactive?</h3>
+                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
+                  Mark Account Inactive?
+                </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  Are you sure you want to mark {userData.firstName} {userData.lastName}'s account as Inactive? This will soft-freeze parking access until reactivated.
+                  Are you sure you want to mark {userData.firstName}{" "}
+                  {userData.lastName}'s account as Inactive? This will
+                  soft-freeze parking access until reactivated.
                 </p>
               </div>
-              
+
               <div className="space-y-2 pt-2">
-                <button 
+                <button
                   type="button"
                   onClick={handleConfirmInactive}
                   disabled={isSubmitting}
@@ -594,7 +681,7 @@ export default function UserDetails() {
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   <span>Mark Inactive</span>
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowInactiveModal(false)}
                   disabled={isSubmitting}
@@ -611,7 +698,7 @@ export default function UserDetails() {
         {showDeactivateModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
             <div className="w-full max-w-sm rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 relative">
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowDeactivateModal(false)}
                 className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -624,14 +711,18 @@ export default function UserDetails() {
               </div>
 
               <div>
-                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Deactivate User Account?</h3>
+                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
+                  Deactivate User Account?
+                </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  Are you sure you want to permanently deactivate {userData.firstName} {userData.lastName}'s account? This action cannot be undone.
+                  Are you sure you want to permanently deactivate{" "}
+                  {userData.firstName} {userData.lastName}'s account? This
+                  action cannot be undone.
                 </p>
               </div>
-              
+
               <div className="space-y-2 pt-2">
-                <button 
+                <button
                   type="button"
                   onClick={handleConfirmDeactivate}
                   disabled={isSubmitting}
@@ -640,7 +731,7 @@ export default function UserDetails() {
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   <span>Deactivate Permanently</span>
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowDeactivateModal(false)}
                   disabled={isSubmitting}
@@ -662,14 +753,16 @@ export default function UserDetails() {
               </div>
 
               <div>
-                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">Action Completed</h3>
+                <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">
+                  Action Completed
+                </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                   {successMessage}
                 </p>
               </div>
-              
+
               <div className="pt-2">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowSuccessModal(false)}
                   className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -680,7 +773,6 @@ export default function UserDetails() {
             </div>
           </div>
         )}
-
       </div>
     </AdminLayout>
   );

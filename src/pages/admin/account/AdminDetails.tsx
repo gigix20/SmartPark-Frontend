@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Edit3, Ban, AlertTriangle, CheckCircle2, Loader2, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit3,
+  Ban,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  Clock,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { getAccountById, updateAccountStatus } from "./api/accountApi";
 
@@ -19,7 +27,9 @@ export default function AdminDetails() {
 
   const [adminData, setAdminData] = useState<any>(null);
   const status = adminData?.accountStatus || adminData?.status || "Active";
-  const isDeactivated = status?.toUpperCase() === "DEACTIVATED" || status?.toUpperCase() === "INACTIVE";
+  const isDeactivated =
+    status?.toUpperCase() === "DEACTIVATED" ||
+    status?.toUpperCase() === "INACTIVE";
   const isSuspended = status?.toUpperCase() === "SUSPENDED";
   const isActive = !isDeactivated && !isSuspended;
   const [isActivating, setIsActivating] = useState(false);
@@ -95,7 +105,9 @@ export default function AdminDetails() {
   if (!adminData) {
     return (
       <AdminLayout>
-        <div className="text-center py-32 text-slate-500">Account not found.</div>
+        <div className="text-center py-32 text-slate-500">
+          Account not found.
+        </div>
       </AdminLayout>
     );
   }
@@ -103,17 +115,16 @@ export default function AdminDetails() {
   return (
     <AdminLayout>
       <div className="w-full max-w-5xl mx-auto space-y-6">
-        
         {/* Main Card Container */}
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 sm:p-10 shadow-xs space-y-8 relative transition-colors">
-          
           {/* Header Section */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-6">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleBack}
-                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <h1 className="font-poppins text-xl font-bold text-[#0053CC] dark:text-blue-400">
@@ -127,7 +138,9 @@ export default function AdminDetails() {
                   <>
                     <button
                       type="button"
-                      onClick={() => navigate(`/admin/accounts/suspend/${adminData.id}`)}
+                      onClick={() =>
+                        navigate(`/admin/accounts/suspend/${adminData.id}`)
+                      }
                       className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <Clock className="h-3.5 w-3.5" />
@@ -149,7 +162,11 @@ export default function AdminDetails() {
                     disabled={isActivating}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    {isActivating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                    {isActivating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    )}
                     <span>Activate Account</span>
                   </button>
                 )}
@@ -160,7 +177,9 @@ export default function AdminDetails() {
           {/* Profile Basic Info Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {adminData.avatar && !avatarError && !adminData.avatar.includes("unsplash.com") ? (
+              {adminData.avatar &&
+              !avatarError &&
+              !adminData.avatar.includes("unsplash.com") ? (
                 <img
                   src={adminData.avatar}
                   alt={adminData.firstName}
@@ -169,7 +188,8 @@ export default function AdminDetails() {
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-[#0053CC] dark:bg-blue-600 text-white flex items-center justify-center font-extrabold text-xl shadow-md border-2 border-white dark:border-slate-800 uppercase select-none shrink-0">
-                  {((adminData.firstName?.[0] || "") + (adminData.lastName?.[0] || "")) || "A"}
+                  {(adminData.firstName?.[0] || "") +
+                    (adminData.lastName?.[0] || "") || "A"}
                 </div>
               )}
               <div>
@@ -177,17 +197,21 @@ export default function AdminDetails() {
                   <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
                     {adminData.firstName} {adminData.lastName}
                   </h2>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                    status.toUpperCase() === "ACTIVE"
-                      ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                      : status.toUpperCase() === "SUSPENDED"
-                      ? "bg-amber-50 text-amber-600 border-amber-200"
-                      : "bg-rose-50 text-rose-600 border-rose-200"
-                  }`}>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                      status.toUpperCase() === "ACTIVE"
+                        ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                        : status.toUpperCase() === "SUSPENDED"
+                          ? "bg-amber-50 text-amber-600 border-amber-200"
+                          : "bg-rose-50 text-rose-600 border-rose-200"
+                    }`}
+                  >
                     {status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">ID: {adminData.schoolId}</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  ID: {adminData.schoolId}
+                </p>
               </div>
             </div>
           </div>
@@ -201,29 +225,43 @@ export default function AdminDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">First Name</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.firstName}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.firstName}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Name</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.lastName}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.lastName}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Email Address</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.email}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.email}
+                </p>
               </div>
               <div>
-                <p className="text-slate-400 font-medium">Employee / School ID</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.schoolId}</p>
+                <p className="text-slate-400 font-medium">
+                  Employee / School ID
+                </p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.schoolId}
+                </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Role</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.role}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.role}
+                </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Phone Number</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.phone || "N/A"}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.phone || "N/A"}
+                </p>
               </div>
             </div>
           </div>
@@ -237,32 +275,44 @@ export default function AdminDetails() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-xs">
               <div>
                 <p className="text-slate-400 font-medium">Account Status</p>
-                <span className={`inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold border ${
-                  status.toUpperCase() === "ACTIVE"
-                    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                    : status.toUpperCase() === "SUSPENDED"
-                    ? "bg-amber-100 text-amber-700 border-amber-200"
-                    : "bg-rose-100 text-rose-700 border-rose-200"
-                }`}>
+                <span
+                  className={`inline-block mt-1.5 px-3 py-1 rounded text-[10px] font-bold border ${
+                    status.toUpperCase() === "ACTIVE"
+                      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                      : status.toUpperCase() === "SUSPENDED"
+                        ? "bg-amber-100 text-amber-700 border-amber-200"
+                        : "bg-rose-100 text-rose-700 border-rose-200"
+                  }`}
+                >
                   {status}
                 </span>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Date Created</p>
                 <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
-                  {adminData.createdAt ? new Date(adminData.createdAt).toLocaleDateString() : "N/A"}
+                  {adminData.createdAt
+                    ? new Date(adminData.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </p>
               </div>
 
               <div>
                 <p className="text-slate-400 font-medium">Last Updated</p>
                 <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
-                  {adminData.updatedAt ? new Date(adminData.updatedAt).toLocaleString() : "N/A"}
+                  {adminData.updatedAt
+                    ? new Date(adminData.updatedAt).toLocaleString()
+                    : "N/A"}
                 </p>
               </div>
               <div>
                 <p className="text-slate-400 font-medium">Last Login</p>
-                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">{adminData.lastLogin}</p>
+                <p className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
+                  {adminData.lastLogin
+                    ? new Date(adminData.lastLogin).toLocaleString()
+                    : adminData.updatedAt
+                      ? new Date(adminData.updatedAt).toLocaleString()
+                      : "N/A"}
+                </p>
               </div>
             </div>
           </div>
@@ -295,7 +345,8 @@ export default function AdminDetails() {
                 Deactivate Admin Account?
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Are you sure you want to deactivate {adminData.firstName} {adminData.lastName}'s account?
+                Are you sure you want to deactivate {adminData.firstName}{" "}
+                {adminData.lastName}'s account?
               </p>
             </div>
             <div className="flex items-center gap-3 pt-2">
@@ -330,7 +381,8 @@ export default function AdminDetails() {
                 Account Deactivated Successfully
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                The admin's account has been deactivated and access to SmartPark has been disabled.
+                The admin's account has been deactivated and access to SmartPark
+                has been disabled.
               </p>
             </div>
             <button
