@@ -508,30 +508,54 @@ export default function VehicleDetails() {
             {/* Section 2: Owner Information */}
             <div className="space-y-4">
               <h3 className="font-poppins text-sm font-bold text-[#0053CC] dark:text-blue-400">
-                Owner Information
+                {vehicle.registrationSource === "Gate" ? "Gate Visitor / Driver Information" : "Owner Information"}
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-xs">
-                <div>
-                  <p className="text-slate-400 font-medium">Full Name</p>
-                  <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.fullName || "--"}</p>
-                </div>
+              {vehicle.registrationSource === "Gate" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-xs">
+                  <div>
+                    <p className="text-slate-400 font-medium">Owner / Driver Name</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.fullName || "Gate Visitor"}</p>
+                  </div>
 
-                <div>
-                  <p className="text-slate-400 font-medium">Student / School ID</p>
-                  <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.studentId || "--"}</p>
-                </div>
+                  <div>
+                    <p className="text-slate-400 font-medium">Registration Type</p>
+                    <p className="font-bold text-[#0053CC] dark:text-blue-400 mt-0.5">Gate Registration (Visitor / Walk-in)</p>
+                  </div>
 
-                <div>
-                  <p className="text-slate-400 font-medium">Email Address</p>
-                  <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.email || "--"}</p>
-                </div>
+                  <div>
+                    <p className="text-slate-400 font-medium">ID Presented</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.idType || "Driver's License / Valid ID"}</p>
+                  </div>
 
-                <div>
-                  <p className="text-slate-400 font-medium">Phone Number</p>
-                  <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.phoneNumber || "--"}</p>
+                  <div>
+                    <p className="text-slate-400 font-medium">ID Number</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.idNumber || "N/A"}</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-xs">
+                  <div>
+                    <p className="text-slate-400 font-medium">Full Name</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.fullName || "--"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-slate-400 font-medium">Student / School ID</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.studentId || "--"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-slate-400 font-medium">Email Address</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.email || "--"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-slate-400 font-medium">Phone Number</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{vehicle.owner?.phoneNumber || "--"}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>

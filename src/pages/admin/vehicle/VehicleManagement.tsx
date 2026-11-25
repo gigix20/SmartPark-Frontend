@@ -102,12 +102,15 @@ export default function VehicleManagement() {
         year: vehicle.year,
         status: vehicle.status,
         rejectionReason: vehicle.rejectionReason,
-        owner: vehicle.user ? `${vehicle.user.firstName} ${vehicle.user.lastName}` : (vehicle.owner || "--"),
-        email: vehicle.user?.email || "--",
-        phone: vehicle.user?.phone || "--",
-        idNo: vehicle.user?.schoolId || "--",
+        owner: vehicle.registrationSource === "Gate"
+          ? (vehicle.owner || "Gate Visitor")
+          : (vehicle.user ? `${vehicle.user.firstName} ${vehicle.user.lastName}` : (vehicle.owner || "--")),
+        email: vehicle.registrationSource === "Gate" ? "N/A (Gate Registration)" : (vehicle.user?.email || "--"),
+        phone: vehicle.registrationSource === "Gate" ? "N/A (Gate Registration)" : (vehicle.user?.phone || "--"),
+        idNo: vehicle.registrationSource === "Gate" ? (vehicle.idNo || "N/A") : (vehicle.user?.schoolId || "--"),
         date: vehicle.regDate || vehicle.createdAt?.split("T")[0] || "--",
         photo: vehicle.photo,
+        registrationSource: vehicle.registrationSource,
       });
       setModalType("review");
     } else {
@@ -476,12 +479,25 @@ export default function VehicleManagement() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Owner Information</h4>
+              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                {selectedVehicle.registrationSource === "Gate" ? "Gate Visitor Information" : "Owner Information"}
+              </h4>
               <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                <div><span className="text-slate-400 block">Email Address</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.email}</strong></div>
-                <div><span className="text-slate-400 block">Phone Number</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.phone}</strong></div>
-                <div><span className="text-slate-400 block">Full Name</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.owner}</strong></div>
-                <div><span className="text-slate-400 block">ID Number</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.idNo}</strong></div>
+                {selectedVehicle.registrationSource === "Gate" ? (
+                  <>
+                    <div><span className="text-slate-400 block">Owner / Driver</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.owner}</strong></div>
+                    <div><span className="text-slate-400 block">Registration Type</span> <strong className="text-[#0053CC] dark:text-blue-400">Gate Registration (Walk-in)</strong></div>
+                    <div><span className="text-slate-400 block">ID Presented</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.idNo || "N/A"}</strong></div>
+                    <div><span className="text-slate-400 block">Date</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.date}</strong></div>
+                  </>
+                ) : (
+                  <>
+                    <div><span className="text-slate-400 block">Email Address</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.email}</strong></div>
+                    <div><span className="text-slate-400 block">Phone Number</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.phone}</strong></div>
+                    <div><span className="text-slate-400 block">Full Name</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.owner}</strong></div>
+                    <div><span className="text-slate-400 block">ID Number</span> <strong className="text-slate-800 dark:text-slate-200">{selectedVehicle.idNo}</strong></div>
+                  </>
+                )}
               </div>
             </div>
 

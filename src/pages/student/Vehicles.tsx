@@ -10,7 +10,8 @@ import {
   Download,
   AlertCircle,
   Camera,
-  Upload
+  Upload,
+  Car
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { BottomNav } from "@/components/BottomNav";
@@ -51,6 +52,19 @@ export default function Vehicles() {
   const [selectedQrVehicle, setSelectedQrVehicle] = useState<Vehicle | null>(null);
   const [isNotApprovedModalOpen, setIsNotApprovedModalOpen] = useState(false);
   const [notApprovedModalVehicle, setNotApprovedModalVehicle] = useState<Vehicle | null>(null);
+
+  // Gate Registered Claim & Link Modal State
+  const [gateClaimData, setGateClaimData] = useState<{
+    isOpen: boolean;
+    plateNumber: string;
+    gateOwner: string;
+    message: string;
+  }>({
+    isOpen: false,
+    plateNumber: "",
+    gateOwner: "",
+    message: "",
+  });
 
   // Selected Vehicle for Action
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -111,7 +125,8 @@ export default function Vehicles() {
       isDeactivateOpen || 
       isSuccessModalOpen || 
       isQrModalOpen || 
-      isNotApprovedModalOpen;
+      isNotApprovedModalOpen ||
+      gateClaimData.isOpen;
 
     if (isAnyModalOpen) {
       document.body.style.overflow = "hidden";
@@ -121,7 +136,7 @@ export default function Vehicles() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isRegisterOpen, isEditOpen, isDeactivateOpen, isSuccessModalOpen, isQrModalOpen, isNotApprovedModalOpen]);
+  }, [isRegisterOpen, isEditOpen, isDeactivateOpen, isSuccessModalOpen, isQrModalOpen, isNotApprovedModalOpen, gateClaimData.isOpen]);
 
   // Handle Photo File Upload (Convert to Base64 Data URL)
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,7 +196,7 @@ export default function Vehicles() {
 
     setIsSubmitting(true);
     try {
-      await registerVehicle({
+      const res = await registerVehicle({
         type: formData.type,
         plateNumber: formData.plateNumber,
         brand: formData.brand,
@@ -194,11 +209,48 @@ export default function Vehicles() {
       setIsRegisterOpen(false);
       resetForm();
       await fetchVehicles();
-      setSuccessMessage("Vehicle registered successfully! Awaiting administrator approval.");
+      setSuccessMessage(res.message || "Vehicle registered successfully! Awaiting administrator approval.");
       setIsSuccessModalOpen(true);
     } catch (err: any) {
+      if (err.response?.data?.gateVehicleDetected) {
+        setGateClaimData({
+          isOpen: true,
+          plateNumber: err.response.data.plateNumber || formData.plateNumber,
+          gateOwner: err.response.data.gateOwner || "Visitor",
+          message: err.response.data.message || "",
+        });
+        return;
+      }
       const msg = err.response?.data?.message || "Failed to register vehicle.";
       setErrors({ general: msg });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Confirm Claim & Link Gate Vehicle
+  const handleConfirmClaimGateVehicle = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await registerVehicle({
+        type: formData.type,
+        plateNumber: formData.plateNumber,
+        brand: formData.brand,
+        model: formData.model,
+        color: formData.color,
+        year: formData.year,
+        photo: formData.photo || null,
+        claimGateVehicle: true,
+      });
+
+      setGateClaimData({ isOpen: false, plateNumber: "", gateOwner: "", message: "" });
+      setIsRegisterOpen(false);
+      resetForm();
+      await fetchVehicles();
+      setSuccessMessage(res.message || "Matagumpay na na-link ang sasakyan sa iyong SmartPark account! Awaiting administrator approval.");
+      setIsSuccessModalOpen(true);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to link vehicle to account.");
     } finally {
       setIsSubmitting(false);
     }
@@ -1294,6 +1346,61 @@ export default function Vehicles() {
             >
               Close
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ----------------- MODAL 7: CLAIM & LINK GATE REGISTERED VEHICLE ----------------- */}
+      {gateClaimData.isOpen && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-md rounded-[32px] bg-white dark:bg-slate-900 p-6 sm:p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
+            
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-blue-500 text-[#0053CC] dark:text-blue-400 bg-blue-50/60 dark:bg-blue-950/40">
+              <Car className="h-7 w-7" />
+            </div>
+
+            <div>
+              <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
+                Nahanap ang Sasakyan sa Gate Registration!
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed px-2">
+                Ang plaka na <strong className="text-[#0053CC] dark:text-blue-400 font-mono font-bold">{gateClaimData.plateNumber}</strong> ay dating naitala sa Gate Registration ng guard sa ilalim ng may-aring:
+              </p>
+              <div className="mt-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Gate Registered Owner</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">{gateClaimData.gateOwner}</span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+                Iyo ba ang sasakyang ito? Kung iyo ito, i-link natin ito sa iyong bagong SmartPark account upang magkaroon ka ng official QR code pass at ma-track ang iyong parking history!
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-2">
+              <Button
+                type="button"
+                onClick={handleConfirmClaimGateVehicle}
+                disabled={isSubmitting}
+                className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Inililink ang sasakyan...</span>
+                  </>
+                ) : (
+                  <span>Oo, Saken 'To (I-link sa Aking Account)</span>
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setGateClaimData({ isOpen: false, plateNumber: "", gateOwner: "", message: "" })}
+                className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Hindi akin 'to (Kanselahin)
+              </Button>
+            </div>
+
           </div>
         </div>
       )}

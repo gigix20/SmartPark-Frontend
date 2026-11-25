@@ -24,6 +24,7 @@ export interface Vehicle {
   color: string;
   year: string;
   photo?: string | null;
+  idNo?: string;
   status: "Approved" | "Pending" | "Rejected" | "Inactive" | string;
   rejectionReason?: string | null;
   qrCode?: string | null;
@@ -78,7 +79,8 @@ export async function registerVehicle(data: {
   color: string;
   year: string;
   photo?: string | null;
-}): Promise<{ success: boolean; message: string; vehicle: Vehicle }> {
+  claimGateVehicle?: boolean;
+}): Promise<{ success: boolean; message: string; vehicle: Vehicle; linked?: boolean }> {
   const response = await api.post("/vehicles", data);
   return response.data;
 }

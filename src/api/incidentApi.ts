@@ -82,6 +82,7 @@ export async function reviewAdminIncident(
  */
 export async function submitIncidentReport(payload: {
   vehicleType: string;
+  brand?: string;
   color: string;
   model: string;
   plateNumber: string;

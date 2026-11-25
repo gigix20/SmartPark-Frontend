@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { submitIncidentReport, getMyIncidentReports } from "@/api/incidentApi";
+import { getVehicleOptions, type VehicleOptions } from "@/api/vehicleApi";
 
 interface Incident {
   id: string;
@@ -23,6 +24,7 @@ interface Incident {
   title: string;
   type: string;
   vehicleType: string;
+  brand?: string;
   color: string;
   model: string;
   plateNumber: string;
@@ -43,6 +45,7 @@ export default function Reports() {
   const [historyFilter, setHistoryFilter] = useState<string>("All");
 
   const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [vehicleOptions, setVehicleOptions] = useState<VehicleOptions | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -58,6 +61,7 @@ export default function Reports() {
           title: `${r.reportType} - ${r.vehicleType}`,
           type: r.reportType,
           vehicleType: r.vehicleType,
+          brand: r.brand || "",
           color: r.color || "--",
           model: r.model || "--",
           plateNumber: r.plateNumber,
@@ -81,9 +85,21 @@ export default function Reports() {
     }
   };
 
+  const fetchOptions = async () => {
+    try {
+      const res = await getVehicleOptions();
+      if (res.success && res.options) {
+        setVehicleOptions(res.options);
+      }
+    } catch (err) {
+      console.error("Failed to fetch vehicle options:", err);
+    }
+  };
+
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchMyReports();
+    fetchOptions();
   }, []);
 
   // Modal States
@@ -96,9 +112,10 @@ export default function Reports() {
 
   // Form Fields & Errors
   const [formData, setFormData] = useState({
-    vehicleType: "",
-    color: "",
+    vehicleType: "Car",
+    brand: "",
     model: "",
+    color: "",
     plateNumber: "",
     reportType: "Blocking Parking Space",
     description: "",
@@ -106,7 +123,26 @@ export default function Reports() {
     photoPreview: "",
   });
 
+  const [isOtherBrand, setIsOtherBrand] = useState(false);
+  const [isOtherModel, setIsOtherModel] = useState(false);
+
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Dynamic dropdown options based on selected vehicleType and vehicleOptions
+  const activeBrandOptions = formData.vehicleType === "Motorcycle"
+    ? (vehicleOptions?.motorcycles || [])
+    : (vehicleOptions?.cars || []);
+
+  const activeBrandNames = activeBrandOptions.map((b) => b.brand);
+
+  const selectedBrandEntry = activeBrandOptions.find(
+    (b) => b.brand.toLowerCase() === formData.brand.toLowerCase()
+  );
+
+  const activeModelNames = selectedBrandEntry?.models || [];
+  const activeColorNames = vehicleOptions?.colors || [
+    "White", "Black", "Silver", "Gray", "Red", "Blue", "Green", "Yellow", "Brown", "Orange", "Gold", "Maroon"
+  ];
 
   // Handle File Upload Change (Convert to base64 Data URL for persistent backend storage)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,9 +209,10 @@ export default function Reports() {
     const errors: { [key: string]: string } = {};
 
     if (!formData.vehicleType) errors.vehicleType = "Vehicle type is required.";
-    if (!formData.color) errors.color = "Color is required.";
-    if (!formData.model) errors.model = "Model is required.";
-    if (!formData.plateNumber) errors.plateNumber = "Plate number is required.";
+    if (!formData.brand.trim()) errors.brand = "Brand is required.";
+    if (!formData.model.trim()) errors.model = "Model is required.";
+    if (!formData.color.trim()) errors.color = "Color is required.";
+    if (!formData.plateNumber.trim()) errors.plateNumber = "Plate number is required.";
     if (!formData.reportType) errors.reportType = "Report type is required.";
     if (!formData.description.trim()) errors.description = "Incident description is required.";
     if (!formData.photo && !formData.photoPreview) errors.photo = "Photo evidence is required.";
@@ -189,9 +226,10 @@ export default function Reports() {
       setIsSubmitting(true);
       const res = await submitIncidentReport({
         vehicleType: formData.vehicleType,
-        color: formData.color,
-        model: formData.model,
-        plateNumber: formData.plateNumber,
+        brand: formData.brand.trim(),
+        model: formData.model.trim(),
+        color: formData.color.trim(),
+        plateNumber: formData.plateNumber.trim(),
         reportType: formData.reportType,
         description: formData.description.trim(),
         evidenceImage: formData.photoPreview || null,
@@ -205,6 +243,7 @@ export default function Reports() {
           title: `${created.reportType} - ${created.vehicleType}`,
           type: created.reportType,
           vehicleType: created.vehicleType,
+          brand: created.brand || formData.brand,
           color: created.color || "--",
           model: created.model || "--",
           plateNumber: created.plateNumber,
@@ -224,15 +263,18 @@ export default function Reports() {
         setSelectedIncident(newInc);
         setIsNewReportOpen(false);
         setFormData({
-          vehicleType: "",
-          color: "",
+          vehicleType: "Car",
+          brand: "",
           model: "",
+          color: "",
           plateNumber: "",
           reportType: "Blocking Parking Space",
           description: "",
           photo: null,
           photoPreview: "",
         });
+        setIsOtherBrand(false);
+        setIsOtherModel(false);
         setIsSuccessOpen(true);
         setFormErrors({});
       }
@@ -504,73 +546,51 @@ export default function Reports() {
 
       {/* ----------------- MODAL 1: NEW INCIDENT REPORT FORM (WIDE LANDSCAPE LAYOUT) ----------------- */}
       {isNewReportOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-2xl rounded-[28px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 my-8">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-2 sm:p-4">
+          <div className="w-full max-w-lg md:max-w-xl rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-hidden flex flex-col">
             
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
-                  <FileText className="h-5 w-5" />
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
+                  <FileText className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">New Incident Report</h3>
+                  <h3 className="font-poppins text-base font-bold text-slate-900 dark:text-white">New Incident Report</h3>
                   <p className="text-[11px] text-slate-400">Fill in the report details below.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNewReportOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-5 pt-4">
+            <form onSubmit={handleCreateSubmit} className="space-y-4 pt-3 overflow-y-auto flex-1 pr-1">
               
               {/* TWO COLUMN WIDE LAYOUT FOR FORM FIELDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 
                 {/* Vehicle Type */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Vehicle Type<span className="text-red-500 ml-0.5">*</span>
                   </Label>
-                  <Input
+                  <select
                     value={formData.vehicleType}
-                    onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                    className="h-10 rounded-xl text-xs"
-                    placeholder="e.g. Car (Sedan)"
-                  />
+                    onChange={(e) => {
+                      setFormData({ ...formData, vehicleType: e.target.value, brand: "", model: "" });
+                      setIsOtherBrand(false);
+                      setIsOtherModel(false);
+                    }}
+                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="Car">Car</option>
+                    <option value="Motorcycle">Motorcycle</option>
+                  </select>
                   {formErrors.vehicleType && <span className="text-[10px] text-red-500 font-medium">{formErrors.vehicleType}</span>}
-                </div>
-
-                {/* Color */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    Color<span className="text-red-500 ml-0.5">*</span>
-                  </Label>
-                  <Input
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="h-10 rounded-xl text-xs"
-                    placeholder="e.g. Silver"
-                  />
-                  {formErrors.color && <span className="text-[10px] text-red-500 font-medium">{formErrors.color}</span>}
-                </div>
-
-                {/* Model */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    Model<span className="text-red-500 ml-0.5">*</span>
-                  </Label>
-                  <Input
-                    value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    className="h-10 rounded-xl text-xs"
-                    placeholder="e.g. Honda Civic"
-                  />
-                  {formErrors.model && <span className="text-[10px] text-red-500 font-medium">{formErrors.model}</span>}
                 </div>
 
                 {/* Plate Number */}
@@ -580,11 +600,115 @@ export default function Reports() {
                   </Label>
                   <Input
                     value={formData.plateNumber}
-                    onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
-                    className="h-10 rounded-xl text-xs"
-                    placeholder="e.g. ABC-1234"
+                    onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value.toUpperCase() })}
+                    className="h-10 rounded-xl text-xs uppercase"
+                    placeholder="e.g. ABC 1234"
                   />
                   {formErrors.plateNumber && <span className="text-[10px] text-red-500 font-medium">{formErrors.plateNumber}</span>}
+                </div>
+
+                {/* Cascading Brand */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Brand<span className="text-red-500 ml-0.5">*</span>
+                  </Label>
+                  <select
+                    value={isOtherBrand ? "Other" : (activeBrandNames.includes(formData.brand) ? formData.brand : (formData.brand ? "Other" : ""))}
+                    onChange={(e) => {
+                      if (e.target.value === "Other") {
+                        setIsOtherBrand(true);
+                        setFormData({ ...formData, brand: "", model: "" });
+                      } else {
+                        setIsOtherBrand(false);
+                        setFormData({ ...formData, brand: e.target.value, model: "" });
+                      }
+                      setIsOtherModel(false);
+                    }}
+                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="" disabled>Select Brand</option>
+                    {activeBrandNames.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    <option value="Other">Other (Custom Brand)</option>
+                  </select>
+                  {isOtherBrand && (
+                    <Input
+                      placeholder="Type custom brand"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      className="h-10 rounded-xl text-xs mt-1"
+                    />
+                  )}
+                  {formErrors.brand && <span className="text-[10px] text-red-500 font-medium">{formErrors.brand}</span>}
+                </div>
+
+                {/* Cascading Model */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Model<span className="text-red-500 ml-0.5">*</span>
+                  </Label>
+                  <select
+                    value={isOtherModel ? "Other" : (activeModelNames.includes(formData.model) ? formData.model : (formData.model ? "Other" : ""))}
+                    onChange={(e) => {
+                      if (e.target.value === "Other") {
+                        setIsOtherModel(true);
+                        setFormData({ ...formData, model: "" });
+                      } else {
+                        setIsOtherModel(false);
+                        setFormData({ ...formData, model: e.target.value });
+                      }
+                    }}
+                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="" disabled>Select Model</option>
+                    {activeModelNames.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                    <option value="Other">Other (Custom Model)</option>
+                  </select>
+                  {isOtherModel && (
+                    <Input
+                      placeholder="Type custom model"
+                      value={formData.model}
+                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                      className="h-10 rounded-xl text-xs mt-1"
+                    />
+                  )}
+                  {formErrors.model && <span className="text-[10px] text-red-500 font-medium">{formErrors.model}</span>}
+                </div>
+
+                {/* Color */}
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Color<span className="text-red-500 ml-0.5">*</span>
+                  </Label>
+                  <select
+                    value={activeColorNames.includes(formData.color) ? formData.color : (formData.color ? "Other" : "")}
+                    onChange={(e) => {
+                      if (e.target.value === "Other") {
+                        setFormData({ ...formData, color: "" });
+                      } else {
+                        setFormData({ ...formData, color: e.target.value });
+                      }
+                    }}
+                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="" disabled>Select Color</option>
+                    {activeColorNames.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    <option value="Other">Other (Custom Color)</option>
+                  </select>
+                  {(!activeColorNames.includes(formData.color) || formData.color === "") && (
+                    <Input
+                      placeholder="Type custom color"
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      className="h-10 rounded-xl text-xs mt-1"
+                    />
+                  )}
+                  {formErrors.color && <span className="text-[10px] text-red-500 font-medium">{formErrors.color}</span>}
                 </div>
 
               </div>
@@ -687,7 +811,7 @@ export default function Reports() {
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-3">
+              <div className="grid grid-cols-2 gap-2 pt-2 shrink-0 bg-white dark:bg-slate-900 pb-1">
                 <Button
                   type="button"
                   variant="outline"
