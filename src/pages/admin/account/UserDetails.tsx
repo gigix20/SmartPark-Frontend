@@ -52,6 +52,7 @@ export default function UserDetails() {
   const [suspensionDuration, setSuspensionDuration] = useState("7");
   const [customDate, setCustomDate] = useState("");
   const [suspensionReason, setSuspensionReason] = useState("");
+  const [deactivateReason, setDeactivateReason] = useState("");
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
@@ -126,8 +127,10 @@ export default function UserDetails() {
       };
       if (suspensionDuration === "custom") {
         payload.suspendedUntil = customDate;
+        payload.duration = "Custom Date";
       } else {
         payload.durationDays = parseInt(suspensionDuration, 10);
+        payload.duration = `${suspensionDuration} Days`;
       }
 
       const res = await suspendAccount(id!, payload);
@@ -137,7 +140,7 @@ export default function UserDetails() {
         setSuspensionReason("");
         setSuspensionDuration("7");
         setCustomDate("");
-        setSuccessMessage("Account has been suspended successfully.");
+        setSuccessMessage("Account has been suspended successfully. An email notification has been sent to the user.");
         setShowSuccessModal(true);
       }
     } catch (err: any) {
@@ -150,11 +153,12 @@ export default function UserDetails() {
   const handleConfirmDeactivate = async () => {
     try {
       setIsSubmitting(true);
-      const res = await deactivateAccount(id!);
+      const res = await deactivateAccount(id!, deactivateReason.trim() ? { reason: deactivateReason.trim() } : undefined);
       if (res?.success) {
         setUserData(res.account);
         setShowDeactivateModal(false);
-        setSuccessMessage("Account has been permanently deactivated.");
+        setDeactivateReason("");
+        setSuccessMessage("Account has been permanently deactivated. An email notice has been sent to the user.");
         setShowSuccessModal(true);
       }
     } catch (err) {
@@ -717,8 +721,22 @@ export default function UserDetails() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                   Are you sure you want to permanently deactivate{" "}
                   {userData.firstName} {userData.lastName}'s account? This
-                  action cannot be undone.
+                  action cannot be undone. An email notice will be sent to the user.
                 </p>
+              </div>
+
+              {/* Reason input for deactivation */}
+              <div className="space-y-1.5 text-left">
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  Reason for Deactivation (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={deactivateReason}
+                  onChange={(e) => setDeactivateReason(e.target.value)}
+                  placeholder="e.g. Account permanently deactivated due to policy violation or student graduation"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                />
               </div>
 
               <div className="space-y-2 pt-2">

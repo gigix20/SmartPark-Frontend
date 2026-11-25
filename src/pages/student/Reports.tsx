@@ -177,6 +177,7 @@ export default function Reports() {
     if (!formData.model) errors.model = "Model is required.";
     if (!formData.plateNumber) errors.plateNumber = "Plate number is required.";
     if (!formData.reportType) errors.reportType = "Report type is required.";
+    if (!formData.description.trim()) errors.description = "Incident description is required.";
     if (!formData.photo && !formData.photoPreview) errors.photo = "Photo evidence is required.";
 
     if (Object.keys(errors).length > 0) {
@@ -192,7 +193,7 @@ export default function Reports() {
         model: formData.model,
         plateNumber: formData.plateNumber,
         reportType: formData.reportType,
-        description: formData.description || "Reported incident directly by user.",
+        description: formData.description.trim(),
         evidenceImage: formData.photoPreview || null,
       });
 
@@ -605,6 +606,32 @@ export default function Reports() {
                   <option value="Others">Others</option>
                 </select>
                 {formErrors.reportType && <span className="text-[10px] text-red-500 font-medium">{formErrors.reportType}</span>}
+              </div>
+
+              {/* Description Field */}
+              <div className="space-y-1 pt-1">
+                <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  Description / Incident Details<span className="text-red-500 ml-0.5">*</span>
+                </Label>
+                <textarea
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => {
+                    setFormData({ ...formData, description: e.target.value });
+                    if (formErrors.description) {
+                      setFormErrors({ ...formErrors, description: "" });
+                    }
+                  }}
+                  placeholder="Provide detailed description of the incident, parking slot location, or damage noticed..."
+                  className={`w-full rounded-xl border bg-white dark:bg-slate-800 p-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#0053CC] resize-none ${
+                    formErrors.description
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-slate-300 dark:border-slate-700"
+                  }`}
+                />
+                {formErrors.description && (
+                  <span className="text-[10px] text-red-500 font-medium">{formErrors.description}</span>
+                )}
               </div>
 
               {/* Upload Photo Evidence Section (Functional) */}

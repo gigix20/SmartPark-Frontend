@@ -44,6 +44,7 @@ export default function ParkingCapacity() {
   const parsedCar = parseInt(carCapacity, 10) || 0;
   const parsedMoto = parseInt(motorcycleCapacity, 10) || 0;
   const totalCapacity = parsedCar + parsedMoto;
+  const MAX_CAPACITY = 10000;
 
   const utilizationPercentage =
     totalCapacity > 0 ? Math.round((totalOccupied / totalCapacity) * 100) : 0;
@@ -75,12 +76,36 @@ export default function ParkingCapacity() {
       return;
     }
 
+    if (parsedCar > MAX_CAPACITY) {
+      setErrorMessage(`Car capacity cannot exceed ${MAX_CAPACITY.toLocaleString()} spaces.`);
+      setErrorField("car");
+      return;
+    }
+
+    if (parsedCar < carParked) {
+      setErrorMessage(`Car capacity cannot be less than the ${carParked.toLocaleString()} cars currently parked.`);
+      setErrorField("car");
+      return;
+    }
+
     if (
       motorcycleCapacity.includes(".") ||
       isNaN(parsedMoto) ||
       parsedMoto <= 0
     ) {
       setErrorMessage("Invalid motorcycle capacity. Must be a whole number greater than 0.");
+      setErrorField("motorcycle");
+      return;
+    }
+
+    if (parsedMoto > MAX_CAPACITY) {
+      setErrorMessage(`Motorcycle capacity cannot exceed ${MAX_CAPACITY.toLocaleString()} spaces.`);
+      setErrorField("motorcycle");
+      return;
+    }
+
+    if (parsedMoto < motorcycleParked) {
+      setErrorMessage(`Motorcycle capacity cannot be less than the ${motorcycleParked.toLocaleString()} motorcycles currently parked.`);
       setErrorField("motorcycle");
       return;
     }
@@ -134,36 +159,36 @@ export default function ParkingCapacity() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors overflow-hidden min-w-0">
               <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total capacity</p>
-              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-                {totalCapacity}
+              <h3 className="font-poppins text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 truncate" title={totalCapacity.toLocaleString()}>
+                {totalCapacity.toLocaleString()}
               </h3>
-              <p className="text-[10px] font-medium text-slate-400 mt-1">Total configured stalls</p>
+              <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">Total configured stalls</p>
             </div>
 
-            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors overflow-hidden min-w-0">
               <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Car capacity</p>
-              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-                {parsedCar}
+              <h3 className="font-poppins text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 truncate" title={parsedCar.toLocaleString()}>
+                {parsedCar.toLocaleString()}
               </h3>
-              <p className="text-[10px] font-medium text-slate-400 mt-1">Inside now: {carParked}</p>
+              <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">Inside now: {carParked.toLocaleString()}</p>
             </div>
 
-            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors overflow-hidden min-w-0">
               <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Motorcycle capacity</p>
-              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-                {parsedMoto}
+              <h3 className="font-poppins text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 truncate" title={parsedMoto.toLocaleString()}>
+                {parsedMoto.toLocaleString()}
               </h3>
-              <p className="text-[10px] font-medium text-slate-400 mt-1">Inside now: {motorcycleParked}</p>
+              <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">Inside now: {motorcycleParked.toLocaleString()}</p>
             </div>
 
-            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors overflow-hidden min-w-0">
               <p className="text-xs font-bold text-[#0053CC] dark:text-blue-400">Total Occupied</p>
-              <h3 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-                {totalOccupied}
+              <h3 className="font-poppins text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 truncate" title={totalOccupied.toLocaleString()}>
+                {totalOccupied.toLocaleString()}
               </h3>
-              <p className="text-[10px] font-medium text-slate-400 mt-1">Inside now: {totalOccupied}</p>
+              <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">Inside now: {totalOccupied.toLocaleString()}</p>
             </div>
           </div>
 
@@ -185,23 +210,30 @@ export default function ParkingCapacity() {
           <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
             <div>
               <h2 className="font-poppins text-sm font-bold text-[#0053CC] dark:text-blue-400">Update capacity</h2>
-              <p className="text-xs text-slate-400">Specify the maximum vehicle stall thresholds.</p>
+              <p className="text-xs text-slate-400">Specify the maximum vehicle stall thresholds (max 10,000 stalls).</p>
             </div>
 
             <form onSubmit={handleSave} className="space-y-4 max-w-full" noValidate>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Car capacity<span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Car capacity<span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">Max: 10,000</span>
+                </div>
                 <input
                   type="number"
+                  min="1"
+                  max="10000"
                   step="1"
                   value={carCapacity}
                   onChange={(e) => {
-                    setCarCapacity(e.target.value);
+                    const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 5);
+                    setCarCapacity(val);
                     setErrorMessage(null);
                     setErrorField(null);
                   }}
+                  placeholder="e.g. 60"
                   className={`w-full rounded-xl bg-white dark:bg-slate-800 px-4 py-2.5 text-xs focus:outline-none text-slate-800 dark:text-white transition-colors ${
                     errorField === "car"
                       ? "border border-rose-500 ring-1 ring-rose-500"
@@ -217,18 +249,25 @@ export default function ParkingCapacity() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Motorcycle capacity<span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Motorcycle capacity<span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">Max: 10,000</span>
+                </div>
                 <input
                   type="number"
+                  min="1"
+                  max="10000"
                   step="1"
                   value={motorcycleCapacity}
                   onChange={(e) => {
-                    setMotorcycleCapacity(e.target.value);
+                    const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 5);
+                    setMotorcycleCapacity(val);
                     setErrorMessage(null);
                     setErrorField(null);
                   }}
+                  placeholder="e.g. 40"
                   className={`w-full rounded-xl bg-white dark:bg-slate-800 px-4 py-2.5 text-xs focus:outline-none text-slate-800 dark:text-white transition-colors ${
                     errorField === "motorcycle"
                       ? "border border-rose-500 ring-1 ring-rose-500"
@@ -248,10 +287,10 @@ export default function ParkingCapacity() {
                   Total capacity (calculated)
                 </label>
                 <input
-                  type="number"
-                  value={totalCapacity}
+                  type="text"
+                  value={totalCapacity.toLocaleString()}
                   readOnly
-                  className="w-full rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400 cursor-not-allowed focus:outline-none"
+                  className="w-full rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400 cursor-not-allowed focus:outline-none font-semibold"
                 />
               </div>
 
@@ -288,7 +327,7 @@ export default function ParkingCapacity() {
                 Parking capacity updated
               </h3>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Total capacity is now {totalCapacity} spaces ({parsedCar} cars, {parsedMoto} motorcycles).
+                Total capacity is now {totalCapacity.toLocaleString()} spaces ({parsedCar.toLocaleString()} cars, {parsedMoto.toLocaleString()} motorcycles).
               </p>
             </div>
             <button

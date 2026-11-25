@@ -10,7 +10,7 @@ import {
   Clock,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { getAccountById, updateAccountStatus } from "./api/accountApi";
+import { getAccountById, updateAccountStatus, deactivateAccount } from "./api/accountApi";
 
 export default function AdminDetails() {
   const navigate = useNavigate();
@@ -37,6 +37,8 @@ export default function AdminDetails() {
   const [avatarError, setAvatarError] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [deactivateReason, setDeactivateReason] = useState("");
+  const [isDeactivating, setIsDeactivating] = useState(false);
 
   useEffect(() => {
     async function fetchDetails() {
@@ -70,12 +72,16 @@ export default function AdminDetails() {
   const handleDeactivateConfirm = async () => {
     try {
       if (!id) return;
-      await updateAccountStatus(id, "Deactivated");
+      setIsDeactivating(true);
+      await deactivateAccount(id, deactivateReason.trim() ? { reason: deactivateReason.trim() } : undefined);
       setShowDeactivateModal(false);
+      setDeactivateReason("");
       setAdminData((prev: any) => ({ ...prev, accountStatus: "Deactivated" }));
       setShowSuccessModal(true);
     } catch (err) {
       console.error("Failed to deactivate account:", err);
+    } finally {
+      setIsDeactivating(false);
     }
   };
 
@@ -346,23 +352,39 @@ export default function AdminDetails() {
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 Are you sure you want to deactivate {adminData.firstName}{" "}
-                {adminData.lastName}'s account?
+                {adminData.lastName}'s account? An email notice will be sent.
               </p>
             </div>
+
+            <div className="space-y-1.5 text-left">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                Reason for Deactivation (Optional)
+              </label>
+              <textarea
+                rows={2}
+                value={deactivateReason}
+                onChange={(e) => setDeactivateReason(e.target.value)}
+                placeholder="e.g. Account permanently deactivated due to administrative update"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+              />
+            </div>
+
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setShowDeactivateModal(false)}
-                className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                disabled={isDeactivating}
+                className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeactivateConfirm}
-                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-semibold text-white hover:bg-rose-700 cursor-pointer shadow-xs"
+                disabled={isDeactivating}
+                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-semibold text-white hover:bg-rose-700 cursor-pointer shadow-xs disabled:opacity-50"
               >
-                Deactivate
+                {isDeactivating ? "Deactivating..." : "Deactivate"}
               </button>
             </div>
           </div>
@@ -382,7 +404,7 @@ export default function AdminDetails() {
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 The admin's account has been deactivated and access to SmartPark
-                has been disabled.
+                has been disabled. An email notification has been sent.
               </p>
             </div>
             <button

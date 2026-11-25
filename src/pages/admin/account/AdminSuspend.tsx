@@ -104,6 +104,7 @@ export default function AdminSuspend() {
       const fullReason = notes.trim() ? `${reason.trim()} - Notes: ${notes.trim()}` : reason.trim();
       const res = await suspendAccount(id!, {
         reason: fullReason,
+        duration: duration,
         suspendedUntil: endDate.toISOString(),
       });
 
@@ -368,7 +369,7 @@ export default function AdminSuspend() {
               <div>
                 <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">Account Suspended Successfully</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                  {adminName}'s account has been suspended successfully.
+                  {adminName}'s account has been suspended successfully. An email notification with the suspension details and duration has been sent.
                 </p>
               </div>
 

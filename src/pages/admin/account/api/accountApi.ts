@@ -15,18 +15,18 @@ export async function updateAccount(id: string | number, data: any) {
   return response.data;
 }
 
-export async function updateAccountStatus(id: string | number, status: string) {
-  const response = await api.patch(`/admin/accounts/${id}/status`, { status });
+export async function updateAccountStatus(id: string | number, status: string, reason?: string) {
+  const response = await api.patch(`/admin/accounts/${id}/status`, { status, reason });
   return response.data;
 }
 
-export async function suspendAccount(id: string | number, data: { durationDays?: number; suspendedUntil?: string; reason: string }) {
+export async function suspendAccount(id: string | number, data: { durationDays?: number; suspendedUntil?: string; reason: string; duration?: string }) {
   const response = await api.post(`/admin/accounts/${id}/suspend`, data);
   return response.data;
 }
 
-export async function deactivateAccount(id: string | number) {
-  const response = await api.post(`/admin/accounts/${id}/deactivate`);
+export async function deactivateAccount(id: string | number, data?: { reason?: string }) {
+  const response = await api.post(`/admin/accounts/${id}/deactivate`, data);
   return response.data;
 }
 

@@ -100,24 +100,24 @@ export default function ParkingManagement() {
               </div>
             </div>
 
-            <div className="space-y-3 w-full text-center sm:text-left">
+            <div className="space-y-3 w-full text-center sm:text-left min-w-0 overflow-hidden">
               <p className="text-xs font-semibold text-slate-400">Available spaces</p>
-              <div className="flex items-baseline justify-center sm:justify-start gap-1.5">
-                <span className="font-poppins text-4xl font-extrabold text-slate-900 dark:text-white">
-                  {overview.availableSpaces}
+              <div className="flex items-baseline justify-center sm:justify-start gap-1.5 min-w-0">
+                <span className="font-poppins text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white truncate" title={overview.availableSpaces.toLocaleString()}>
+                  {overview.availableSpaces.toLocaleString()}
                 </span>
-                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  / {overview.totalCapacity} total spaces
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate" title={`${overview.totalCapacity.toLocaleString()} total spaces`}>
+                  / {overview.totalCapacity.toLocaleString()} total spaces
                 </span>
               </div>
-              <div className="flex items-center justify-center sm:justify-start gap-6 pt-1 text-xs font-medium">
+              <div className="flex items-center justify-center sm:justify-start gap-6 pt-1 text-xs font-medium flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC] dark:bg-blue-400"></span>
-                  <span className="text-slate-600 dark:text-slate-300">{overview.totalOccupied} occupied</span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC] dark:bg-blue-400 shrink-0"></span>
+                  <span className="text-slate-600 dark:text-slate-300">{overview.totalOccupied.toLocaleString()} occupied</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-slate-200 dark:bg-slate-700"></span>
-                  <span className="text-slate-500 dark:text-slate-400">{overview.availableSpaces} available</span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0"></span>
+                  <span className="text-slate-500 dark:text-slate-400">{overview.availableSpaces.toLocaleString()} available</span>
                 </div>
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function ParkingManagement() {
 
           {/* Vehicle Category Breakdown Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors overflow-hidden min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
@@ -133,11 +133,11 @@ export default function ParkingManagement() {
                   </div>
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cars</span>
                 </div>
-                <div className="text-right">
-                  <span className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">
-                    {overview.cars.available}
+                <div className="text-right min-w-0">
+                  <span className="font-poppins text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate" title={overview.cars.available.toLocaleString()}>
+                    {overview.cars.available.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-400"> / {overview.cars.capacity} spaces</span>
+                  <span className="text-xs text-slate-400 truncate"> / {overview.cars.capacity.toLocaleString()} spaces</span>
                 </div>
               </div>
               <div>
@@ -148,13 +148,13 @@ export default function ParkingManagement() {
                   ></div>
                 </div>
                 <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
-                  <span>{overview.cars.parked} parked now</span>
-                  <span>{overview.cars.available} available</span>
+                  <span>{overview.cars.parked.toLocaleString()} parked now</span>
+                  <span>{overview.cars.available.toLocaleString()} available</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors">
+            <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between space-y-4 transition-colors overflow-hidden min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 rounded-xl flex items-center justify-center">
@@ -162,11 +162,11 @@ export default function ParkingManagement() {
                   </div>
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Motorcycles</span>
                 </div>
-                <div className="text-right">
-                  <span className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">
-                    {overview.motorcycles.available}
+                <div className="text-right min-w-0">
+                  <span className="font-poppins text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate" title={overview.motorcycles.available.toLocaleString()}>
+                    {overview.motorcycles.available.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-400"> / {overview.motorcycles.capacity} spaces</span>
+                  <span className="text-xs text-slate-400 truncate"> / {overview.motorcycles.capacity.toLocaleString()} spaces</span>
                 </div>
               </div>
               <div>
@@ -177,8 +177,8 @@ export default function ParkingManagement() {
                   ></div>
                 </div>
                 <div className="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
-                  <span>{overview.motorcycles.parked} parked now</span>
-                  <span>{overview.motorcycles.available} available</span>
+                  <span>{overview.motorcycles.parked.toLocaleString()} parked now</span>
+                  <span>{overview.motorcycles.available.toLocaleString()} available</span>
                 </div>
               </div>
             </div>
