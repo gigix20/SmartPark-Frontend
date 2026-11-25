@@ -1,6 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode, AlertTriangle, ShieldAlert, CheckCircle2, Car, X, RefreshCw, ArrowUpRight, Search, Keyboard, Loader2 } from "lucide-react";
+import {
+  QrCode,
+  AlertTriangle,
+  ShieldAlert,
+  CheckCircle2,
+  Car,
+  X,
+  RefreshCw,
+  ArrowUpRight,
+  Search,
+  Keyboard,
+  Loader2,
+  ShieldCheck,
+  Clock,
+  Camera,
+} from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 import { scanGuardCode, recordGuardEntry, recordGuardExit, type GuardScanResponse } from "@/api/guardApi";
@@ -230,116 +245,228 @@ export default function ScanQR() {
       {/* ================= MODALS SECTION ================= */}
 
       {/* 1. VERIFY VEHICLE INFORMATION MODAL */}
-      {activeModal === "verifyInfo" && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
-          <div className="w-full max-w-2xl rounded-[32px] bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 relative transition-colors my-auto">
+      {activeModal === "verifyInfo" && scannedData?.vehicle && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/70 dark:bg-slate-950/90 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
+          <div className="w-full max-w-3xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto transition-colors">
             
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div>
-                <h2 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
-                  {scannedData?.isCurrentlyParked ? "Verify Vehicle Exit" : "Verify Vehicle Entry"}
-                </h2>
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold border ${
-                  scannedData?.isCurrentlyParked
-                    ? "bg-purple-50 text-purple-600 border-purple-200"
-                    : "bg-emerald-50 text-emerald-600 border-emerald-200"
+            {/* Modal Top Header Bar */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${
+                  scannedData.isCurrentlyParked
+                    ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300"
+                    : "bg-blue-100 dark:bg-blue-950/60 text-[#0053CC] dark:text-blue-400"
                 }`}>
-                  {scannedData?.isCurrentlyParked ? "Exit Recorded Checkpoint" : "QR Valid - Entry Approved"}
-                </span>
-              </div>
-              <button 
-                onClick={() => setActiveModal("none")}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Vehicle Card Preview */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-              <div className="h-28 w-40 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-2 shadow-xs shrink-0">
-                <Car className="h-20 w-20 text-[#0053CC] dark:text-blue-400" />
-              </div>
-              <div className="space-y-1 text-center sm:text-left">
-                <h3 className="font-poppins text-2xl font-black text-[#0053CC] dark:text-blue-400 tracking-wide">
-                  {scannedData?.vehicle?.plateNumber || "NDP 4419"}
-                </h3>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  {scannedData?.vehicle?.brand} {scannedData?.vehicle?.model} {scannedData?.vehicle?.year}
-                </p>
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
                 <div>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900">
-                    {scannedData?.vehicle?.type || "Car"}
+                  <h2 className="font-poppins text-base font-bold text-slate-900 dark:text-white leading-tight">
+                    {scannedData.isCurrentlyParked ? "Vehicle Exit Verification" : "Vehicle Entry Verification"}
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Campus Gate Control &bull; {scannedData.isCurrentlyParked ? "Exit Checkpoint" : "Entry Clearance"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex items-center gap-2 text-xs font-semibold">
+                  <span className={`h-2 w-2 rounded-full ${
+                    scannedData.isCurrentlyParked ? "bg-purple-600 animate-pulse" : "bg-emerald-600 animate-pulse"
+                  }`} />
+                  <span className="text-slate-700 dark:text-slate-300">
+                    {scannedData.isCurrentlyParked ? "Parked (Ready to Exit)" : "Approved Pass"}
                   </span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal("none")}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             </div>
 
-            {/* Details Grid */}
-            <div className="space-y-3 text-xs pt-2">
-              <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-                <span className="text-slate-400 font-medium">Owner / Driver Name:</span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {scannedData?.vehicle?.ownerName || "Bryan Emmanuel Marcelo"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-                <span className="text-slate-400 font-medium">ID Number:</span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {scannedData?.vehicle?.schoolId || "N/A"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-                <span className="text-slate-400 font-medium">Role:</span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {scannedData?.vehicle?.role || "Student"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center pb-1">
-                <span className="text-slate-400 font-medium">Vehicle Color:</span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {scannedData?.vehicle?.color || "White"}
-                </span>
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
+              
+              {/* Top Split: Vehicle Photo & Plate + Core Vehicle Info */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+                
+                {/* Left (5 cols): Vehicle Photo & Official Plate Banner */}
+                <div className="md:col-span-5 flex flex-col space-y-3">
+                  <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 h-48 w-full flex items-center justify-center group shadow-xs">
+                    {scannedData.vehicle.photo ? (
+                      <img
+                        src={scannedData.vehicle.photo}
+                        alt={`Vehicle ${scannedData.vehicle.plateNumber}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                        <Car className="h-14 w-14 mb-2 stroke-1 text-slate-400" />
+                        <span className="text-xs font-semibold text-slate-500">No Photo Registered</span>
+                        <span className="text-[10px] text-slate-400 mt-0.5">Physical check required</span>
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/75 backdrop-blur-xs text-[10px] font-semibold text-white tracking-wide uppercase flex items-center gap-1">
+                      <Camera className="h-3 w-3" />
+                      <span>Vehicle Photo</span>
+                    </div>
+                  </div>
+
+                  {/* Official Style License Plate Box */}
+                  <div className="rounded-xl border-2 border-slate-800 dark:border-slate-200 bg-white text-slate-950 p-2.5 text-center shadow-xs">
+                    <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500 leading-none mb-1">
+                      PILIPINAS &bull; QCU SMARTPARK
+                    </p>
+                    <p className="font-mono text-2xl font-black tracking-wider text-slate-900 leading-none">
+                      {scannedData.vehicle.plateNumber}
+                    </p>
+                    <p className="text-[9px] font-bold text-[#0053CC] uppercase tracking-wider mt-1">
+                      {scannedData.vehicle.type} &bull; {scannedData.vehicle.color}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right (7 cols): Vehicle Specifications & Driver Details */}
+                <div className="md:col-span-7 flex flex-col justify-between space-y-3">
+                  
+                  {/* Vehicle Spec Table */}
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 space-y-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#0053CC] dark:text-blue-400">
+                      Vehicle Specifications
+                    </h3>
+
+                    <div className="grid grid-cols-2 gap-2.5 text-xs pt-0.5">
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Brand &amp; Model</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.brand} {scannedData.vehicle.model}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Year Model</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.year || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Color Finish</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.color || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Classification</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.type || "Car"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Registered Driver Details */}
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 space-y-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#0053CC] dark:text-blue-400">
+                      Registered Driver / Owner
+                    </h3>
+
+                    <div className="grid grid-cols-2 gap-2.5 text-xs pt-0.5">
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Driver Name</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 truncate block" title={scannedData.vehicle.ownerName}>
+                          {scannedData.vehicle.ownerName}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">ID Number</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.schoolId || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Role / Affiliation</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.role || "Student"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Contact Number</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                          {scannedData.vehicle.phone || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
 
-              {scannedData?.isCurrentlyParked && scannedData.activeLog && (
-                <div className="flex justify-between items-center pt-2 border-t border-purple-100 dark:border-purple-900/50 text-purple-700 dark:text-purple-300">
-                  <span className="font-medium">Entered At:</span>
-                  <span className="font-bold">{scannedData.activeLog.formattedEntryTime} ({scannedData.activeLog.duration})</span>
+              {/* Parking Session / Gate Status Alert */}
+              {scannedData.isCurrentlyParked && scannedData.activeLog ? (
+                <div className="rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/60 dark:bg-purple-950/30 p-3.5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-purple-950 dark:text-purple-200">
+                          Active Parking Session Detected
+                        </p>
+                        <p className="text-[11px] text-purple-800/80 dark:text-purple-300/80 mt-0.5">
+                          Entered at: <strong>{scannedData.activeLog.formattedEntryTime}</strong> &bull; Total duration: <strong>{scannedData.activeLog.duration}</strong>
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide shrink-0">
+                      Departure Ready
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/60 dark:bg-emerald-950/30 p-3.5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
+                        <CheckCircle2 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                          Vehicle Cleared for Entry
+                        </p>
+                        <p className="text-[11px] text-emerald-800/80 dark:text-emerald-300/80 mt-0.5">
+                          Registration active &bull; Please visually confirm vehicle and driver ID before opening the barrier.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide shrink-0">
+                      Entry Cleared
+                    </span>
+                  </div>
                 </div>
               )}
+
             </div>
 
-            {/* Guard Verification Notice Box */}
-            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/40 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
-              <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-[#0053CC] dark:text-blue-400">
-                <CheckCircle2 className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-xs text-slate-900 dark:text-white">Guard Verification</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {scannedData?.isCurrentlyParked
-                    ? "Verify vehicle exit and driver identity before departure"
-                    : "Please check the driver's ID manually before granting entrance"}
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            {/* Modal Footer Actions */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
               <button
                 type="button"
                 onClick={() => setActiveModal("none")}
-                className="w-1/2 h-11 rounded-xl border border-rose-200 dark:border-rose-900/50 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                className="px-5 h-11 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                Cancel
+                Cancel / Deny
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAction}
                 disabled={isSubmitting}
-                className={`w-1/2 h-11 rounded-xl text-xs font-bold text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  scannedData?.isCurrentlyParked
+                className={`px-6 h-11 rounded-xl text-xs font-bold text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  scannedData.isCurrentlyParked
                     ? "bg-purple-600 hover:bg-purple-700 shadow-purple-500/20"
                     : "bg-[#0053CC] hover:bg-[#0042A5] shadow-blue-500/20"
                 }`}
@@ -347,12 +474,12 @@ export default function ScanQR() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Saving to DB...</span>
+                    <span>Recording to Database...</span>
                   </>
-                ) : scannedData?.isCurrentlyParked ? (
-                  <span>Confirm Exit</span>
+                ) : scannedData.isCurrentlyParked ? (
+                  <span>Authorize &amp; Record Exit</span>
                 ) : (
-                  <span>Confirm Entry</span>
+                  <span>Authorize &amp; Record Entry</span>
                 )}
               </button>
             </div>

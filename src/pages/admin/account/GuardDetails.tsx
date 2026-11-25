@@ -9,7 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { getAccountById, updateAccountStatus, deactivateAccount } from "./api/accountApi";
+import { getAccountById, deactivateAccount } from "./api/accountApi";
 
 export default function GuardDetails() {
   const navigate = useNavigate();

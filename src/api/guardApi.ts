@@ -80,7 +80,10 @@ export interface GuardScanResponse {
     ownerName: string;
     schoolId: string;
     role: string;
+    email?: string;
+    phone?: string;
     photo?: string | null;
+    registrationSource?: string;
   };
   isCurrentlyParked?: boolean;
   activeLog?: {
@@ -152,5 +155,21 @@ export async function recordGuardExit(vehicleId: number) {
  */
 export async function getGuardVehicles(params: { search?: string; status?: string; vehicleType?: string } = {}) {
   const res = await api.get("/guard/vehicles", { params });
+  return res.data;
+}
+
+/**
+ * 7. Deactivate vehicle pass
+ */
+export async function deactivateGuardVehicle(id: string | number) {
+  const res = await api.patch(`/guard/vehicles/${id}/deactivate`);
+  return res.data;
+}
+
+/**
+ * 8. Activate vehicle pass
+ */
+export async function activateGuardVehicle(id: string | number) {
+  const res = await api.patch(`/guard/vehicles/${id}/activate`);
   return res.data;
 }

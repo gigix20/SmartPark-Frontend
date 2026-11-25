@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, Check, X, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Check, X, Loader2, QrCode } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 import { registerGateVehicle } from "@/api/guardApi";
@@ -57,6 +57,16 @@ export default function GateRegistrationForm() {
     "none" | "summary" | "duplicate" | "progressLost" | "success"
   >("none");
 
+  const [duplicateError, setDuplicateError] = useState<{
+    isSmartParkUser: boolean;
+    title: string;
+    message: string;
+  }>({
+    isSmartParkUser: false,
+    title: "Duplicate Registration Detected",
+    message: "Please use a different Vehicle ID or Plate Number.",
+  });
+
   // Prevent background scrolling when modal is active
   useEffect(() => {
     if (activeModal !== "none") {
@@ -98,12 +108,27 @@ export default function GateRegistrationForm() {
         setActiveModal("success");
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || "";
-      if (msg.toLowerCase().includes("already registered") || err.response?.status === 400) {
+      const data = err.response?.data;
+      if (data?.reason === "ALREADY_REGISTERED_SMARTPARK") {
+        setDuplicateError({
+          isSmartParkUser: true,
+          title: "May SmartPark Account & QR Code Na!",
+          message: data.message || "Ang sasakyang ito ay rehistrado na sa SmartPark at may opisyal na QR Code pass. Mangyaring gamitin ang Scan QR sa halip na Gate Registration para ma-utilize ang app!",
+        });
         setActiveModal("duplicate");
       } else {
-        alert(msg || "Failed to register vehicle at gate.");
-        setActiveModal("none");
+        const msg = data?.message || "";
+        if (msg.toLowerCase().includes("already registered") || err.response?.status === 400) {
+          setDuplicateError({
+            isSmartParkUser: false,
+            title: "Duplicate Registration Detected",
+            message: msg || "Please use a different Vehicle ID or Plate Number.",
+          });
+          setActiveModal("duplicate");
+        } else {
+          alert(msg || "Failed to register vehicle at gate.");
+          setActiveModal("none");
+        }
       }
     } finally {
       setIsSubmitting(false);
@@ -456,42 +481,74 @@ export default function GateRegistrationForm() {
         </div>
       )}
 
-      {/* 2. DUPLICATE REGISTRATION DETECTED MODAL */}
+      {/* 2. DUPLICATE / SMARTPARK USER DETECTED MODAL */}
       {activeModal === "duplicate" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
             
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-rose-500 text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/40">
-              <X className="h-7 w-7 stroke-[2.5]" />
+            <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 ${
+              duplicateError.isSmartParkUser
+                ? "border-blue-500 text-[#0053CC] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40"
+                : "border-rose-500 text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/40"
+            }`}>
+              {duplicateError.isSmartParkUser ? (
+                <QrCode className="h-7 w-7" />
+              ) : (
+                <X className="h-7 w-7 stroke-[2.5]" />
+              )}
             </div>
 
             <div>
               <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
-                Duplicate Registration Detected
+                {duplicateError.title}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                Please use a different Vehicle ID or Plate Number.
+                {duplicateError.message}
               </p>
             </div>
 
             <div className="space-y-2.5 pt-2">
-              <button 
-                type="button"
-                onClick={() => setActiveModal("none")}
-                className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
-              >
-                View Details
-              </button>
-              <button 
-                type="button"
-                onClick={() => {
-                  setActiveModal("none");
-                  navigate("/guard/registration");
-                }}
-                className="w-full h-10 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-              >
-                Cancel Registration
-              </button>
+              {duplicateError.isSmartParkUser ? (
+                <>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setActiveModal("none");
+                      navigate("/guard/scan-qr");
+                    }}
+                    className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <QrCode className="h-4 w-4" /> Pumunta sa Scan QR
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setActiveModal("none")}
+                    className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    Bumalik sa Form
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    type="button"
+                    onClick={() => setActiveModal("none")}
+                    className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                  >
+                    View Details
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setActiveModal("none");
+                      navigate("/guard/registration");
+                    }}
+                    className="w-full h-10 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                  >
+                    Cancel Registration
+                  </button>
+                </>
+              )}
             </div>
 
           </div>
@@ -555,15 +612,15 @@ export default function GateRegistrationForm() {
 
             <div>
               <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
-                Gate Registration Successful
+                Registration & Entry Recorded
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                The temporary vehicle registration is active and the vehicle may proceed to entry confirmation.
+                The vehicle has been registered at the gate and campus entry is officially logged. The driver may proceed inside.
               </p>
             </div>
 
             <div className="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
-              Registration: SPK-REG-240707 • Gate A • Valid until exit
+              Entry Status: Recorded • Valid Until Exit
             </div>
 
             <div className="space-y-2.5 pt-2">
@@ -571,21 +628,21 @@ export default function GateRegistrationForm() {
                 type="button"
                 onClick={() => {
                   setActiveModal("none");
-                  navigate("/guard/scan-qr");
+                  navigate("/guard/registration");
                 }}
                 className="w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
               >
-                Continue to Entry
+                View in Gate Registered
               </button>
               <button 
                 type="button"
                 onClick={() => {
                   setActiveModal("none");
-                  navigate("/guard/registration");
+                  navigate("/guard/monitoring");
                 }}
                 className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                Done
+                Go to Gate Monitoring
               </button>
             </div>
 

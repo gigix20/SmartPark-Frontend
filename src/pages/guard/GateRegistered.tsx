@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ChevronDown, X, Check, ArrowRight, Loader2 } from "lucide-react";
-import { getGuardVehicles } from "@/api/guardApi";
+import { Search, Filter, ChevronDown, X, Check, ArrowRight, Loader2, LogOut } from "lucide-react";
+import { getGuardVehicles, deactivateGuardVehicle, activateGuardVehicle } from "@/api/guardApi";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 
@@ -41,6 +41,7 @@ export default function GateRegistered() {
   const [selectedVehicle, setSelectedVehicle] = useState<RegisteredVehicle | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeactivatedSuccessModal, setShowDeactivatedSuccessModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -121,15 +122,42 @@ export default function GateRegistered() {
     setShowDetailsModal(true);
   };
 
-  const handleDeactivate = () => {
+  const handleDeactivate = async () => {
     if (!selectedVehicle) return;
-    setVehicles((prev) =>
-      prev.map((item) =>
-        item.id === selectedVehicle.id ? { ...item, status: "Deactivated" as const } : item
-      )
-    );
-    setShowDetailsModal(false);
-    setShowDeactivatedSuccessModal(true);
+    try {
+      setIsProcessing(true);
+      await deactivateGuardVehicle(selectedVehicle.id);
+      setVehicles((prev) =>
+        prev.map((item) =>
+          item.id === selectedVehicle.id ? { ...item, status: "Deactivated" as const } : item
+        )
+      );
+      setShowDetailsModal(false);
+      setShowDeactivatedSuccessModal(true);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to deactivate vehicle pass.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleActivate = async () => {
+    if (!selectedVehicle) return;
+    try {
+      setIsProcessing(true);
+      await activateGuardVehicle(selectedVehicle.id);
+      setVehicles((prev) =>
+        prev.map((item) =>
+          item.id === selectedVehicle.id ? { ...item, status: "Active" as const } : item
+        )
+      );
+      setShowDetailsModal(false);
+      alert("Vehicle pass has been successfully reactivated.");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to reactivate vehicle pass.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -447,13 +475,25 @@ export default function GateRegistered() {
               >
                 Close
               </button>
-              {selectedVehicle.status === "Active" && (
+              {selectedVehicle.status === "Active" ? (
                 <button
                   type="button"
                   onClick={handleDeactivate}
-                  className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                  disabled={isProcessing}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-md shadow-rose-500/20 transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  Deactivate
+                  {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
+                  <span>Record Exit & Deactivate</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleActivate}
+                  disabled={isProcessing}
+                  className="px-5 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-xs font-bold text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  <span>Re-enter & Reactivate</span>
                 </button>
               )}
             </div>
@@ -462,7 +502,7 @@ export default function GateRegistered() {
         </div>
       )}
 
-      {/* 2. CONFIRMED DEACTIVATED SUCCESS MODAL */}
+      {/* 2. CONFIRMED DEACTIVATED / EXIT SUCCESS MODAL */}
       {showDeactivatedSuccessModal && (
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-[32px] bg-white dark:bg-slate-900 p-7 text-center shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 relative transition-colors">
@@ -473,10 +513,10 @@ export default function GateRegistered() {
 
             <div>
               <h3 className="font-poppins text-lg font-bold text-slate-900 dark:text-white">
-                Previous registration deactivated
+                Vehicle Exit Recorded
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
-                You can now re-register this vehicle.
+                Vehicle exit timestamp and duration have been successfully logged. The temporary gate pass is now deactivated.
               </p>
             </div>
             

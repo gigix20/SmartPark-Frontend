@@ -176,64 +176,66 @@ export default function GuardDashboard() {
               </div>
 
               {/* Recent Activity Table with Pagination */}
-              <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-4 transition-colors lg:col-span-2 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-poppins text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Recent activity
-                  </h3>
-                </div>
+              <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs transition-colors lg:col-span-2 flex flex-col min-h-[380px]">
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-poppins text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Recent activity
+                    </h3>
+                  </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs min-w-[450px]">
-                    <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
-                      <tr>
-                        <th className="pb-3">Plate No.</th>
-                        <th className="pb-3">Vehicle Type</th>
-                        <th className="pb-3">Action</th>
-                        <th className="pb-3">Date & Time</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                      {isLoading ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs min-w-[450px]">
+                      <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
                         <tr>
-                          <td colSpan={4} className="py-8 text-center text-slate-400">
-                            <Loader2 className="h-5 w-5 animate-spin mx-auto text-[#0053CC]" />
-                          </td>
+                          <th className="pb-3">Plate No.</th>
+                          <th className="pb-3">Vehicle Type</th>
+                          <th className="pb-3">Action</th>
+                          <th className="pb-3">Date &amp; Time</th>
                         </tr>
-                      ) : currentActivities.length > 0 ? (
-                        currentActivities.map((act) => (
-                          <tr key={act.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                            <td className="py-3 font-bold text-slate-900 dark:text-white">{act.plateNo}</td>
-                            <td className="py-3">
-                              <span className="px-2 py-0.5 rounded-md font-medium text-[11px] bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900">
-                                {act.type}
-                              </span>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                        {isLoading ? (
+                          <tr>
+                            <td colSpan={4} className="py-8 text-center text-slate-400">
+                              <Loader2 className="h-5 w-5 animate-spin mx-auto text-[#0053CC]" />
                             </td>
-                            <td className="py-3">
-                              <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                                act.action === "ENTRY" 
-                                  ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" 
-                                  : "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-                              }`}>
-                                {act.action}
-                              </span>
-                            </td>
-                            <td className="py-3 text-slate-500">{act.time}</td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={4} className="py-6 text-center text-slate-400 text-xs italic">
-                            No recent activities found in database.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        ) : currentActivities.length > 0 ? (
+                          currentActivities.map((act) => (
+                            <tr key={act.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                              <td className="py-3 font-bold text-slate-900 dark:text-white">{act.plateNo}</td>
+                              <td className="py-3">
+                                <span className="px-2 py-0.5 rounded-md font-medium text-[11px] bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 border border-blue-100 dark:border-blue-900">
+                                  {act.type}
+                                </span>
+                              </td>
+                              <td className="py-3">
+                                <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                                  act.action === "ENTRY" 
+                                    ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" 
+                                    : "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+                                }`}>
+                                  {act.action}
+                                </span>
+                              </td>
+                              <td className="py-3 text-slate-500">{act.time}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="py-8 text-center text-slate-400 text-xs italic">
+                              No recent activities found in database.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Dynamic Pagination Controls */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+                <div className="flex items-center justify-between pt-4 mt-auto border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
                   <span>
                     Showing {recentActivities.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, recentActivities.length)} of {recentActivities.length} activities
                   </span>
