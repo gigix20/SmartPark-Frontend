@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  QrCode,
   AlertTriangle,
   ShieldAlert,
   CheckCircle2,
   Car,
   X,
-  RefreshCw,
   ArrowUpRight,
   Search,
   Keyboard,
@@ -15,6 +13,7 @@ import {
   ShieldCheck,
   Clock,
   Camera,
+  ScanBarcode,
 } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
@@ -24,11 +23,14 @@ export default function ScanQR() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Manual code input state
+  // Manual code input state & scanner ref
   const [manualCode, setManualCode] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const barcodeBufferRef = useRef<string>("");
+  const lastKeyTimeRef = useRef<number>(0);
 
   // Scanned vehicle state from backend
   const [scannedData, setScannedData] = useState<GuardScanResponse | null>(null);
@@ -46,14 +48,21 @@ export default function ScanQR() {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
+      // Auto-refocus scanner input when modal closes
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [activeModal]);
 
-  // Handler para sa manual / QR verification gamit ang live backend API
-  const handleVerifyCode = async (codeToVerify: string) => {
+  // Auto-focus input on page load for seamless plug-and-play barcode scanner entry
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Handler para sa manual / QR / Barcode verification gamit ang live backend API
+  const handleVerifyCode = useCallback(async (codeToVerify: string) => {
     if (!codeToVerify.trim()) return;
     try {
       setIsSearching(true);
@@ -79,7 +88,44 @@ export default function ScanQR() {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, []);
+
+  // Global listener for plug-and-play barcode scanner (rapid key sequence ending with Enter)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Ignore if a modal is already open
+      if (activeModal !== "none") return;
+
+      const now = Date.now();
+      const diff = now - lastKeyTimeRef.current;
+      lastKeyTimeRef.current = now;
+
+      // When Enter is pressed
+      if (e.key === "Enter") {
+        if (barcodeBufferRef.current.trim().length >= 3) {
+          e.preventDefault();
+          const scanned = barcodeBufferRef.current.trim();
+          barcodeBufferRef.current = "";
+          setManualCode(scanned);
+          handleVerifyCode(scanned);
+        }
+        return;
+      }
+
+      // Barcode scanners type characters extremely fast (< 50ms per key)
+      if (e.key.length === 1) {
+        if (diff > 100) {
+          // Reset buffer if delay is too long (human typing)
+          barcodeBufferRef.current = e.key;
+        } else {
+          barcodeBufferRef.current += e.key;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [activeModal, handleVerifyCode]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,16 +140,26 @@ export default function ScanQR() {
 
     try {
       setIsSubmitting(true);
+      
+      // Generate deterministic idempotency key BEFORE making request
+      // Uses: guardId-vehicleId-action-roundedTimestamp (by second)
+      // This prevents duplicate entries from concurrent rapid scans
+      const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+      const guardId = currentUser?.id || "unknown";
+      const roundedTime = Math.floor(Date.now() / 1000); // Round to seconds
+      const action = scannedData.isCurrentlyParked ? "exit" : "entry";
+      const idempotencyKey = `${guardId}-${vehicleId}-${action}-${roundedTime}`;
+      
       if (scannedData.isCurrentlyParked) {
         // Vehicle is inside -> Confirm Exit
-        const res = await recordGuardExit(vehicleId);
+        const res = await recordGuardExit(vehicleId, idempotencyKey);
         if (res.success) {
           setLastExitResult(res.log);
           setActiveModal("exitRecorded");
         }
       } else {
         // Vehicle is outside -> Confirm Entry
-        const res = await recordGuardEntry(vehicleId);
+        const res = await recordGuardEntry(vehicleId, idempotencyKey);
         if (res.success) {
           setLastEntryResult(res.log);
           setActiveModal("entryRecorded");
@@ -141,35 +197,39 @@ export default function ScanQR() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Left Column: Scanner Viewport Box & Manual Input */}
-              <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 lg:col-span-2 flex flex-col items-center justify-center transition-colors">
+              <div
+                onClick={() => inputRef.current?.focus()}
+                className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 lg:col-span-2 flex flex-col items-center justify-center transition-colors cursor-pointer"
+              >
                 
                 <div className="w-full max-w-md h-72 rounded-2xl border-2 border-dashed border-[#0053CC]/40 dark:border-blue-500/40 bg-blue-50/20 dark:bg-blue-950/10 flex flex-col items-center justify-center relative p-6 space-y-4">
-                  <div className="h-28 w-28 rounded-2xl border-2 border-[#0053CC] dark:border-blue-400 flex items-center justify-center bg-white dark:bg-slate-900 shadow-sm animate-pulse">
-                    <QrCode className="h-16 w-16 text-[#0053CC] dark:text-blue-400" />
+                  <div className="h-28 w-28 rounded-2xl border-2 border-[#0053CC] dark:border-blue-400 flex flex-col items-center justify-center bg-white dark:bg-slate-900 shadow-sm animate-pulse space-y-1">
+                    <ScanBarcode className="h-10 w-10 text-[#0053CC] dark:text-blue-400" />
+                    <span className="text-[10px] font-bold text-slate-500">USB SCANNER</span>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span>Ready to scan</span>
+                    <span>Plug &amp; Play Scanner Ready</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                  <RefreshCw className="h-4 w-4 animate-spin text-[#0053CC]" />
-                  <span>Waiting for scanner or manual plate search...</span>
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium text-center">
+                  <span>Aim barcode scanner at the vehicle pass or enter plate number below</span>
                 </div>
 
-                {/* --- MANUAL CODE ENTRY --- */}
-                <div className="w-full max-w-md pt-2">
+                {/* --- MANUAL CODE ENTRY & SCANNER INPUT --- */}
+                <div className="w-full max-w-md pt-2" onClick={(e) => e.stopPropagation()}>
                   <form onSubmit={handleManualSubmit} className="flex flex-col sm:flex-row items-center gap-2">
                     <div className="relative w-full">
                       <Keyboard className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                       <input
+                        ref={inputRef}
                         type="text"
-                        placeholder="Type plate number (e.g. NDP 4419) or QR code..."
+                        placeholder="Scan barcode or type plate (e.g. NDP 4419)..."
                         value={manualCode}
                         onChange={(e) => setManualCode(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:border-[#0053CC] font-semibold"
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:border-[#0053CC] focus:ring-1 focus:ring-[#0053CC] font-semibold"
                       />
                     </div>
                     <button
@@ -181,39 +241,6 @@ export default function ScanQR() {
                       <span>Verify</span>
                     </button>
                   </form>
-                </div>
-
-                {/* Simulator Test Buttons */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 w-full flex flex-wrap items-center justify-center gap-2.5">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider w-full text-center">Quick Test Scans:</span>
-                  <button
-                    type="button"
-                    onClick={() => handleVerifyCode("NDP 4419")}
-                    className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors cursor-pointer"
-                  >
-                    Test Plate: NDP 4419 (Live DB)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal("vehicleMismatch")}
-                    className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors cursor-pointer"
-                  >
-                    Vehicle Mismatch
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal("parkingFull")}
-                    className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
-                  >
-                    Parking Lot Full
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal("invalidQR")}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
-                  >
-                    Invalid / Expired QR
-                  </button>
                 </div>
 
               </div>

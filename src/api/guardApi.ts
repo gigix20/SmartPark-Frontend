@@ -31,6 +31,7 @@ export interface GuardMonitoringResponse {
     page: number;
     limit: number;
     totalPages: number;
+    nextCursor?: number | null;
   };
 }
 
@@ -137,16 +138,26 @@ export async function scanGuardCode(code: string): Promise<GuardScanResponse> {
 /**
  * 4. Record vehicle entry
  */
-export async function recordGuardEntry(vehicleId: number) {
-  const res = await api.post("/guard/record-entry", { vehicleId });
+export async function recordGuardEntry(vehicleId: number, idempotencyKey?: string) {
+  const key = idempotencyKey || `entry-${vehicleId}-${Date.now()}`;
+  const res = await api.post(
+    "/guard/record-entry",
+    { vehicleId },
+    { headers: { "Idempotency-Key": key } }
+  );
   return res.data;
 }
 
 /**
  * 5. Record vehicle exit
  */
-export async function recordGuardExit(vehicleId: number) {
-  const res = await api.post("/guard/record-exit", { vehicleId });
+export async function recordGuardExit(vehicleId: number, idempotencyKey?: string) {
+  const key = idempotencyKey || `exit-${vehicleId}-${Date.now()}`;
+  const res = await api.post(
+    "/guard/record-exit",
+    { vehicleId },
+    { headers: { "Idempotency-Key": key } }
+  );
   return res.data;
 }
 

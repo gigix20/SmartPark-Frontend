@@ -76,25 +76,72 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch live unread count and listen for updates
+  // Fetch live unread count and listen for updates with caching
   useEffect(() => {
     let isMounted = true;
-    async function loadUnreadCount() {
+    let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Cache key and TTL (5 minutes)
+    const CACHE_KEY = "guardNotificationsCache";
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    async function loadUnreadCount(forceRefresh = false) {
       try {
+        // Check cache first
+        if (!forceRefresh) {
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            try {
+              const { count, timestamp } = JSON.parse(cached);
+              const age = Date.now() - timestamp;
+              if (age < CACHE_TTL) {
+                if (isMounted) {
+                  setUnreadCount(count);
+                }
+                // Schedule cache refresh
+                const remainingTime = CACHE_TTL - age;
+                cacheTimeout = setTimeout(() => loadUnreadCount(true), remainingTime);
+                return;
+              }
+            } catch {
+              // Invalid cache, proceed to fetch
+            }
+          }
+        }
+
+        // Fetch from API
         const res = await getGuardNotifications({ limit: 1 });
         if (isMounted && res.success) {
-          setUnreadCount(res.unreadCount || 0);
+          const count = res.unreadCount || 0;
+          setUnreadCount(count);
+          
+          // Update cache
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            count,
+            timestamp: Date.now(),
+          }));
+
+          // Schedule next refresh
+          cacheTimeout = setTimeout(() => loadUnreadCount(true), CACHE_TTL);
         }
       } catch {
-        // ignore
+        // On error, keep existing count
       }
     }
+
     loadUnreadCount();
 
-    const handleUpdate = () => loadUnreadCount();
+    const handleUpdate = () => {
+      // Force refresh on manual update
+      if (cacheTimeout) clearTimeout(cacheTimeout);
+      loadUnreadCount(true);
+    };
+
     window.addEventListener("guardNotificationsUpdated", handleUpdate);
+    
     return () => {
       isMounted = false;
+      if (cacheTimeout) clearTimeout(cacheTimeout);
       window.removeEventListener("guardNotificationsUpdated", handleUpdate);
     };
   }, []);
