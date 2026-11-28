@@ -8,13 +8,19 @@ import {
   ChevronRight, 
   ArrowLeft,
   Info,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  ShieldAlert,
+  OctagonAlert,
+  Wrench,
+  HelpCircle
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { submitIncidentReport, getMyIncidentReports } from "@/api/incidentApi";
 import { getVehicleOptions, type VehicleOptions } from "@/api/vehicleApi";
 
@@ -578,18 +584,22 @@ export default function Reports() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Vehicle Type<span className="text-red-500 ml-0.5">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={formData.vehicleType}
-                    onChange={(e) => {
-                      setFormData({ ...formData, vehicleType: e.target.value, brand: "", model: "" });
+                    onChange={(val) => {
+                      setFormData({ ...formData, vehicleType: val, brand: "", model: "" });
                       setIsOtherBrand(false);
                       setIsOtherModel(false);
                     }}
-                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
-                  >
-                    <option value="Car">Car</option>
-                    <option value="Motorcycle">Motorcycle</option>
-                  </select>
+                    options={[
+                      { value: "Car", label: "Car" },
+                      { value: "Motorcycle", label: "Motorcycle" },
+                    ]}
+                    placeholder="Select Vehicle Type"
+                    searchable={false}
+                    className="h-10"
+                    error={!!formErrors.vehicleType}
+                  />
                   {formErrors.vehicleType && <span className="text-[10px] text-red-500 font-medium">{formErrors.vehicleType}</span>}
                 </div>
 
@@ -612,26 +622,27 @@ export default function Reports() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Brand<span className="text-red-500 ml-0.5">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={isOtherBrand ? "Other" : (activeBrandNames.includes(formData.brand) ? formData.brand : (formData.brand ? "Other" : ""))}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setIsOtherBrand(true);
                         setFormData({ ...formData, brand: "", model: "" });
                       } else {
                         setIsOtherBrand(false);
-                        setFormData({ ...formData, brand: e.target.value, model: "" });
+                        setFormData({ ...formData, brand: val, model: "" });
                       }
                       setIsOtherModel(false);
                     }}
-                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
-                  >
-                    <option value="" disabled>Select Brand</option>
-                    {activeBrandNames.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                    <option value="Other">Other (Custom Brand)</option>
-                  </select>
+                    options={[
+                      ...activeBrandNames.map((b) => ({ value: b, label: b })),
+                      { value: "Other", label: "Other (Custom Brand)", isSpecial: true },
+                    ]}
+                    placeholder="Select Brand"
+                    searchPlaceholder="Search brand (e.g. Toyota, Honda)..."
+                    className="h-10"
+                    error={!!formErrors.brand}
+                  />
                   {isOtherBrand && (
                     <Input
                       placeholder="Type custom brand"
@@ -648,25 +659,27 @@ export default function Reports() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Model<span className="text-red-500 ml-0.5">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={isOtherModel ? "Other" : (activeModelNames.includes(formData.model) ? formData.model : (formData.model ? "Other" : ""))}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setIsOtherModel(true);
                         setFormData({ ...formData, model: "" });
                       } else {
                         setIsOtherModel(false);
-                        setFormData({ ...formData, model: e.target.value });
+                        setFormData({ ...formData, model: val });
                       }
                     }}
-                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
-                  >
-                    <option value="" disabled>Select Model</option>
-                    {activeModelNames.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                    <option value="Other">Other (Custom Model)</option>
-                  </select>
+                    options={[
+                      ...activeModelNames.map((m) => ({ value: m, label: m })),
+                      { value: "Other", label: "Other (Custom Model)", isSpecial: true },
+                    ]}
+                    placeholder={formData.brand ? "Select Model" : "Select Brand First"}
+                    disabled={!formData.brand && !isOtherBrand}
+                    searchPlaceholder="Search model (e.g. Vios, Civic)..."
+                    className="h-10"
+                    error={!!formErrors.model}
+                  />
                   {isOtherModel && (
                     <Input
                       placeholder="Type custom model"
@@ -683,23 +696,25 @@ export default function Reports() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Color<span className="text-red-500 ml-0.5">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={activeColorNames.includes(formData.color) ? formData.color : (formData.color ? "Other" : "")}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setFormData({ ...formData, color: "" });
                       } else {
-                        setFormData({ ...formData, color: e.target.value });
+                        setFormData({ ...formData, color: val });
                       }
                     }}
-                    className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
-                  >
-                    <option value="" disabled>Select Color</option>
-                    {activeColorNames.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                    <option value="Other">Other (Custom Color)</option>
-                  </select>
+                    options={[
+                      ...activeColorNames.map((c) => ({ value: c, label: c })),
+                      { value: "Other", label: "Other (Custom Color)", isSpecial: true },
+                    ]}
+                    placeholder="Select Color"
+                    isColorSelect={true}
+                    searchPlaceholder="Search color..."
+                    className="h-10"
+                    error={!!formErrors.color}
+                  />
                   {(!activeColorNames.includes(formData.color) || formData.color === "") && (
                     <Input
                       placeholder="Type custom color"
@@ -718,17 +733,21 @@ export default function Reports() {
                 <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   Report Type<span className="text-red-500 ml-0.5">*</span>
                 </Label>
-                <select
+                <CustomSelect
                   value={formData.reportType}
-                  onChange={(e) => setFormData({ ...formData, reportType: e.target.value })}
-                  className="w-full h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
-                >
-                  <option value="Illegal / Improper Parking">Illegal / Improper Parking</option>
-                  <option value="Blocking Parking Space">Blocking Parking Space</option>
-                  <option value="Obstructing Driveway">Obstructing Driveway</option>
-                  <option value="Minor Scratch / Damage">Minor Scratch / Damage</option>
-                  <option value="Others">Others</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, reportType: val })}
+                  options={[
+                    { value: "Illegal / Improper Parking", label: "Illegal / Improper Parking", icon: <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> },
+                    { value: "Blocking Parking Space", label: "Blocking Parking Space", icon: <ShieldAlert className="w-3.5 h-3.5 text-rose-500" /> },
+                    { value: "Obstructing Driveway", label: "Obstructing Driveway", icon: <OctagonAlert className="w-3.5 h-3.5 text-orange-500" /> },
+                    { value: "Minor Scratch / Damage", label: "Minor Scratch / Damage", icon: <Wrench className="w-3.5 h-3.5 text-blue-500" /> },
+                    { value: "Others", label: "Others", icon: <HelpCircle className="w-3.5 h-3.5 text-slate-500" /> },
+                  ]}
+                  placeholder="Select Report Type"
+                  searchable={false}
+                  className="h-10"
+                  error={!!formErrors.reportType}
+                />
                 {formErrors.reportType && <span className="text-[10px] text-red-500 font-medium">{formErrors.reportType}</span>}
               </div>
 

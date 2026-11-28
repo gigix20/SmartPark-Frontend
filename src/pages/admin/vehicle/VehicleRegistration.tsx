@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, CheckCircle2, Clock, X, Check, AlertCircle, ChevronDown, Loader2 } from "lucide-react";
+import { Search, CheckCircle2, Clock, X, Check, AlertCircle, Loader2, Eye } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import CarIcon from "@/assets/car-icon.svg";
 import MotorIcon from "@/assets/motor-icon.svg";
@@ -19,8 +19,7 @@ export default function VehicleRegistration() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All Vehicles");
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("Pending");
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
@@ -64,8 +63,6 @@ export default function VehicleRegistration() {
     };
   }, [modalType]);
 
-  const filterOptions = ["Pending", "Approved", "Rejected"];
-
   const itemsPerPage = 5;
   const totalPages = Math.ceil(registrations.length / itemsPerPage) || 1;
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -108,42 +105,173 @@ export default function VehicleRegistration() {
           <p className="text-xs text-slate-500 dark:text-slate-400">Review and approve registered vehicles entering QCU premises.</p>
         </div>
 
-        {/* METRICS */}
+        {/* METRICS & QUICK FILTER CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+          <div 
+            onClick={() => {
+              setSelectedFilter("Pending");
+              setCurrentPage(1);
+            }}
+            className={`rounded-3xl border-2 p-5 shadow-xs flex justify-between items-start transition-all cursor-pointer ${
+              selectedFilter === "Pending"
+                ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-500 ring-2 ring-amber-500/20"
+                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-amber-400"
+            }`}
+          >
             <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Registered</span>
-              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
-                {metrics.totalRegistered}
-              </h3>
-            </div>
-            <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
-          </div>
-          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Approvals</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Pending Approvals</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
+                  Needs Review
+                </span>
+              </div>
               <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
                 {metrics.pendingApprovals}
               </h3>
             </div>
-            <Clock className="h-4 w-4 text-amber-500" />
+            <div className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Clock className="h-5 w-5" />
+            </div>
           </div>
-          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-xs flex justify-between items-start transition-colors">
+
+          <div 
+            onClick={() => {
+              setSelectedFilter("Approved");
+              setCurrentPage(1);
+            }}
+            className={`rounded-3xl border-2 p-5 shadow-xs flex justify-between items-start transition-all cursor-pointer ${
+              selectedFilter === "Approved"
+                ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-500 ring-2 ring-emerald-500/20"
+                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-emerald-400"
+            }`}
+          >
             <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Active Passes</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Passes</span>
               <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
                 {metrics.activePasses}
               </h3>
             </div>
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+          </div>
+
+          <div 
+            onClick={() => {
+              setSelectedFilter("All Vehicles");
+              setCurrentPage(1);
+            }}
+            className={`rounded-3xl border-2 p-5 shadow-xs flex justify-between items-start transition-all cursor-pointer ${
+              selectedFilter === "All Vehicles"
+                ? "bg-blue-50/50 dark:bg-blue-950/20 border-[#0053CC] ring-2 ring-[#0053CC]/20"
+                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-blue-400"
+            }`}
+          >
+            <div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Registered</span>
+              <h3 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                {metrics.totalRegistered}
+              </h3>
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
+              <img src={CarIcon} alt="Car" className="h-5 w-5 object-contain" />
+            </div>
           </div>
         </div>
 
         {/* REGISTRATION TABLE */}
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-6 transition-colors">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          
+          {/* STATUS TABS */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFilter("Pending");
+                  setCurrentPage(1);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedFilter === "Pending"
+                    ? "bg-[#0053CC] text-white shadow-sm shadow-blue-500/20"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <Clock className="h-3.5 w-3.5" />
+                <span>Pending Approvals</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  selectedFilter === "Pending" 
+                    ? "bg-white/25 text-white" 
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                }`}>
+                  {metrics.pendingApprovals}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFilter("Approved");
+                  setCurrentPage(1);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedFilter === "Approved"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Approved</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  selectedFilter === "Approved" 
+                    ? "bg-white/25 text-white" 
+                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                }`}>
+                  {metrics.activePasses}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFilter("Rejected");
+                  setCurrentPage(1);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedFilter === "Rejected"
+                    ? "bg-rose-600 text-white shadow-sm"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <X className="h-3.5 w-3.5" />
+                <span>Disapproved</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFilter("All Vehicles");
+                  setCurrentPage(1);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedFilter === "All Vehicles"
+                    ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow-sm"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <span>All Registrations</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  selectedFilter === "All Vehicles" 
+                    ? "bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900" 
+                    : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+                }`}>
+                  {metrics.totalRegistered}
+                </span>
+              </button>
+            </div>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
               <input 
                 type="text" 
                 value={searchQuery}
@@ -151,55 +279,9 @@ export default function VehicleRegistration() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                placeholder="Search plate number, owner..." 
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#0053CC]"
+                placeholder="Search plate, owner..." 
+                className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 pl-8 pr-3 text-xs focus:outline-none focus:border-[#0053CC]"
               />
-            </div>
-
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
-              >
-                <Filter className="h-3.5 w-3.5 text-[#0053CC] dark:text-blue-400" />
-                <span>Filter: {selectedFilter}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-              </button>
-
-              {isFilterDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl py-1 z-20 text-xs overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedFilter("All Vehicles");
-                      setIsFilterDropdownOpen(false);
-                      setCurrentPage(1);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-xs italic text-[#0053CC] dark:text-blue-400 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
-                  >
-                    Clear Filter (All)
-                  </button>
-                  {filterOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => {
-                        setSelectedFilter(option);
-                        setIsFilterDropdownOpen(false);
-                        setCurrentPage(1);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 transition-colors cursor-pointer ${
-                        selectedFilter === option 
-                          ? "bg-blue-50 dark:bg-blue-950/50 font-bold text-[#0053CC] dark:text-blue-400" 
-                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -208,11 +290,11 @@ export default function VehicleRegistration() {
               <thead className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-semibold uppercase text-[10px]">
                 <tr>
                   <th className="pb-3">Owner Name</th>
-                  <th className="pb-3">Vehicle Type</th>
+                  <th className="pb-3">Vehicle Details</th>
                   <th className="pb-3">Plate Number</th>
                   <th className="pb-3">Status</th>
                   <th className="pb-3">Date Submitted</th>
-                  <th className="pb-3 text-right">Actions</th>
+                  <th className="pb-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -235,18 +317,27 @@ export default function VehicleRegistration() {
                               <img src={item.type === "Motorcycle" || item.vehicleType?.includes("Motorcycle") ? MotorIcon : CarIcon} alt="" className="h-5 w-5 object-contain" />
                             )}
                           </div>
-                          <span>{item.owner}</span>
+                          <div>
+                            <span className="block font-semibold text-slate-900 dark:text-white">{item.owner}</span>
+                            <span className="text-[10px] text-slate-400">{item.idNo !== "--" ? `ID: ${item.idNo}` : item.email}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-3 text-slate-500 dark:text-slate-400">{item.vehicleType}</td>
-                      <td className="py-3 font-semibold text-slate-800 dark:text-slate-200">{item.plateNo}</td>
+                      <td className="py-3 text-slate-600 dark:text-slate-300">
+                        <div className="font-medium">{item.brand} {item.model}</div>
+                        <div className="text-[10px] text-slate-400">{item.type || item.vehicleType} • {item.color}</div>
+                      </td>
+                      <td className="py-3 font-bold text-slate-900 dark:text-white">{item.plateNo}</td>
                       <td className="py-3">
-                        <span className={`rounded-md px-2.5 py-1 text-[10px] font-bold ${
+                        <span className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[10px] font-bold ${
                           item.status === "Approved" ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800" :
                           item.status === "Pending" ? "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800" :
                           "bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800"
                         }`}>
-                          {item.status}
+                          {item.status === "Pending" && <Clock className="h-3 w-3" />}
+                          {item.status === "Approved" && <Check className="h-3 w-3" />}
+                          {item.status === "Rejected" && <X className="h-3 w-3" />}
+                          <span>{item.status === "Pending" ? "For Approval" : item.status}</span>
                         </span>
                       </td>
                       <td className="py-3 text-slate-500 dark:text-slate-400">{item.date}</td>
@@ -254,17 +345,40 @@ export default function VehicleRegistration() {
                         <button 
                           type="button" 
                           onClick={() => { setSelectedVehicle(item); setModalType("review"); }}
-                          className="font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
+                          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all shadow-xs cursor-pointer ${
+                            item.status === "Pending"
+                              ? "bg-[#0053CC] hover:bg-[#0042A5] text-white shadow-blue-500/20 hover:scale-[1.02]"
+                              : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                          }`}
                         >
-                          {item.status === "Pending" ? "Review" : "View"}
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>{item.status === "Pending" ? "Review" : "View Details"}</span>
                         </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 text-xs italic">
-                      No vehicle records found.
+                    <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                      <div className="max-w-xs mx-auto space-y-2">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                          {selectedFilter === "Pending" ? (
+                            <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                          ) : (
+                            <Search className="h-6 w-6" />
+                          )}
+                        </div>
+                        <p className="font-semibold text-slate-700 dark:text-slate-300">
+                          {selectedFilter === "Pending" 
+                            ? "No Pending Vehicle Approvals" 
+                            : `No ${selectedFilter === "All Vehicles" ? "" : selectedFilter} vehicle records found`}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          {selectedFilter === "Pending"
+                            ? "All online vehicle registrations have been reviewed and processed!"
+                            : "Try adjusting your search query or select another filter tab."}
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 )}

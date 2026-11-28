@@ -30,6 +30,8 @@ export default function GateRegistered() {
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   
   // Filter Dropdown States
   const [selectedFilter, setSelectedFilter] = useState("All Vehicles");
@@ -76,9 +78,13 @@ export default function GateRegistered() {
           search: searchQuery,
           status: activeTab === "active" ? "Active" : "Deactivated",
           vehicleType: selectedFilter,
+          page: currentPage,
+          limit: itemsPerPage,
         });
         if (isMounted && res.success) {
           setVehicles(res.vehicles || []);
+          setTotalPages(res.pagination?.totalPages || 1);
+          setTotalCount(res.pagination?.total || 0);
         }
       } catch (err) {
         console.error("Failed to load registered vehicles:", err);
@@ -93,29 +99,11 @@ export default function GateRegistered() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [activeTab, searchQuery, selectedFilter]);
+  }, [activeTab, searchQuery, selectedFilter, currentPage]);
 
-  const filteredVehicles = vehicles.filter((v) => {
-    const matchesTab = activeTab === "active" ? v.status === "Active" : v.status === "Deactivated";
-    const matchesSearch = 
-      v.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.model.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesTab || !matchesSearch) return false;
-
-    if (selectedFilter !== "All Vehicles" && v.vehicleType !== selectedFilter) {
-      return false;
-    }
-
-    return true;
-  });
-
-  // Pagination Calculations
-  const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVehicles = filteredVehicles.slice(indexOfFirstItem, indexOfLastItem);
+  const currentVehicles = vehicles;
+  const indexOfFirstItem = totalCount > 0 ? (currentPage - 1) * itemsPerPage : 0;
+  const indexOfLastItem = Math.min(currentPage * itemsPerPage, totalCount);
 
   const handleOpenDetails = (v: RegisteredVehicle) => {
     setSelectedVehicle(v);
@@ -352,7 +340,7 @@ export default function GateRegistered() {
 
               {/* Functional Pagination Footer */}
               <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
-                <span>Showing {filteredVehicles.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredVehicles.length)} of {filteredVehicles.length} records</span>
+                <span>Showing {totalCount > 0 ? indexOfFirstItem + 1 : 0} to {indexOfLastItem} of {totalCount} records</span>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"

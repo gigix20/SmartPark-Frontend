@@ -54,8 +54,14 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     };
 
     fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
     window.addEventListener("adminNotificationsUpdated", fetchUnread);
-    return () => window.removeEventListener("adminNotificationsUpdated", fetchUnread);
+    window.addEventListener("focus", fetchUnread);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("adminNotificationsUpdated", fetchUnread);
+      window.removeEventListener("focus", fetchUnread);
+    };
   }, []);
 
   // Helper to get role display info

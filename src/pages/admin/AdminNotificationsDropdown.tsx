@@ -238,7 +238,12 @@ export default function AdminNotificationsDropdown({ isOpen, onClose }: AdminNot
                   {item.link && (
                     <Link
                       to={item.link}
-                      onClick={onClose}
+                      onClick={() => {
+                        if (!item.read) {
+                          handleMarkAsRead(item.id);
+                        }
+                        onClose();
+                      }}
                       className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0053CC] dark:text-blue-400 hover:underline pt-0.5"
                     >
                       <span>View Details</span>

@@ -103,6 +103,17 @@ export async function getGuardMonitoring(params: GuardMonitoringParams = {}): Pr
   return res.data;
 }
 
+/**
+ * 1.1 Export CSV report for Gate Monitoring from backend
+ */
+export async function exportGuardMonitoringCsv(params: GuardMonitoringParams = {}): Promise<Blob> {
+  const res = await api.get("/guard/export-csv", {
+    params,
+    responseType: "blob",
+  });
+  return res.data;
+}
+
 export interface GateRegistrationPayload {
   ownerName: string;
   vehicleType: string;
@@ -164,7 +175,13 @@ export async function recordGuardExit(vehicleId: number, idempotencyKey?: string
 /**
  * 6. Get registered vehicles list
  */
-export async function getGuardVehicles(params: { search?: string; status?: string; vehicleType?: string } = {}) {
+export async function getGuardVehicles(params: {
+  search?: string;
+  status?: string;
+  vehicleType?: string;
+  page?: number;
+  limit?: number;
+} = {}) {
   const res = await api.get("/guard/vehicles", { params });
   return res.data;
 }

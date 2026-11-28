@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Search, Filter, ChevronDown, Download, Loader2, AlertCircle } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
-import { getGuardMonitoring, type MonitoringRecord } from "@/api/guardApi";
+import { getGuardMonitoring, exportGuardMonitoringCsv, type MonitoringRecord } from "@/api/guardApi";
 
 export default function GateMonitoring() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,8 +23,8 @@ export default function GateMonitoring() {
 
   // Live Data State
   const [records, setRecords] = useState<MonitoringRecord[]>([]);
-  const [allExportRecords, setAllExportRecords] = useState<MonitoringRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,7 +57,6 @@ export default function GateMonitoring() {
 
         if (isMounted && res.success) {
           setRecords(res.records || []);
-          setAllExportRecords(res.allFilteredRecords || res.records || []);
           setTotalPages(res.pagination?.totalPages || 1);
           setTotalCount(res.pagination?.total || 0);
         }
@@ -88,45 +87,34 @@ export default function GateMonitoring() {
     setCurrentPage(1);
   };
 
-  // Export CSV Report of current data
-  const handleExportReport = () => {
-    const dataToExport = allExportRecords.length > 0 ? allExportRecords : records;
-    if (dataToExport.length === 0) {
-      alert("No records to export.");
-      return;
-    }
+  // Export CSV Report from server with database-level filtering and UTF-8 BOM
+  const handleExportReport = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await exportGuardMonitoringCsv({
+        tab: activeTab,
+        search: searchQuery,
+        vehicleType: selectedFilter,
+        date: selectedDate,
+      });
 
-    let csvContent = "";
-    if (activeTab === "history") {
-      csvContent = "Owner,Plate Number,Vehicle Type,Action,Date & Time,Result\n" +
-        dataToExport
-          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.action || ""}","${r.timeOrDate}","${r.result || ""}"`)
-          .join("\n");
-    } else if (activeTab === "exits") {
-      csvContent = "Owner,Plate Number,Vehicle Type,Exit Time,Duration,Guard\n" +
-        dataToExport
-          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.timeOrDate}","${r.duration || ""}","${r.guard || ""}"`)
-          .join("\n");
-    } else if (activeTab === "entries") {
-      csvContent = "Owner,Plate Number,Vehicle Type,Entry Time,Registration Source,Guard\n" +
-        dataToExport
-          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.timeOrDate}","${r.registrationSource || ""}","${r.guard || ""}"`)
-          .join("\n");
-    } else {
-      csvContent = "Owner,Plate Number,Vehicle Type,Entry Time,Guard\n" +
-        dataToExport
-          .map((r) => `"${r.owner}","${r.plate}","${r.vehicleType || ""}","${r.timeOrDate}","${r.guard || ""}"`)
-          .join("\n");
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `GateMonitoring_${activeTab}_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export gate monitoring report:", err);
+      alert("Failed to export report from server. Please try again.");
+    } finally {
+      setIsExporting(false);
     }
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `GateMonitoring_${activeTab}_${new Date().toISOString().split("T")[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const indexOfFirstItem = totalCount > 0 ? (currentPage - 1) * itemsPerPage : 0;
@@ -156,10 +144,15 @@ export default function GateMonitoring() {
               <button
                 type="button"
                 onClick={handleExportReport}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-xs self-start sm:self-auto"
+                disabled={isExporting}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-xs self-start sm:self-auto disabled:opacity-50"
               >
-                <Download className="h-4 w-4 text-slate-400" />
-                <span>Export Report</span>
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-[#0053CC]" />
+                ) : (
+                  <Download className="h-4 w-4 text-slate-400" />
+                )}
+                <span>{isExporting ? "Exporting..." : "Export Report"}</span>
               </button>
             </div>
 

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, Check, X, Loader2, QrCode } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Check, X, Loader2, QrCode, CreditCard, GraduationCap, Briefcase, Landmark } from "lucide-react";
 import { GuardHeader } from "@/components/GuardHeader";
 import { GuardNav } from "@/components/GuardNav";
 import { registerGateVehicle } from "@/api/guardApi";
 import { getVehicleOptions, type VehicleOptions } from "@/api/vehicleApi";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 export default function GateRegistrationForm() {
   const navigate = useNavigate();
@@ -206,20 +207,22 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Vehicle type <span className="text-rose-500">*</span>
                     </label>
-                    <select
+                    <CustomSelect
                       value={vehicleType}
-                      onChange={(e) => {
-                        setVehicleType(e.target.value);
+                      onChange={(val) => {
+                        setVehicleType(val);
                         setBrand("");
                         setModel("");
                         setIsOtherBrand(false);
                         setIsOtherModel(false);
                       }}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
-                    >
-                      <option value="Car">Car</option>
-                      <option value="Motorcycle">Motorcycle</option>
-                    </select>
+                      options={[
+                        { value: "Car", label: "Car" },
+                        { value: "Motorcycle", label: "Motorcycle" },
+                      ]}
+                      placeholder="Select Vehicle type"
+                      searchable={false}
+                    />
                   </div>
 
                   {/* Plate number */}
@@ -241,28 +244,27 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Brand <span className="text-rose-500">*</span>
                     </label>
-                    <select
+                    <CustomSelect
                       value={isOtherBrand ? "Other" : (activeBrandNames.includes(brand) ? brand : (brand ? "Other" : ""))}
-                      onChange={(e) => {
-                        if (e.target.value === "Other") {
+                      onChange={(val) => {
+                        if (val === "Other") {
                           setIsOtherBrand(true);
                           setBrand("");
                           setModel("");
                         } else {
                           setIsOtherBrand(false);
-                          setBrand(e.target.value);
+                          setBrand(val);
                           setModel("");
                         }
                         setIsOtherModel(false);
                       }}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
-                    >
-                      <option value="" disabled>Select Brand</option>
-                      {activeBrandNames.map((b) => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                      <option value="Other">Other (Custom Brand)</option>
-                    </select>
+                      options={[
+                        ...activeBrandNames.map((b) => ({ value: b, label: b })),
+                        { value: "Other", label: "Other (Custom Brand)", isSpecial: true },
+                      ]}
+                      placeholder="Select Brand"
+                      searchPlaceholder="Search brand (e.g. Toyota, Honda)..."
+                    />
                     {isOtherBrand && (
                       <input
                         type="text"
@@ -279,25 +281,25 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Model <span className="text-rose-500">*</span>
                     </label>
-                    <select
+                    <CustomSelect
                       value={isOtherModel ? "Other" : (activeModelNames.includes(model) ? model : (model ? "Other" : ""))}
-                      onChange={(e) => {
-                        if (e.target.value === "Other") {
+                      onChange={(val) => {
+                        if (val === "Other") {
                           setIsOtherModel(true);
                           setModel("");
                         } else {
                           setIsOtherModel(false);
-                          setModel(e.target.value);
+                          setModel(val);
                         }
                       }}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
-                    >
-                      <option value="" disabled>Select Model</option>
-                      {activeModelNames.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                      <option value="Other">Other (Custom Model)</option>
-                    </select>
+                      options={[
+                        ...activeModelNames.map((m) => ({ value: m, label: m })),
+                        { value: "Other", label: "Other (Custom Model)", isSpecial: true },
+                      ]}
+                      placeholder={brand ? "Select Model" : "Select Brand First"}
+                      disabled={!brand && !isOtherBrand}
+                      searchPlaceholder="Search model (e.g. Vios, Civic)..."
+                    />
                     {isOtherModel && (
                       <input
                         type="text"
@@ -314,16 +316,18 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold block">
                       ID type
                     </label>
-                    <select
+                    <CustomSelect
                       value={idType}
-                      onChange={(e) => setIdType(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
-                    >
-                      <option value="Driver's License">Driver's License</option>
-                      <option value="Student ID">Student ID</option>
-                      <option value="Employee ID">Employee ID</option>
-                      <option value="Government ID">Government ID</option>
-                    </select>
+                      onChange={(val) => setIdType(val)}
+                      options={[
+                        { value: "Driver's License", label: "Driver's License", icon: <CreditCard className="w-3.5 h-3.5 text-blue-500" /> },
+                        { value: "Student ID", label: "Student ID", icon: <GraduationCap className="w-3.5 h-3.5 text-emerald-500" /> },
+                        { value: "Employee ID", label: "Employee ID", icon: <Briefcase className="w-3.5 h-3.5 text-amber-500" /> },
+                        { value: "Government ID", label: "Government ID", icon: <Landmark className="w-3.5 h-3.5 text-purple-500" /> },
+                      ]}
+                      placeholder="Select ID type"
+                      searchable={false}
+                    />
                   </div>
 
                   {/* ID number */}
@@ -345,23 +349,23 @@ export default function GateRegistrationForm() {
                     <label className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
                       Color <span className="text-rose-500">*</span>
                     </label>
-                    <select
+                    <CustomSelect
                       value={activeColorNames.includes(color) ? color : (color ? "Other" : "")}
-                      onChange={(e) => {
-                        if (e.target.value === "Other") {
+                      onChange={(val) => {
+                        if (val === "Other") {
                           setColor("");
                         } else {
-                          setColor(e.target.value);
+                          setColor(val);
                         }
                       }}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0053CC] transition-colors"
-                    >
-                      <option value="" disabled>Select Color</option>
-                      {activeColorNames.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                      <option value="Other">Other (Custom Color)</option>
-                    </select>
+                      options={[
+                        ...activeColorNames.map((c) => ({ value: c, label: c })),
+                        { value: "Other", label: "Other (Custom Color)", isSpecial: true },
+                      ]}
+                      placeholder="Select Color"
+                      isColorSelect={true}
+                      searchPlaceholder="Search color..."
+                    />
                     {!activeColorNames.includes(color) && (
                       <input
                         type="text"

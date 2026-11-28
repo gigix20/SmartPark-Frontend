@@ -138,11 +138,13 @@ export function GuardHeader({ onToggleSidebar }: GuardHeaderProps) {
     };
 
     window.addEventListener("guardNotificationsUpdated", handleUpdate);
+    window.addEventListener("focus", handleUpdate);
     
     return () => {
       isMounted = false;
       if (cacheTimeout) clearTimeout(cacheTimeout);
       window.removeEventListener("guardNotificationsUpdated", handleUpdate);
+      window.removeEventListener("focus", handleUpdate);
     };
   }, []);
 

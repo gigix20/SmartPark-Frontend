@@ -14,6 +14,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import {
   getAccountById,
   suspendAccount,
@@ -579,20 +580,19 @@ export default function UserDetails() {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Suspension Duration
                 </label>
-                <div className="relative">
-                  <select
-                    value={suspensionDuration}
-                    onChange={(e) => setSuspensionDuration(e.target.value)}
-                    className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0053CC] appearance-none cursor-pointer"
-                  >
-                    <option value="3">3 Days (Short Suspension)</option>
-                    <option value="7">7 Days (1 Week)</option>
-                    <option value="14">14 Days (2 Weeks)</option>
-                    <option value="30">30 Days (1 Month)</option>
-                    <option value="custom">Custom Expiration Date...</option>
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                </div>
+                <CustomSelect
+                  value={suspensionDuration}
+                  onChange={(val) => setSuspensionDuration(val)}
+                  options={[
+                    { value: "3", label: "3 Days (Short Suspension)", badge: "3d" },
+                    { value: "7", label: "7 Days (1 Week)", badge: "1w" },
+                    { value: "14", label: "14 Days (2 Weeks)", badge: "2w" },
+                    { value: "30", label: "30 Days (1 Month)", badge: "1m" },
+                    { value: "custom", label: "Custom Expiration Date...", isSpecial: true },
+                  ]}
+                  placeholder="Select duration"
+                  searchable={false}
+                />
 
                 {suspensionDuration === "custom" && (
                   <div className="pt-1.5 space-y-1 animate-in fade-in duration-150">

@@ -19,6 +19,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { 
   getMyVehicles, 
   registerVehicle, 
@@ -777,18 +778,21 @@ export default function Vehicles() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Vehicle Type <span className="text-red-500">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={formData.type}
-                    onChange={(e) => {
-                      setFormData({ ...formData, type: e.target.value, brand: "", model: "" });
+                    onChange={(val) => {
+                      setFormData({ ...formData, type: val, brand: "", model: "" });
                       setIsOtherBrand(false);
                       setIsOtherModel(false);
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="Car">Car</option>
-                    <option value="Motorcycle">Motorcycle</option>
-                  </select>
+                    options={[
+                      { value: "Car", label: "Car" },
+                      { value: "Motorcycle", label: "Motorcycle" },
+                    ]}
+                    placeholder="Select Vehicle Type"
+                    searchable={false}
+                    error={!!errors.type}
+                  />
                   {errors.type && <p className="text-[10px] text-red-500">{errors.type}</p>}
                 </div>
 
@@ -811,26 +815,26 @@ export default function Vehicles() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Brand <span className="text-red-500">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={isOtherBrand ? "Other" : (activeBrandNames.includes(formData.brand) ? formData.brand : (formData.brand ? "Other" : ""))}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setIsOtherBrand(true);
                         setFormData({ ...formData, brand: "", model: "" });
                       } else {
                         setIsOtherBrand(false);
-                        setFormData({ ...formData, brand: e.target.value, model: "" });
+                        setFormData({ ...formData, brand: val, model: "" });
                       }
                       setIsOtherModel(false);
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Brand</option>
-                    {activeBrandNames.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                    <option value="Other">Other (Custom Brand)</option>
-                  </select>
+                    options={[
+                      ...activeBrandNames.map((b) => ({ value: b, label: b })),
+                      { value: "Other", label: "Other (Custom Brand)", isSpecial: true },
+                    ]}
+                    placeholder="Select Brand"
+                    searchPlaceholder="Search brand (e.g. Toyota, Honda)..."
+                    error={!!errors.brand}
+                  />
                   {isOtherBrand && (
                     <Input
                       placeholder="Type custom brand"
@@ -847,25 +851,26 @@ export default function Vehicles() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Model <span className="text-red-500">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={isOtherModel ? "Other" : (activeModelNames.includes(formData.model) ? formData.model : (formData.model ? "Other" : ""))}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setIsOtherModel(true);
                         setFormData({ ...formData, model: "" });
                       } else {
                         setIsOtherModel(false);
-                        setFormData({ ...formData, model: e.target.value });
+                        setFormData({ ...formData, model: val });
                       }
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Model</option>
-                    {activeModelNames.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                    <option value="Other">Other (Custom Model)</option>
-                  </select>
+                    options={[
+                      ...activeModelNames.map((m) => ({ value: m, label: m })),
+                      { value: "Other", label: "Other (Custom Model)", isSpecial: true },
+                    ]}
+                    placeholder={formData.brand ? "Select Model" : "Select Brand First"}
+                    disabled={!formData.brand && !isOtherBrand}
+                    searchPlaceholder="Search model (e.g. Vios, Civic)..."
+                    error={!!errors.model}
+                  />
                   {isOtherModel && (
                     <Input
                       placeholder="Type custom model"
@@ -882,23 +887,24 @@ export default function Vehicles() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Color <span className="text-red-500">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={activeColorNames.includes(formData.color) ? formData.color : (formData.color ? "Other" : "")}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setFormData({ ...formData, color: "" });
                       } else {
-                        setFormData({ ...formData, color: e.target.value });
+                        setFormData({ ...formData, color: val });
                       }
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Color</option>
-                    {activeColorNames.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                    <option value="Other">Other (Custom Color)</option>
-                  </select>
+                    options={[
+                      ...activeColorNames.map((c) => ({ value: c, label: c })),
+                      { value: "Other", label: "Other (Custom Color)", isSpecial: true },
+                    ]}
+                    placeholder="Select Color"
+                    isColorSelect={true}
+                    searchPlaceholder="Search color..."
+                    error={!!errors.color}
+                  />
                   {(!activeColorNames.includes(formData.color) || formData.color === "") && (
                     <Input
                       placeholder="Type custom color"
@@ -915,16 +921,14 @@ export default function Vehicles() {
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Year <span className="text-red-500">*</span>
                   </Label>
-                  <select
+                  <CustomSelect
                     value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Year</option>
-                    {activeYearNames.map((y) => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, year: val })}
+                    options={activeYearNames.map((y) => ({ value: y, label: y }))}
+                    placeholder="Select Year"
+                    searchPlaceholder="Search year (e.g. 2024)..."
+                    error={!!errors.year}
+                  />
                   {errors.year && <p className="text-[10px] text-red-500">{errors.year}</p>}
                 </div>
               </div>
@@ -1033,18 +1037,20 @@ export default function Vehicles() {
                 {/* Vehicle Type */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Vehicle Type</Label>
-                  <select
+                  <CustomSelect
                     value={formData.type}
-                    onChange={(e) => {
-                      setFormData({ ...formData, type: e.target.value, brand: "", model: "" });
+                    onChange={(val) => {
+                      setFormData({ ...formData, type: val, brand: "", model: "" });
                       setIsOtherBrand(false);
                       setIsOtherModel(false);
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="Car">Car</option>
-                    <option value="Motorcycle">Motorcycle</option>
-                  </select>
+                    options={[
+                      { value: "Car", label: "Car" },
+                      { value: "Motorcycle", label: "Motorcycle" },
+                    ]}
+                    placeholder="Select Vehicle Type"
+                    searchable={false}
+                  />
                 </div>
 
                 {/* Plate Number */}
@@ -1060,26 +1066,25 @@ export default function Vehicles() {
                 {/* Brand */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Brand</Label>
-                  <select
+                  <CustomSelect
                     value={isOtherBrand ? "Other" : (activeBrandNames.includes(formData.brand) ? formData.brand : (formData.brand ? "Other" : ""))}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setIsOtherBrand(true);
                         setFormData({ ...formData, brand: "", model: "" });
                       } else {
                         setIsOtherBrand(false);
-                        setFormData({ ...formData, brand: e.target.value, model: "" });
+                        setFormData({ ...formData, brand: val, model: "" });
                       }
                       setIsOtherModel(false);
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Brand</option>
-                    {activeBrandNames.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                    <option value="Other">Other (Custom Brand)</option>
-                  </select>
+                    options={[
+                      ...activeBrandNames.map((b) => ({ value: b, label: b })),
+                      { value: "Other", label: "Other (Custom Brand)", isSpecial: true },
+                    ]}
+                    placeholder="Select Brand"
+                    searchPlaceholder="Search brand (e.g. Toyota, Honda)..."
+                  />
                   {isOtherBrand && (
                     <Input
                       placeholder="Type custom brand"
@@ -1093,25 +1098,25 @@ export default function Vehicles() {
                 {/* Model */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Model</Label>
-                  <select
+                  <CustomSelect
                     value={isOtherModel ? "Other" : (activeModelNames.includes(formData.model) ? formData.model : (formData.model ? "Other" : ""))}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setIsOtherModel(true);
                         setFormData({ ...formData, model: "" });
                       } else {
                         setIsOtherModel(false);
-                        setFormData({ ...formData, model: e.target.value });
+                        setFormData({ ...formData, model: val });
                       }
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Model</option>
-                    {activeModelNames.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                    <option value="Other">Other (Custom Model)</option>
-                  </select>
+                    options={[
+                      ...activeModelNames.map((m) => ({ value: m, label: m })),
+                      { value: "Other", label: "Other (Custom Model)", isSpecial: true },
+                    ]}
+                    placeholder={formData.brand ? "Select Model" : "Select Brand First"}
+                    disabled={!formData.brand && !isOtherBrand}
+                    searchPlaceholder="Search model (e.g. Vios, Civic)..."
+                  />
                   {isOtherModel && (
                     <Input
                       placeholder="Type custom model"
@@ -1125,23 +1130,23 @@ export default function Vehicles() {
                 {/* Color */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Color</Label>
-                  <select
+                  <CustomSelect
                     value={activeColorNames.includes(formData.color) ? formData.color : (formData.color ? "Other" : "")}
-                    onChange={(e) => {
-                      if (e.target.value === "Other") {
+                    onChange={(val) => {
+                      if (val === "Other") {
                         setFormData({ ...formData, color: "" });
                       } else {
-                        setFormData({ ...formData, color: e.target.value });
+                        setFormData({ ...formData, color: val });
                       }
                     }}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Color</option>
-                    {activeColorNames.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                    <option value="Other">Other (Custom Color)</option>
-                  </select>
+                    options={[
+                      ...activeColorNames.map((c) => ({ value: c, label: c })),
+                      { value: "Other", label: "Other (Custom Color)", isSpecial: true },
+                    ]}
+                    placeholder="Select Color"
+                    isColorSelect={true}
+                    searchPlaceholder="Search color..."
+                  />
                   {(!activeColorNames.includes(formData.color) || formData.color === "") && (
                     <Input
                       placeholder="Type custom color"
@@ -1155,16 +1160,13 @@ export default function Vehicles() {
                 {/* Year */}
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Year</Label>
-                  <select
+                  <CustomSelect
                     value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#0053CC]"
-                  >
-                    <option value="" disabled>Select Year</option>
-                    {activeYearNames.map((y) => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, year: val })}
+                    options={activeYearNames.map((y) => ({ value: y, label: y }))}
+                    placeholder="Select Year"
+                    searchPlaceholder="Search year (e.g. 2024)..."
+                  />
                 </div>
               </div>
 
