@@ -105,7 +105,7 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
         />
       )}
 
-      <aside className={`w-64 fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white dark:bg-[#0B0F19] text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800/80 flex flex-col justify-between p-4 font-sans select-none overflow-y-auto z-40 transition-colors duration-300 ease-in-out ${
+      <aside className={`w-64 fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800/80 flex flex-col justify-between p-4 font-sans select-none overflow-y-auto z-40 transition-colors duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         
@@ -160,10 +160,10 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                     <Car className="h-4 w-4 shrink-0" />
                     <span>Vehicles</span>
                     {counts.pendingVehicles > 0 && (
-                      <span className={`ml-auto mr-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                      <span className={`ml-auto mr-1.5 text-xs font-normal transition-colors ${
                         location.pathname.startsWith("/admin/vehicles")
-                          ? "bg-white text-red-600"
-                          : "bg-red-500 text-white"
+                          ? "text-white/80"
+                          : "text-slate-400 dark:text-slate-500"
                       }`}>
                         {counts.pendingVehicles}
                       </span>
@@ -193,7 +193,11 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                     >
                       <span>Vehicle Registration</span>
                       {counts.pendingVehicles > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full text-[11px] font-medium bg-red-500 text-white">
+                        <span className={`text-[11px] font-normal ${
+                          isActive("/admin/vehicles/registration")
+                            ? "text-[#0053CC]/80 dark:text-blue-400/80"
+                            : "text-slate-400 dark:text-slate-500"
+                        }`}>
                           {counts.pendingVehicles}
                         </span>
                       )}
@@ -231,10 +235,10 @@ export function AdminNav({ isOpen = false, onClose }: AdminNavProps) {
                   <span>Incidents</span>
                 </div>
                 {counts.pendingIncidents > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                  <span className={`text-xs font-normal transition-colors ${
                     location.pathname.startsWith("/admin/incidents")
-                      ? "bg-white text-red-600"
-                      : "bg-red-500 text-white"
+                      ? "text-white/80"
+                      : "text-slate-400 dark:text-slate-500"
                   }`}>
                     {counts.pendingIncidents}
                   </span>

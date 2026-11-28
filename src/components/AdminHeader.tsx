@@ -145,7 +145,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   }).format(currentDateTime);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#0B0F19]/90 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md px-4 sm:px-6 transition-colors duration-300">
       <div className="flex h-full items-center justify-between">
         
         {/* Left Side: Logo */}
@@ -203,9 +203,12 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             >
               <Bell className="h-5 w-5" />
               {unreadNotifs > 0 && (
-                <span className="absolute top-2 right-2 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                <span className={`absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full text-[10px] font-bold transition-all shadow-xs ${
+                  isNotificationsOpen
+                    ? "bg-white text-[#0053CC]"
+                    : "bg-[#0053CC] dark:bg-blue-600 text-white shadow-blue-500/40 ring-2 ring-white dark:ring-slate-950"
+                }`}>
+                  {unreadNotifs > 99 ? "99+" : unreadNotifs}
                 </span>
               )}
             </button>

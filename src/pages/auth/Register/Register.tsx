@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2, AlertCircle, RefreshCw, Mail } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, AlertCircle, RefreshCw, Mail, Sun, Moon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -61,6 +61,21 @@ function Register() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Dark Mode State & Synchronization
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
 
   // Status & Feedback States
   const [isLoading, setIsLoading] = useState(false);
@@ -223,25 +238,40 @@ function Register() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-white font-sans">
+    <div className="flex min-h-screen w-full bg-white dark:bg-slate-950 font-sans transition-colors">
       {/* Left Side: Registration Form / OTP Step */}
-      <div className="flex w-full flex-col justify-center px-8 py-6 md:w-1/2 md:px-16 lg:px-20">
+      <div className="relative flex w-full flex-col justify-center bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-8 py-6 md:w-1/2 md:px-16 lg:px-20 transition-colors">
+        
+        {/* Dark Mode Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          className="absolute top-5 right-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 backdrop-blur-xs transition-colors shadow-xs hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          {isDarkMode ? (
+            <Sun className="h-4 w-4 text-amber-400 shrink-0" />
+          ) : (
+            <Moon className="h-4 w-4 text-slate-600 shrink-0" />
+          )}
+        </button>
         
         {step === "form" ? (
           <>
             {/* Header */}
             <div className="text-center">
-              <h1 className="font-poppins text-3xl font-extrabold text-slate-900">
+              <h1 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">
                 Register
               </h1>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                 Enter your credentials to manage your parking access.
               </p>
             </div>
 
             {/* Global API Error Notification */}
             {apiError && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
+              <div className="mt-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 p-3 text-center text-xs font-medium text-[#EF4444]">
                 {apiError}
               </div>
             )}
@@ -253,7 +283,7 @@ function Register() {
             <div className="flex flex-col gap-1">
               <Label
                 htmlFor="firstName"
-                className="text-xs font-semibold text-slate-800"
+                className="text-xs font-semibold text-slate-800 dark:text-slate-200"
               >
                 First Name<span className="text-[#EF4444]">*</span>
               </Label>
@@ -268,7 +298,7 @@ function Register() {
                     shouldValidate: true,
                   })
                 }
-                className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                className={`h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs shadow-xs transition-colors ${
                   errors.firstName ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
                 }`}
                 disabled={isLoading || isSuccess}
@@ -283,7 +313,7 @@ function Register() {
             <div className="flex flex-col gap-1">
               <Label
                 htmlFor="lastName"
-                className="text-xs font-semibold text-slate-800"
+                className="text-xs font-semibold text-slate-800 dark:text-slate-200"
               >
                 Last Name<span className="text-[#EF4444]">*</span>
               </Label>
@@ -298,7 +328,7 @@ function Register() {
                     shouldValidate: true,
                   })
                 }
-                className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+                className={`h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs shadow-xs transition-colors ${
                   errors.lastName ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
                 }`}
                 disabled={isLoading || isSuccess}
@@ -315,7 +345,7 @@ function Register() {
           <div className="flex flex-col gap-1">
             <Label
               htmlFor="email"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-slate-800 dark:text-slate-200"
             >
               Email Address<span className="text-[#EF4444]">*</span>
             </Label>
@@ -324,7 +354,7 @@ function Register() {
               type="email"
               placeholder="Enter your Gmail address"
               {...register("email")}
-              className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+              className={`h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs shadow-xs transition-colors ${
                 errors.email ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
               }`}
               disabled={isLoading || isSuccess}
@@ -340,7 +370,7 @@ function Register() {
           <div className="flex flex-col gap-1">
             <Label
               htmlFor="schoolId"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-slate-800 dark:text-slate-200"
             >
               Student / Employee ID<span className="text-[#EF4444]">*</span>
             </Label>
@@ -352,7 +382,7 @@ function Register() {
               onChange={(e) => {
                 setValue("schoolId", e.target.value, { shouldValidate: true });
               }}
-              className={`h-10 rounded-xl bg-white text-xs shadow-sm transition-colors ${
+              className={`h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs shadow-xs transition-colors ${
                 errors.schoolId ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
               }`}
               disabled={isLoading || isSuccess}
@@ -368,17 +398,17 @@ function Register() {
           <div className="flex flex-col gap-1">
             <Label
               htmlFor="phone"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-slate-800 dark:text-slate-200"
             >
               Phone Number
-              <span className="font-normal text-slate-500">(optional)</span>
+              <span className="font-normal text-slate-500 dark:text-slate-400 ml-1">(optional)</span>
             </Label>
-            <div className={`flex items-center rounded-xl border bg-white dark:bg-slate-800 overflow-hidden transition-all ${
+            <div className={`flex items-center rounded-xl border bg-slate-50 dark:bg-slate-900 overflow-hidden transition-all ${
               errors.phone 
                 ? "border-red-500 bg-red-50/20 focus-within:ring-2 focus-within:ring-red-500" 
-                : "border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-[#0053CC]"
+                : "border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-[#0053CC]"
             }`}>
-              <span className="flex items-center justify-center px-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-700 select-none">
+              <span className="flex items-center justify-center px-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 select-none">
                 +63
               </span>
               <Input
@@ -393,7 +423,7 @@ function Register() {
                   if (val.length > 0 && val[0] !== "9") return;
                   setValue("phone", val.slice(0, 10), { shouldValidate: true });
                 }}
-                className="border-0 shadow-none focus-visible:ring-0 text-xs h-10 bg-transparent"
+                className="border-0 shadow-none focus-visible:ring-0 text-xs h-10 bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 disabled={isLoading || isSuccess}
               />
             </div>
@@ -408,7 +438,7 @@ function Register() {
           <div className="flex flex-col gap-1">
             <Label
               htmlFor="password"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-slate-800 dark:text-slate-200"
             >
               Password<span className="text-[#EF4444]">*</span>
             </Label>
@@ -418,7 +448,7 @@ function Register() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password (min 8 chars)"
                 {...register("password")}
-                className={`h-10 rounded-xl bg-white pr-10 text-xs shadow-sm transition-colors ${
+                className={`h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pr-10 text-xs shadow-xs transition-colors ${
                   errors.password ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
                 }`}
                 disabled={isLoading || isSuccess}
@@ -426,7 +456,7 @@ function Register() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                 disabled={isLoading || isSuccess}
               >
                 {showPassword ? (
@@ -447,7 +477,7 @@ function Register() {
           <div className="flex flex-col gap-1">
             <Label
               htmlFor="confirmPassword"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-slate-800 dark:text-slate-200"
             >
               Confirm Password<span className="text-[#EF4444]">*</span>
             </Label>
@@ -457,7 +487,7 @@ function Register() {
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Repeat your password"
                 {...register("confirmPassword")}
-                className={`h-10 rounded-xl bg-white pr-10 text-xs shadow-sm transition-colors ${
+                className={`h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pr-10 text-xs shadow-xs transition-colors ${
                   errors.confirmPassword ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500" : "focus-visible:ring-[#0053CC]"
                 }`}
                 disabled={isLoading || isSuccess}
@@ -465,7 +495,7 @@ function Register() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                 disabled={isLoading || isSuccess}
               >
                 {showConfirmPassword ? (
@@ -493,12 +523,12 @@ function Register() {
                     shouldValidate: true,
                   })
                 }
-                className="data-[state=checked]:bg-[#0053CC]"
+                className="data-[state=checked]:bg-[#0053CC] border-slate-300 dark:border-slate-700"
                 disabled={isLoading || isSuccess}
               />
               <Label
                 htmlFor="declaration"
-                className="cursor-pointer text-[11px] font-normal text-slate-600"
+                className="cursor-pointer text-[11px] font-normal text-slate-600 dark:text-slate-300"
               >
                 I confirm that the information provided is correct.
               </Label>
@@ -514,25 +544,25 @@ function Register() {
           <Button
             type="submit"
             disabled={isLoading || isSuccess}
-            className="mt-2 h-10 w-full rounded-xl bg-[#0053CC] text-xs font-semibold text-white shadow-md hover:bg-[#0053CC]/90 disabled:opacity-50"
+            className="mt-2 h-10 w-full rounded-xl bg-[#0053CC] text-xs font-semibold text-white shadow-md hover:bg-[#0053CC]/90 disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? "Creating Account..." : "Register"}
           </Button>
 
           {/* Already have an account link */}
-          <p className="mt-2 text-center text-xs text-slate-400">
+          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-semibold text-[#0053CC] hover:underline"
+              className="font-semibold text-[#0053CC] dark:text-blue-400 hover:underline"
             >
               Log In.
             </Link>
           </p>
 
-          <p className="text-center text-[10px] text-slate-400">
+          <p className="text-center text-[10px] text-slate-400 dark:text-slate-500">
             By registering, you agree to SmartPark's{" "}
-            <Link to="/terms-and-conditions" className="underline hover:text-slate-700 transition-colors">
+            <Link to="/terms-and-conditions" className="underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
               Terms & Conditions
             </Link>
           </p>
@@ -542,19 +572,19 @@ function Register() {
           /* Step 2: OTP Email Verification */
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-[#0053CC]">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
                 <Mail className="h-7 w-7" />
               </div>
-              <h2 className="font-poppins text-2xl font-bold text-slate-900">
+              <h2 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white">
                 Verify Your Email
               </h2>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                We've sent a 6-digit verification code to <span className="font-bold text-slate-800">{registeredEmail}</span>. Enter the code below to activate your account.
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                We've sent a 6-digit verification code to <span className="font-bold text-slate-800 dark:text-slate-200">{registeredEmail}</span>. Enter the code below to activate your account.
               </p>
             </div>
 
             {otpError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-[#EF4444]">
+              <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 p-3 text-center text-xs font-medium text-[#EF4444]">
                 {otpError}
               </div>
             )}
@@ -570,21 +600,21 @@ function Register() {
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="h-12 w-11 sm:h-14 sm:w-12 rounded-xl border border-slate-300 text-center font-poppins text-xl font-bold text-slate-900 focus:border-[#0053CC] focus:outline-none focus:ring-2 focus:ring-[#0053CC]/20 bg-slate-50/50"
+                  className="h-12 w-11 sm:h-14 sm:w-12 rounded-xl border border-slate-300 dark:border-slate-700 text-center font-poppins text-xl font-bold text-slate-900 dark:text-white focus:border-[#0053CC] focus:outline-none focus:ring-2 focus:ring-[#0053CC]/20 bg-slate-50 dark:bg-slate-900 transition-colors"
                   disabled={isLoading}
                 />
               ))}
             </div>
 
             {/* Resend Code Section */}
-            <div className="text-center text-xs text-slate-500">
+            <div className="text-center text-xs text-slate-500 dark:text-slate-400">
               {isResendActive ? (
-                <p>Resend code in <span className="font-semibold text-[#0053CC]">{resendTimer}s</span></p>
+                <p>Resend code in <span className="font-semibold text-[#0053CC] dark:text-blue-400">{resendTimer}s</span></p>
               ) : (
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className="inline-flex items-center gap-1 font-semibold text-[#0053CC] hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1 font-semibold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
                 >
                   <RefreshCw className="h-3.5 w-3.5" /> Resend Verification Code
                 </button>
@@ -628,23 +658,23 @@ function Register() {
 
       {/* SUCCESS MODAL OVERLAY */}
       {isSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-[#008080]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-[#008080] dark:text-emerald-400">
               <CheckCircle2 className="h-9 w-9 stroke-[1.75]" />
             </div>
 
-            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
+            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900 dark:text-white">
               Account Created!
             </h3>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Welcome to QCU SmartPark. Redirecting to your login page...
             </p>
 
             <Button
               type="button"
               onClick={() => navigate("/Login")}
-              className="mt-6 w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-sm"
+              className="mt-6 w-full rounded-xl bg-[#0053CC] py-5 text-xs font-semibold text-white hover:bg-[#0053CC]/90 shadow-sm cursor-pointer"
             >
               Continue to Login
             </Button>

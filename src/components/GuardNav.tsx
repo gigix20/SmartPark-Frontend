@@ -53,7 +53,7 @@ export function GuardNav({ isOpen = false, onClose }: GuardNavProps) {
         />
       )}
 
-      <aside className={`w-64 fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white dark:bg-[#0B0F19] text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800/80 flex flex-col justify-between p-4 font-sans select-none overflow-y-auto z-40 transition-colors duration-300 ease-in-out ${
+      <aside className={`w-64 fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800/80 flex flex-col justify-between p-4 font-sans select-none overflow-y-auto z-40 transition-colors duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         

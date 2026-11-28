@@ -105,7 +105,7 @@ export default function ResetPassword() {
       </div>
 
       {/* Main Form Card */}
-      <div className="relative w-full max-w-lg rounded-[28px] bg-white p-8 sm:p-10 shadow-2xl">
+      <div className="relative w-full max-w-lg rounded-[28px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 sm:p-10 shadow-2xl transition-colors">
 
         {/* Logo Header */}
         <div className="flex justify-center mb-6">
@@ -114,10 +114,10 @@ export default function ResetPassword() {
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B132B]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B132B] dark:text-white">
             Set New Password
           </h1>
-          <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal">
+          <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal">
             Enter and confirm your new password to regain access to your account.
           </p>
         </div>
@@ -126,7 +126,7 @@ export default function ResetPassword() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* API Error Alert */}
           {apiError && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-medium">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{apiError}</span>
             </div>
@@ -134,7 +134,7 @@ export default function ResetPassword() {
 
           {/* New Password Field */}
           <div className="space-y-1.5 text-left">
-            <Label htmlFor="password" className="text-xs sm:text-sm font-semibold text-slate-900">
+            <Label htmlFor="password" className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-200">
               New Password<span className="text-red-500 ml-0.5">*</span>
             </Label>
             <div className="relative">
@@ -147,16 +147,16 @@ export default function ResetPassword() {
                   setPassword(e.target.value);
                   if (passwordError) setPasswordError("");
                 }}
-                className={`h-12 rounded-xl pr-10 text-xs sm:text-sm transition-colors focus-visible:ring-1 ${
+                className={`h-12 rounded-xl pr-10 text-xs sm:text-sm transition-colors focus-visible:ring-1 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 ${
                   passwordError
                     ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500"
-                    : "border-slate-300 focus-visible:ring-[#0053CC]"
+                    : "border-slate-300 dark:border-slate-800 focus-visible:ring-[#0053CC]"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -172,7 +172,7 @@ export default function ResetPassword() {
           {/* Password Strength Indicator Bar */}
           {password && (
             <div className="space-y-1 pt-1">
-              <div className="flex justify-between items-center text-[11px] font-medium text-slate-500">
+              <div className="flex justify-between items-center text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 <span>Password Strength</span>
                 <span className={`font-semibold ${strength.text}`}>{strength.label}</span>
               </div>
@@ -181,7 +181,7 @@ export default function ResetPassword() {
                   <div
                     key={step}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      step <= strength.score ? strength.color : "bg-slate-200"
+                      step <= strength.score ? strength.color : "bg-slate-200 dark:bg-slate-800"
                     }`}
                   />
                 ))}
@@ -191,7 +191,7 @@ export default function ResetPassword() {
 
           {/* Confirm New Password Field */}
           <div className="space-y-1.5 text-left pt-2">
-            <Label htmlFor="confirmPassword" className="text-xs sm:text-sm font-semibold text-slate-900">
+            <Label htmlFor="confirmPassword" className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-200">
               Confirm New Password<span className="text-red-500 ml-0.5">*</span>
             </Label>
             <div className="relative">
@@ -204,16 +204,16 @@ export default function ResetPassword() {
                   setConfirmPassword(e.target.value);
                   if (confirmError) setConfirmError("");
                 }}
-                className={`h-12 rounded-xl pr-10 text-xs sm:text-sm transition-colors focus-visible:ring-1 ${
+                className={`h-12 rounded-xl pr-10 text-xs sm:text-sm transition-colors focus-visible:ring-1 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 ${
                   confirmError
                     ? "border-red-500 bg-red-50/20 focus-visible:ring-red-500"
-                    : "border-slate-300 focus-visible:ring-[#0053CC]"
+                    : "border-slate-300 dark:border-slate-800 focus-visible:ring-[#0053CC]"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -233,11 +233,11 @@ export default function ResetPassword() {
               id="logoutDevices"
               checked={logoutOtherDevices}
               onChange={(e) => setLogoutOtherDevices(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
             />
             <label
               htmlFor="logoutDevices"
-              className="text-[11px] sm:text-xs text-slate-500 cursor-pointer select-none"
+              className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 cursor-pointer select-none"
             >
               Log out in other devices, confirm this if someone else use your account.
             </label>
@@ -247,7 +247,7 @@ export default function ResetPassword() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-sm transition-all shadow-sm mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-sm transition-all shadow-sm mt-4 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? "Resetting Password..." : "Reset Password"}
           </Button>
@@ -256,7 +256,7 @@ export default function ResetPassword() {
               type="button"
               variant="ghost"
               onClick={() => navigate("/forgot-password")} 
-              className="w-full h-12 rounded-xl border border-slate-200 text-sm font-semibold text-[#0053CC] hover:bg-slate-50"
+              className="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
             >
               Cancel
             </Button>
@@ -265,21 +265,21 @@ export default function ResetPassword() {
 
       {/* SUCCESS MODAL POPUP */}
       {isSuccessOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 sm:p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500">
               <CheckCircle2 className="h-7 w-7" />
             </div>
 
-            <h3 className="text-lg font-bold text-slate-900">Password Reset Successful!</h3>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Password Reset Successful!</h3>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Your password has been successfully updated. You may now sign in to your SmartPark account using your new password.
             </p>
 
             <Button
               type="button"
               onClick={() => navigate("/")} // Navigate pabalik sa Login Page
-              className="mt-6 w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold transition-colors"
+              className="mt-6 w-full h-11 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold transition-colors cursor-pointer"
             >
               Return to Log In
             </Button>

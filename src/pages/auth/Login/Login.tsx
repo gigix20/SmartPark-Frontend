@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Lock, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Lock, Clock, CheckCircle2, ShieldAlert, Sun, Moon } from "lucide-react";
 import logo from "@/assets/smartpark-logo.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,21 @@ function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(false);
+
+  // Dark Mode State & Synchronization
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
   
   // Modal States
   const [isSuccess, setIsSuccess] = useState(false);
@@ -322,17 +337,33 @@ function Login() {
       </div>
 
       {/* Right Panel */}
-      <div className="flex w-full flex-col justify-center bg-white font-sans px-8 py-12 md:w-1/2 md:px-16 lg:px-24">
+      <div className="relative flex w-full flex-col justify-center bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans px-8 py-12 md:w-1/2 md:px-16 lg:px-24 transition-colors">
+        
+        {/* Dark Mode Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          className="absolute top-5 right-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 backdrop-blur-xs transition-colors shadow-xs hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          {isDarkMode ? (
+            <Sun className="h-4 w-4 text-amber-400 shrink-0" />
+          ) : (
+            <Moon className="h-4 w-4 text-slate-600 shrink-0" />
+          )}
+        </button>
+
         <div className="text-center">
-          <h2 className="font-poppins text-3xl font-extrabold text-slate-900">Log In</h2>
-          <p className="mt-2 text-xs text-slate-500">
+          <h2 className="font-poppins text-3xl font-extrabold text-slate-900 dark:text-white">Log In</h2>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             Enter your credentials to manage your parking access.
           </p>
 
           <form className="mt-6 flex flex-col gap-6" onSubmit={handleLogin}>
             
             <div className="flex flex-col gap-1.5 text-left">
-              <Label htmlFor="email" className="text-xs font-semibold text-slate-800">
+              <Label htmlFor="email" className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 Email Address or School ID<span className="text-[#EF4444]">*</span>
               </Label>
               <Input
@@ -341,14 +372,14 @@ function Login() {
                 placeholder="juandelacruz@gmail.com or 24-1478"
                 value={email}
                 onChange={(e) => handleIdentifierChange(e.target.value)}
-                className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+                className="h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs shadow-xs focus-visible:ring-[#0053CC] transition-colors"
                 required
                 disabled={isLoading}
               />
             </div>
 
             <div className="flex flex-col gap-1.5 text-left">
-              <Label htmlFor="password" className="text-xs font-semibold text-slate-800">
+              <Label htmlFor="password" className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 Password<span className="text-[#EF4444]">*</span>
               </Label>
               <div className="relative">
@@ -358,14 +389,14 @@ function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-10 rounded-xl bg-white text-xs shadow-sm focus-visible:ring-[#0053CC]"
+                  className="h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs shadow-xs focus-visible:ring-[#0053CC] transition-colors"
                   required
                   disabled={isLocked || isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none cursor-pointer"
                   disabled={isLocked || isLoading}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -386,7 +417,7 @@ function Login() {
                         state: { email: pendingVerificationEmail, step: "verify" },
                       })
                     }
-                    className="text-xs font-bold text-[#0053CC] hover:underline cursor-pointer block mt-1"
+                    className="text-xs font-bold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer block mt-1"
                   >
                     Click here to enter your 6-digit verification code &rarr;
                   </button>
@@ -398,16 +429,16 @@ function Login() {
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="remember"
-                  className="data-[state=checked]:bg-[#0053CC]"
+                  className="data-[state=checked]:bg-[#0053CC] border-slate-300 dark:border-slate-700"
                   checked={rememberDevice}
                   onCheckedChange={(val) => handleRememberToggle(val === true)}
                   disabled={isLoading}
                 />
-                <Label htmlFor="remember" className="cursor-pointer text-xs font-normal text-slate-700">
+                <Label htmlFor="remember" className="cursor-pointer text-xs font-normal text-slate-700 dark:text-slate-300">
                   Remember this device
                 </Label>
               </div>
-              <Link to="/forgot-password" className="font-medium text-[#0053CC] hover:underline">
+              <Link to="/forgot-password" className="font-medium text-[#0053CC] dark:text-blue-400 hover:underline">
                 Forgot Password?
               </Link>
             </div>
@@ -425,15 +456,15 @@ function Login() {
             </Button>
           </form>
 
-          <p className="mt-6 text-sm text-slate-700">
+          <p className="mt-6 text-sm text-slate-700 dark:text-slate-300">
             New user?{" "}
-            <Link to="/register" className="font-semibold text-[#0053CC] hover:underline">
+            <Link to="/register" className="font-semibold text-[#0053CC] dark:text-blue-400 hover:underline">
               Register your vehicle
             </Link>
           </p>
-          <p className="mt-4 text-xs text-[#9E9E9E]">
+          <p className="mt-4 text-xs text-[#9E9E9E] dark:text-slate-500">
             By logging in, you agree to SmartPark&apos;s{" "}
-            <Link to="/terms-and-conditions" className="underline hover:text-slate-700 transition-colors">
+            <Link to="/terms-and-conditions" className="underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
               Terms & Conditions
             </Link>
             .
@@ -443,15 +474,15 @@ function Login() {
 
       {/* Modals */}
       {isSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-[#008080]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-[#008080] dark:text-emerald-400">
               <CheckCircle2 className="h-9 w-9 stroke-[1.75]" />
             </div>
-            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
+            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900 dark:text-white">
               Log in Successful
             </h3>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Redirecting to your dashboard...
             </p>
             <Button
@@ -466,18 +497,18 @@ function Login() {
       )}
 
       {isLockModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#EF4444]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/50 text-[#EF4444]">
               <Lock className="h-7 w-7" />
             </div>
-            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
+            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900 dark:text-white">
               Account Locked
             </h3>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
               Your account has been temporarily locked due to multiple failed login attempts.
             </p>
-            <div className="mt-5 flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50/60 p-4">
+            <div className="mt-5 flex flex-col items-center justify-center rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/60 dark:bg-red-950/20 p-4">
               <span className="text-[11px] font-medium text-[#EF4444]">
                 Time remaining
               </span>
@@ -493,7 +524,7 @@ function Login() {
               type="button"
               onClick={() => setIsLockModalOpen(false)}
               variant="outline"
-              className="mt-6 w-full rounded-xl border-slate-200 text-xs font-semibold text-[#0053CC] hover:bg-slate-50 cursor-pointer"
+              className="mt-6 w-full rounded-xl border-slate-200 dark:border-slate-800 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
             >
               Return to Log In
             </Button>
@@ -502,15 +533,15 @@ function Login() {
       )}
 
       {isSuspended && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#EF4444]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 text-center shadow-2xl transition-all animate-in fade-in zoom-in-95">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/50 text-[#EF4444]">
               <ShieldAlert className="h-7 w-7" />
             </div>
-            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900">
+            <h3 className="mt-4 font-poppins text-xl font-bold text-slate-900 dark:text-white">
               Account Suspended
             </h3>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               If you believe this suspension was a mistake, you may submit an appeal for review.
             </p>
             <div className="mt-6 flex flex-col gap-3">
@@ -525,7 +556,7 @@ function Login() {
                 type="button"
                 onClick={() => navigate("/terms-and-conditions")}
                 variant="outline"
-                className="w-full rounded-xl border border-slate-200 text-xs font-semibold text-[#0053CC] hover:bg-slate-50 cursor-pointer"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
               >
                 Terms & Conditions
               </Button>

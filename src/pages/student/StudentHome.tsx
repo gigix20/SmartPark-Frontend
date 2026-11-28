@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, ShieldCheck, Gauge, Loader2 } from "lucide-react";
+import { Clock, ShieldCheck, Gauge } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import {
@@ -12,8 +12,6 @@ import {
   getStudentDashboard,
   type StudentDashboardData,
 } from "@/api/studentApi";
-
-// Import ang mga icon mula sa src/assets/
 import carIcon from "@/assets/car-icon.svg";
 
 export default function Dashboard() {
@@ -66,8 +64,8 @@ export default function Dashboard() {
   const vehiclesCount = dashboardData?.vehiclesCount ?? 0;
   const recentHistory = dashboardData?.recentHistory ?? [];
 
-  // SVG Circular Gauge calculation
-  const radius = 64;
+  // SVG Donut Calculations
+  const radius = 56;
   const circumference = 2 * Math.PI * radius;
   const dashoffset =
     circumference *
@@ -75,156 +73,147 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans pb-28 transition-colors duration-300">
-      {/* Reusable Header Component */}
+      {/* Reusable Header */}
       <Header currentUser={currentUser} />
 
       {/* Main Content Area */}
       <main className="mx-auto max-w-5xl p-4 sm:p-8 space-y-6">
-        {/* TOP WELCOME BANNER (Responsive with Background Image & Gradient) */}
-        <div className="relative overflow-hidden rounded-[28px] bg-linear-to-r from-[#0053CC] via-[#2563eb] to-[#4a80e2] text-white shadow-xl">
-          <div
-            className="absolute inset-0 -z-10 bg-cover bg-right bg-no-repeat opacity-40 sm:opacity-70 mix-blend-overlay"
-            style={{ backgroundImage: "url('/assets/bg-building.jpg')" }}
-          />
-          <div className="absolute inset-0 bg-linear-to-r from-[#0053CC] via-[#0053CC]/90 to-transparent sm:w-3/4 -z-10" />
+        {/* Welcome Section */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs transition-colors">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                <ShieldCheck className="h-4 w-4 text-[#0053CC] dark:text-blue-400 shrink-0" />
+                <span>
+                  Account Status: {currentUser?.accountStatus || "Active"}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-blue-400 tracking-tight">
+                Welcome back, {currentUser?.firstName || "Student"}
+              </h1>
+              <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
+                Monitor current campus parking spaces and review your vehicle
+                activity records.
+              </p>
+            </div>
 
-          <div className="p-6 sm:p-10 flex flex-col justify-center min-h-45 sm:min-h-52.5 max-w-xl">
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur-xs mb-2">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Account {currentUser?.accountStatus || "Active"}
-            </span>
-            <h1 className="font-poppins text-2xl sm:text-4xl font-extrabold tracking-tight">
-              Good Morning, {currentUser?.firstName || "Student"}!
-            </h1>
-            <p className="mt-2 text-xs sm:text-sm text-blue-100 font-normal leading-relaxed">
-              Here&apos;s whats happening in the QCU&apos;s parking today.
-              Monitor available slots and manage your vehicle logs in real-time.
-            </p>
-          </div>
-        </div>
-
-        {/* PARKING OVERVIEW CARD (Circular Progress & Stats) */}
-        <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs transition-colors duration-300">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            {/* Circular Progress Graphic Simulation */}
-            <div className="relative flex items-center justify-center">
-              <svg
-                className="h-44 w-44 sm:h-48 sm:w-48 -rotate-90"
-                viewBox="0 0 160 160"
+            <div className="flex items-center gap-2 self-start sm:self-center">
+              <button
+                type="button"
+                onClick={() => navigate("/parking")}
+                className="px-4 py-2.5 rounded-xl bg-[#0053CC] hover:bg-[#0042a5] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
-                {/* Background Ring */}
-                <circle
-                  cx="80"
-                  cy="80"
-                  r={radius}
-                  fill="transparent"
-                  stroke="currentColor"
-                  strokeWidth="14"
-                  className="text-slate-100 dark:text-slate-800"
-                />
-                {/* Dynamic Occupancy Ring */}
-                <circle
-                  cx="80"
-                  cy="80"
-                  r={radius}
-                  fill="transparent"
-                  stroke="#0053CC"
-                  strokeWidth="14"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={dashoffset}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-
-              <div className="absolute text-center">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                  {occupied} / {totalCapacity}
-                </span>
-                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
-                  Currently Inside ({occupancyRate}%)
-                </p>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="flex items-center gap-3 self-start md:self-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0053CC] dark:text-blue-400">
-                <Gauge className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Parking Overview
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                  QCU Main Campus Real-time Status
-                </p>
-              </div>
-            </div>
-
-            {/* Legend / Stats */}
-            <div className="w-full md:w-auto space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 min-w-50">
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#0053CC]" />{" "}
-                  Occupied
-                </span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {occupied}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-600" />{" "}
-                  Available
-                </span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {available}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs border-t border-slate-200/60 dark:border-slate-700 pt-2.5">
-                <span className="flex items-center gap-2 font-medium text-slate-600 dark:text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />{" "}
-                  Total Capacity
-                </span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {totalCapacity}
-                </span>
-              </div>
+                View parking slots
+              </button>
             </div>
           </div>
         </div>
 
-        {/* THREE BOTTOM CARDS GRID */}
+        {/* Parking Overview Donut Chart Section */}
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs transition-colors">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            {/* Header info */}
+            <div className="max-w-xs space-y-1">
+              <div className="flex items-center gap-2 text-[#0053CC] dark:text-blue-400 mb-1">
+                <Gauge className="h-5 w-5" />
+                <span className="text-xs font-semibold">Campus Capacity</span>
+              </div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Parking Overview
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Live space distribution across university designated parking
+                bays for students and staff.
+              </p>
+            </div>
+
+            {/* Donut Chart Display */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+              <div className="relative flex items-center justify-center">
+                <svg className="h-44 w-44 -rotate-90" viewBox="0 0 140 140">
+                  {/* Background Track */}
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={radius}
+                    fill="transparent"
+                    stroke="currentColor"
+                    strokeWidth="12"
+                    className="text-slate-100 dark:text-slate-800"
+                  />
+                  {/* Active Progress Ring */}
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={radius}
+                    fill="transparent"
+                    stroke="#0053CC"
+                    strokeWidth="12"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={dashoffset}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+
+                <div className="absolute text-center select-none">
+                  <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    {occupied} / {totalCapacity}
+                  </span>
+                  <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                    {occupancyRate}% Occupied
+                  </p>
+                </div>
+              </div>
+
+              {/* Data Breakdown Table / List */}
+              <div className="w-full sm:w-56 space-y-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 p-4">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <span className="h-2 w-2 rounded-full bg-[#0053CC]" />
+                    Occupied Slots
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {occupied}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <span className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+                    Available Slots
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {available}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/70 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Total Campus Bays
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {totalCapacity}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Core Metric Cards: Availability, Vehicles, Recent History */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Parking Availability Status */}
-          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors duration-300">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors">
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                  <span
-                    className={`h-2 w-2 rounded-full animate-pulse ${
-                      availabilityLevel === "High"
-                        ? "bg-emerald-500"
-                        : availabilityLevel === "Moderate"
-                          ? "bg-amber-500"
-                          : "bg-rose-500"
-                    }`}
-                  />
-                  Parking Availability
-                </h3>
-              </div>
-              <div
-                className={`my-3 rounded-2xl py-4 text-center border ${
-                  availabilityLevel === "High"
-                    ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-900/50"
-                    : availabilityLevel === "Moderate"
-                      ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-900/50"
-                      : "bg-rose-50/70 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-900/50"
-                }`}
-              >
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Parking Availability
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Campus entry condition
+              </p>
+
+              <div className="my-5 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center">
                 <span
-                  className={`font-poppins text-2xl font-extrabold tracking-wide ${
+                  className={`text-xl font-bold tracking-tight ${
                     availabilityLevel === "High"
                       ? "text-emerald-600 dark:text-emerald-400"
                       : availabilityLevel === "Moderate"
@@ -233,75 +222,91 @@ export default function Dashboard() {
                   }`}
                 >
                   {availabilityLevel === "High"
-                    ? "Available"
+                    ? "Ample Space"
                     : availabilityLevel}
+                </span>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                  {remainingSlots} open slots remaining
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-400">
+                Available bays
+              </span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {available} slots
+              </span>
+            </div>
+          </section>
+
+          {/* Card 2: Registered Vehicles Count */}
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors">
+            <div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Registered Vehicles
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Permitted for campus entry
+                  </p>
+                </div>
+                <img
+                  src={carIcon}
+                  alt="Vehicle icon"
+                  className="h-5 w-auto object-contain opacity-80"
+                />
+              </div>
+
+              <div className="py-6 flex items-baseline justify-center gap-1.5">
+                <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {vehiclesCount}
+                </span>
+                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                  {vehiclesCount === 1 ? "vehicle" : "vehicles"}
                 </span>
               </div>
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span>Remaining Slots</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                {remainingSlots} slots
-              </span>
-            </div>
-          </div>
 
-          {/* Card 2: My Vehicles */}
-          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors duration-300">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => navigate("/vehicles")}
+                className="text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
+              >
+                Manage vehicles
+              </button>
+            </div>
+          </section>
+
+          {/* Card 3: Recent Vehicle Gate Activity */}
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                  <img
-                    src={carIcon}
-                    alt="Car Icon"
-                    className="h-4 w-auto object-contain"
-                  />{" "}
-                  My Vehicles
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Gate Activity
                 </h3>
               </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                Latest gate scans
+              </p>
 
-              <div className="py-6 flex items-center justify-center">
+              <div className="space-y-2">
                 {isLoading ? (
-                  <Loader2 className="h-8 w-8 animate-spin text-[#0053CC] dark:text-blue-400" />
-                ) : (
-                  <span className="font-poppins text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
-                    {vehiclesCount}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span>Registered Vehicles</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                {vehiclesCount} total
-              </span>
-            </div>
-          </div>
-
-          {/* Card 3: Vehicle History Preview */}
-          <div className="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs flex flex-col justify-between transition-colors duration-300">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[#0053CC] dark:text-blue-400" />{" "}
-                  Vehicle History
-                </h3>
-              </div>
-
-              <div className="space-y-2.5">
-                {isLoading ? (
-                  <div className="py-6 text-center text-xs text-slate-400">
-                    Loading history...
+                  <div className="py-5 text-center text-xs text-slate-400">
+                    Loading records...
                   </div>
                 ) : recentHistory.length > 0 ? (
                   recentHistory.slice(0, 2).map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] border border-slate-100 dark:border-slate-800"
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs flex items-center justify-between"
                     >
                       <div className="min-w-0 pr-2">
-                        <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
                           {item.vehicleTitle}
                         </p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
@@ -309,30 +314,34 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <span
-                        className={`px-2 py-0.5 rounded-md font-bold text-[10px] shrink-0 ${
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                           item.action === "EXIT"
-                            ? "bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400"
-                            : "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400"
+                            ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
+                            : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
                         }`}
                       >
-                        {item.action}
+                        {item.action === "EXIT" ? "Exit" : "Entry"}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <div className="py-6 text-center text-[11px] text-slate-400 italic">
-                    No recent parking activities recorded yet.
+                  <div className="py-5 text-center text-[11px] text-slate-400">
+                    No recent gate activity found.
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 text-center">
-              <span className="text-[11px] text-slate-400 font-medium">
-                Recent activity logs
-              </span>
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => navigate("/reports")}
+                className="text-xs font-semibold text-[#0053CC] dark:text-blue-400 hover:underline cursor-pointer"
+              >
+                View incident reports
+              </button>
             </div>
-          </div>
+          </section>
         </div>
       </main>
 

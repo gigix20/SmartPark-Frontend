@@ -22,7 +22,7 @@ export function GuardLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
       
       {/* GUARD HEADER */}
       <GuardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -39,7 +39,7 @@ export function GuardLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* GUARD SIDEBAR */}
-        <aside className={`fixed lg:sticky top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#0B0F19] p-5 flex flex-col justify-between transition-transform duration-300 ${
+        <aside className={`fixed lg:sticky top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950 p-5 flex flex-col justify-between transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}>
           

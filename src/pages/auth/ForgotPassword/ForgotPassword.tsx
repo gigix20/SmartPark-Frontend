@@ -143,7 +143,7 @@ export default function ForgotPassword() {
       </div>
 
       {/* Main Form Card */}
-      <div className="relative w-full max-w-lg rounded-[28px] bg-white p-8 sm:p-10 shadow-2xl">
+      <div className="relative w-full max-w-lg rounded-[28px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 sm:p-10 shadow-2xl transition-colors">
         {/* Logo Header */}
         <div className="flex justify-center mb-6">
           <img src={logo} alt="SmartPark Logo" className="h-14 object-contain" />
@@ -152,19 +152,19 @@ export default function ForgotPassword() {
         {/* TITLE & SUBTITLE */}
         {step === "email" ? (
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B132B]">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B132B] dark:text-white">
               Forgot Password
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal">
+            <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal">
               Enter your email address below and we&apos;ll help you regain access to your account.
             </p>
           </div>
         ) : (
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B132B]">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B132B] dark:text-white">
               Confirm your account
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal">
+            <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal">
               We sent a code to your email. Enter the 6-digit code to confirm your account.
             </p>
           </div>
@@ -174,7 +174,7 @@ export default function ForgotPassword() {
         {step === "email" && (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-2 text-left mb-6">
-              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold text-slate-900">
+              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-200">
                 Email Address<span className="text-red-500 ml-0.5">*</span>
               </Label>
               <div className="relative">
@@ -185,7 +185,7 @@ export default function ForgotPassword() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 rounded-xl border-slate-300 pr-10 text-xs sm:text-sm placeholder:text-slate-400 focus-visible:ring-[#0053CC]"
+                  className="h-12 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white pr-10 text-xs sm:text-sm placeholder:text-slate-400 focus-visible:ring-[#0053CC]"
                 />
                 <Mail className="absolute right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
               </div>
@@ -193,7 +193,7 @@ export default function ForgotPassword() {
 
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-sm transition-all shadow-sm"
+              className="w-full h-12 rounded-xl bg-[#0053CC] hover:bg-[#0042A5] text-white font-semibold text-sm transition-all shadow-sm cursor-pointer"
             >
               Continue
             </Button>
@@ -202,7 +202,7 @@ export default function ForgotPassword() {
               type="button"
               variant="ghost"
               onClick={() => navigate("/")}
-              className="w-full h-12 rounded-xl border border-slate-200 text-sm font-semibold text-[#0053CC] hover:bg-slate-50"
+              className="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold text-[#0053CC] dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
             >
               Cancel
             </Button>
@@ -228,12 +228,12 @@ export default function ForgotPassword() {
                   onKeyDown={(e) => handleKeyDown(idx, e)}
                   className={`h-14 w-12 sm:w-14 text-center text-lg sm:text-xl font-bold rounded-xl border transition-all focus:outline-none ${
                     otpStatus === "invalid"
-                      ? "border-red-400 bg-red-50 text-red-600 focus:ring-2 focus:ring-red-400"
+                      ? "border-red-400 bg-red-50 dark:bg-red-950/20 text-red-600 focus:ring-2 focus:ring-red-400"
                       : otpStatus === "expired"
-                      ? "border-amber-400 bg-amber-50/50 text-amber-700 focus:ring-2 focus:ring-amber-400"
+                      ? "border-amber-400 bg-amber-50/50 dark:bg-amber-950/20 text-amber-700 focus:ring-2 focus:ring-amber-400"
                       : digit
-                      ? "border-blue-500 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500"
-                      : "border-slate-300 bg-white text-slate-900 focus:border-blue-500"
+                      ? "border-blue-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:border-blue-500"
                   }`}
                 />
               ))}
@@ -308,21 +308,21 @@ export default function ForgotPassword() {
 
       {/* MODAL 1: INVALID EMAIL POPUP */}
       {isInvalidEmailOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 sm:p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/40 text-red-500">
               <AlertTriangle className="h-7 w-7" />
             </div>
 
-            <h3 className="text-lg font-bold text-slate-900">Invalid Email</h3>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Invalid Email</h3>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               The email address you entered is not registered with SmartPark. Please check your email address and try again.
             </p>
 
             <Button
               type="button"
               onClick={() => setIsInvalidEmailOpen(false)}
-              className="mt-6 w-full h-11 rounded-xl border border-red-300 bg-white text-red-500 font-medium hover:bg-red-50 transition-colors"
+              className="mt-6 w-full h-11 rounded-xl border border-red-300 dark:border-red-900/50 bg-white dark:bg-slate-950 text-red-500 font-medium hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
             >
               Try Again
             </Button>
